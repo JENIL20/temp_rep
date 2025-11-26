@@ -1,5 +1,6 @@
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store';
 import AppRoutes from './routes/AppRoutes';
 import { useEffect } from 'react';
 import { useAppDispatch } from './store';
@@ -36,9 +37,11 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <Provider store={store}>
-      <AuthInitializer>
-        <AppRoutes />
-      </AuthInitializer>
+      <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+        <AuthInitializer>
+          <AppRoutes />
+        </AuthInitializer>
+      </PersistGate>
     </Provider>
   );
 }

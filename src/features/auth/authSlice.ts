@@ -16,8 +16,8 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: null,
+  isAuthenticated: false,
   loading: false,
 };
 
@@ -32,13 +32,13 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      localStorage.setItem('token', action.payload.token);
+      // Redux Persist will automatically save to localStorage
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem('token');
+      // Redux Persist will automatically clear from localStorage
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
