@@ -3,11 +3,71 @@ import api from "../../../api/axios";
 import { PlusCircle, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
+// Sample courses data for when API is not available
+const getSampleCourses = () => [
+  {
+    id: 1,
+    title: "Complete Web Development Bootcamp 2024",
+    description: "Master modern web development with HTML, CSS, JavaScript, React, Node.js, and more. Build real-world projects and become a full-stack developer.",
+    instructor: "Dr. Sarah Johnson",
+    difficulty: "intermediate",
+    durationHours: 42,
+    price: 2999,
+    rating: 4.8,
+    isActive: true
+  },
+  {
+    id: 2,
+    title: "Python for Data Science",
+    description: "Learn Python programming and data analysis with pandas, NumPy, and visualization libraries.",
+    instructor: "Prof. Michael Chen",
+    difficulty: "beginner",
+    durationHours: 35,
+    price: 2499,
+    rating: 4.6,
+    isActive: true
+  },
+  {
+    id: 3,
+    title: "Advanced React & TypeScript",
+    description: "Deep dive into React patterns, hooks, TypeScript integration, and state management.",
+    instructor: "Emily Rodriguez",
+    difficulty: "advanced",
+    durationHours: 28,
+    price: 3499,
+    rating: 4.9,
+    isActive: true
+  },
+  {
+    id: 4,
+    title: "Mobile App Development with React Native",
+    description: "Build cross-platform mobile applications for iOS and Android using React Native.",
+    instructor: "James Wilson",
+    difficulty: "intermediate",
+    durationHours: 38,
+    price: 3299,
+    rating: 4.7,
+    isActive: true
+  },
+  {
+    id: 5,
+    title: "Machine Learning Fundamentals",
+    description: "Introduction to machine learning algorithms, neural networks, and practical applications.",
+    instructor: "Dr. Aisha Patel",
+    difficulty: "advanced",
+    durationHours: 45,
+    price: 3999,
+    rating: 4.8,
+    isActive: false
+  }
+];
+
 const Courses = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [usingSampleData, setUsingSampleData] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -35,8 +95,13 @@ const Courses = () => {
     try {
       const res = await api.get("/course/list");
       setCourses(res.data);
+      setUsingSampleData(false);
     } catch (err) {
-      setError("Failed to load courses.");
+      console.error("Failed to load courses, using sample data:", err);
+      // Use sample data when API fails
+      setCourses(getSampleCourses());
+      setUsingSampleData(true);
+      setError("");
     } finally {
       setLoading(false);
     }
@@ -72,6 +137,15 @@ const Courses = () => {
 
   return (
     <div className="p-5">
+      {/* Sample Data Banner */}
+      {usingSampleData && (
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-lg mb-4 text-center">
+          <p className="text-sm font-medium">
+            ⚠️ API is not available. Displaying sample data for demonstration purposes.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-semibold text-primary-navy">Courses</h1>
