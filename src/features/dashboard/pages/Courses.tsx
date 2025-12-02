@@ -92,8 +92,10 @@ const Courses = () => {
   }, [isModalOpen]);
 
   const fetchCourses = async () => {
+    console.log("Fetching courses from API...");
     try {
       const res = await api.get("/course/list");
+      console.log("Fetched courses:", res.data);
       setCourses(res.data);
       setUsingSampleData(false);
     } catch (err) {
