@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../api/axios";
+import { API } from "../../../api/endpoints";
 import {
   ArrowLeft,
   Play,
@@ -247,8 +248,8 @@ const CourseDetails = () => {
   // Fetch course details
   const fetchCourse = async () => {
     try {
-      const res = await api.get(`/course/${id}`);
-      setCourse(res.data);
+      const res = await api.get(API.COURSE.GET_BY_ID(id || ''));
+      setCourse(res.data[0]);
       setUsingSampleData(false);
     } catch (err) {
       console.error("Failed to load course, using sample data:", err);
@@ -264,7 +265,8 @@ const CourseDetails = () => {
   const fetchVideos = async () => {
     setVideosLoading(true);
     try {
-      const res = await api.get(`/course/${id}/videos`);
+      const res = await api.get(API.COURSE_VIDEO.LIST_BY_COURSE(id || ''));
+      console.log("Fetched videos:", res);
       setVideos(res.data);
     } catch (err) {
       console.error("Failed to load videos, using sample data:", err);
@@ -279,7 +281,7 @@ const CourseDetails = () => {
   const fetchEnrolledUsers = async () => {
     setUsersLoading(true);
     try {
-      const res = await api.get(`/course/${id}/enrollments`);
+      const res = await api.get(API.COURSE.GET_ENROLLMENTS(id || ''));
       setEnrolledUsers(res.data);
     } catch (err) {
       console.error("Failed to load enrolled users, using sample data:", err);
@@ -302,7 +304,7 @@ const CourseDetails = () => {
       fetchEnrolledUsers();
     }
   }, [activeTab]);
-
+  console.log("COURSE DETAILS", course);
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

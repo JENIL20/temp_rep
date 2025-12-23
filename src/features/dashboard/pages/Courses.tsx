@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import api from "../../../api/axios";
-import { PlusCircle, X } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { API } from "../../../api/endpoints";
+import { PlusCircle } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 // Sample courses data for when API is not available
 const getSampleCourses = () => [
@@ -63,38 +64,16 @@ const getSampleCourses = () => [
 ];
 
 const Courses = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [usingSampleData, setUsingSampleData] = useState(false);
-
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    instructor: "",
-    difficulty: "",
-    durationHours: "",
-    price: "",
-  });
-
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  // Close modal on outside click
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        setIsModalOpen(false);
-      }
-    };
-    if (isModalOpen) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [isModalOpen]);
 
   const fetchCourses = async () => {
     console.log("Fetching courses from API...");
     try {
-      const res = await api.get("/course/list");
+      const res = await api.get(API.COURSE.LIST);
       console.log("Fetched courses:", res.data);
       setCourses(res.data);
       setUsingSampleData(false);
@@ -113,30 +92,6 @@ const Courses = () => {
     fetchCourses();
   }, []);
 
-  const handleCreate = async () => {
-    try {
-      await api.post("/course/create", {
-        ...form,
-        durationHours: Number(form.durationHours),
-        price: Number(form.price),
-      });
-
-      setIsModalOpen(false);
-      setForm({
-        title: "",
-        description: "",
-        instructor: "",
-        difficulty: "",
-        durationHours: "",
-        price: "",
-      });
-
-      fetchCourses();
-    } catch (error) {
-      alert("Failed to create course");
-    }
-  };
-
   return (
     <div className="p-5">
       {/* Sample Data Banner */}
@@ -153,12 +108,12 @@ const Courses = () => {
         <h1 className="text-xl font-semibold text-primary-navy">Courses</h1>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => navigate('/courses/create')}
           className="flex items-center gap-1 bg-secondary-gold text-primary-navy
                      px-3 py-1.5 rounded-md text-sm font-medium shadow-sm hover:opacity-90"
         >
           <PlusCircle size={18} />
-          Add Course
+          Create Course
         </button>
       </div>
 
@@ -176,7 +131,7 @@ const Courses = () => {
             className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition"
           >
             <h2 className="text-lg font-semibold text-primary-navy mb-1">
-              <NavLink to={`/courses/${course.id}`}  >
+              <NavLink to={`/courses/${course?.courseId}`}  >
 
                 {course.title}
               </NavLink>
@@ -206,59 +161,7 @@ const Courses = () => {
         ))}
       </div>
 
-      {/* ---------------- MODAL ---------------- */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50">
-          <div
-            ref={modalRef}
-            className="bg-white w-full max-w-md rounded-lg shadow-lg p-6"
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-primary-navy">
-                Add Course
-              </h2>
-              <button onClick={() => setIsModalOpen(false)}>
-                <X className="text-gray-600 hover:text-black" />
-              </button>
-            </div>
 
-            {/* Form */}
-            <div className="space-y-3">
-              {Object.entries(form).map(([key, value]) => (
-                <input
-                  key={key}
-                  type="text"
-                  placeholder={key.replace(/([A-Z])/g, " $1")}
-                  value={value}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, [key]: e.target.value }))
-                  }
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-navy"
-                />
-              ))}
-            </div>
-
-            {/* Actions */}
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-1.5 text-sm rounded border border-gray-300 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleCreate}
-                className="px-4 py-1.5 text-sm rounded bg-primary-navy text-white hover:bg-primary-navy-light"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* ---------------- END MODAL ---------------- */}
     </div>
   );
 };

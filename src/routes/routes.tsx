@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import { lazy, LazyExoticComponent, ComponentType } from "react";
 import { paths } from "./path";
 
 // ---------- Lazy-loaded Components ----------
@@ -9,15 +9,28 @@ const ResetPassword = lazy(() => import("../features/auth/pages/ResetPassword"))
 const Dashboard = lazy(() => import("../features/dashboard/pages/Dashboard"));
 
 const Courses = lazy(() => import("../features/dashboard/pages/Courses"));
+const CreateCourse = lazy(() => import("../features/dashboard/pages/CreateCourse"));
 const CourseDetails = lazy(() => import("../features/dashboard/pages/CourseDetails"));
+const CourseVideos = lazy(() => import("../features/dashboard/pages/CourseVideos"));
+const CourseDocuments = lazy(() => import("../features/dashboard/pages/CourseDocuments"));
 const Categories = lazy(() => import("../features/dashboard/pages/Categories"));
+const MyCourses = lazy(() => import("../features/dashboard/pages/MyCourses"));
+const Certificates = lazy(() => import("../features/dashboard/pages/Certificates"));
+const RolesManagement = lazy(() => import("../features/dashboard/pages/RolesManagement"));
 // const UserProfile = lazy(() => import("../features/users/pages/UserProfile"));
 // const AdminPanel = lazy(() => import("../features/admin/pages/AdminPanel"));
 // const Unauthorized = lazy(() => import("../components/common/Unauthorized"));
 // const ModerationPanel = lazy(() => import("../features/moderation/pages/ModerationPanel"));
 
+export interface RouteConfig {
+  path: string;
+  name: string;
+  element: LazyExoticComponent<ComponentType<any>>;
+  permissions?: string[];
+}
+
 // ---------- Auth Routes ----------
-export const AuthRoutes = [
+export const AuthRoutes: RouteConfig[] = [
   {
     path: paths.auth.login,
     name: "Login",
@@ -41,7 +54,7 @@ export const AuthRoutes = [
 ];
 
 // ---------- Protected Routes ----------
-export const ProtectedRoutes = [
+export const ProtectedRoutes: RouteConfig[] = [
   {
     path: paths.web.dashboard,
     name: "Dashboard",
@@ -50,8 +63,20 @@ export const ProtectedRoutes = [
   },
   {
     path: paths.web.courses,
-    name: "Dashboard",
+    name: "Courses",
     element: Courses,
+    permissions: [],
+  },
+  {
+    path: paths.web.courseCreate,
+    name: "Create Course",
+    element: CreateCourse,
+    permissions: [],
+  },
+  {
+    path: paths.web.courseEdit,
+    name: "Edit Course",
+    element: CreateCourse,
     permissions: [],
   },
   {
@@ -65,6 +90,36 @@ export const ProtectedRoutes = [
     name: "Course Details",
     element: CourseDetails,
     permissions: [],
+  },
+  {
+    path: paths.web.courseVideos,
+    name: "Course Videos",
+    element: CourseVideos,
+    permissions: [],
+  },
+  {
+    path: paths.web.courseDocuments,
+    name: "Course Documents",
+    element: CourseDocuments,
+    permissions: [],
+  },
+  {
+    path: paths.web.myCourses,
+    name: "My Courses",
+    element: MyCourses,
+    permissions: [],
+  },
+  {
+    path: paths.web.certificates,
+    name: "Certificates",
+    element: Certificates,
+    permissions: [],
+  },
+  {
+    path: paths.web.rolesManagement,
+    name: "Roles Management",
+    element: RolesManagement,
+    permissions: ["admin"],
   },
   // {
   //   path: paths.web.admin,

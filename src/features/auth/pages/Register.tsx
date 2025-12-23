@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "../../../store";
 import { setCredentials } from "../authSlice";
 import api from "../../../api/axios";
+import { API } from "../../../api/endpoints";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -54,7 +55,7 @@ const Register = () => {
     setLoading(true);
     try {
       const { confirmPassword, ...data } = formData;
-      const response = await api.post("/auth/register", data);
+      const response = await api.post(API.AUTH.REGISTER, data);
       const { user, token } = response.data;
 
       dispatch(setCredentials({ user, token }));

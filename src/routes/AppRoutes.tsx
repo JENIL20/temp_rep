@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoutes";
-import RoleBasedRoute from "./RoleBasedRoutes";
 import { paths } from "./path";
-import { AuthRoutes, ProtectedRoutes } from './routes.js'
-import Wrapper from "@/components/Wrapper.js";
+import { AuthRoutes, ProtectedRoutes } from './routes';
+import Wrapper from "@/components/Wrapper";
 
 const LoadingFallback = () => <div>Loading...</div>;
 
@@ -27,7 +26,7 @@ const AppRoutes = () => {
           {/* ---------- Protected Routes ---------- */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Wrapper />}>
-              {ProtectedRoutes.map(({ path, element: Element, permissions }) => (
+              {ProtectedRoutes.map(({ path, element: Element, permissions = [] }) => (
                 <Route
                   key={path}
                   path={path}

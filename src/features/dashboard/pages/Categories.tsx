@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from "react";
 import api from "../../../api/axios";
+import { API } from "../../../api/endpoints";
 import { PlusCircle, X, Pencil, Trash2 } from "lucide-react";
 
 const Categories = () => {
@@ -29,7 +30,8 @@ const Categories = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get("/category/list");
+      const res = await api.get(API.CATEGORY.LIST);
+      console.log("fetched categories = ", res?.data);
       setCategories(res?.data);
     } catch {
       alert("Unable to fetch categories");
@@ -43,7 +45,7 @@ const Categories = () => {
   }, []);
 
   const openCreateModal = () => {
-    setForm({ categoryName: "" });
+    setForm({ categoryName: "", id: "" });
     setEditMode(false);
     setModalOpen(true);
   };
@@ -59,17 +61,17 @@ const Categories = () => {
   const handleSave = async () => {
     try {
       if (editMode) {
-        await api.put(`/category/update/${form?.id}`, {
+        await api.put(API.CATEGORY.UPDATE(form?.id), {
           categoryName: form.categoryName,
         });
       } else {
-        await api.post("/category/create", form);
+        await api.post(API.CATEGORY.CREATE, form);
       }
 
       setModalOpen(false);
       setEditMode(false);
       fetchCategories();
-      setForm({ categoryName: "" });
+      setForm({ categoryName: "", id: "" });
     } catch {
       alert("Failed to save category");
     }
@@ -77,7 +79,7 @@ const Categories = () => {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/category/delete/${deleteConfirm.id}`);
+      await api.delete(API.CATEGORY.DELETE(deleteConfirm.id));
       setDeleteConfirm(null);
       fetchCategories();
     } catch {

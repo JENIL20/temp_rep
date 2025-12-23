@@ -22,5 +22,17 @@ export const paths = {
     courseCreate: "/courses/create",
     courseDetails: "/courses/:id",
     courseEdit: "/courses/edit/:id",
+    courseVideos: "/courses/:id/videos",
+    courseDocuments: "/courses/:id/documents",
+
+    // User Course Routes
+    myCourses: "/my-courses",
+
+    // Certificate Routes
+    certificates: "/certificates",
+
+    // Admin Routes
+    rolesManagement: "/admin/roles",
+    permissionsManagement: "/admin/permissions",
   },
 };

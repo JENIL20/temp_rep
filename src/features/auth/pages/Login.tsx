@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../../../store';
 import { setCredentials } from '../authSlice';
 import api from '../../../api/axios';
+import { API } from '../../../api/endpoints';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -22,9 +23,9 @@ const Login = () => {
 
     try {
       console.log("Sending login request for ", email);
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post(API.AUTH.LOGIN, { email, password });
       console.log("response = ", response.data);
-      const { user, token } = response.data;
+      const { user, token } = response.data[0];
 
       dispatch(setCredentials({ user, token }));
       navigate('/dashboard');

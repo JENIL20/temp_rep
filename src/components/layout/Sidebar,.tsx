@@ -61,9 +61,24 @@ const Sidebar = () => {
               Courses
             </NavLink>
 
+            {/* My Courses */}
+            <NavLink to="/my-courses" className={linkClasses}>
+              My Courses
+            </NavLink>
+
             {/* Categories */}
             <NavLink to="/categories" className={linkClasses}>
               Categories
+            </NavLink>
+
+            {/* Certificates */}
+            <NavLink to="/certificates" className={linkClasses}>
+              Certificates
+            </NavLink>
+
+            {/* Roles Management */}
+            <NavLink to="/admin/roles" className={linkClasses}>
+              Roles & Permissions
             </NavLink>
 
             {/* Projects */}
