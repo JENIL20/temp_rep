@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoutes";
 import { paths } from "./path";
 import { AuthRoutes, ProtectedRoutes } from './routes';
-import Wrapper from "@/components/Wrapper";
+import Wrapper from "@/shared/components/layout/Wrapper";
 
 const LoadingFallback = () => <div>Loading...</div>;
 

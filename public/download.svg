@@ -1,0 +1,21 @@
+<svg width="220" height="60" viewBox="0 0 220 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (optional, remove if not needed) -->
+  <rect width="220" height="60" rx="6" fill="#163A5F"></rect>
+
+  <!-- Logo Icon Background -->
+  <rect x="12" y="10" width="40" height="40" rx="10" fill="#D9A441"></rect>
+
+  <!-- Graduation Cap Icon -->
+  <path d="M32 22 L18 28 L32 34 L46 28 Z" fill="#163A5F"></path>
+  <path d="M24 31 V36 C24 38 40 38 40 36 V31" fill="#163A5F"></path>
+
+  <!-- LMS Text -->
+  <text x="64" y="34" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">
+    LMS
+  </text>
+
+  <!-- Academy Text -->
+  <text x="64" y="48" font-family="Arial, Helvetica, sans-serif" font-size="10" letter-spacing="2" font-weight="600" fill="#D9A441">
+    ACADEMY
+  </text>
+</svg>

@@ -3,7 +3,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
 import { combineReducers } from '@reduxjs/toolkit';
-import authReducer from '../features/auth/authSlice';
+import authReducer from '../domains/auth/store/authSlice';
 
 // Combine all reducers
 const rootReducer = combineReducers({

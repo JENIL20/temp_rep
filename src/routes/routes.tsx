@@ -2,25 +2,22 @@ import { lazy, LazyExoticComponent, ComponentType } from "react";
 import { paths } from "./path";
 
 // ---------- Lazy-loaded Components ----------
-const Login = lazy(() => import("../features/auth/pages/Login"));
-const Register = lazy(() => import("../features/auth/pages/Register"));
-const ForgotPassword = lazy(() => import("../features/auth/pages/ForgetPassword"));
-const ResetPassword = lazy(() => import("../features/auth/pages/ResetPassword"));
-const Dashboard = lazy(() => import("../features/dashboard/pages/Dashboard"));
+const Login = lazy(() => import("../domains/auth/pages/Login"));
+const Register = lazy(() => import("../domains/auth/pages/Register"));
+const ForgotPassword = lazy(() => import("../domains/auth/pages/ForgetPassword"));
+const ResetPassword = lazy(() => import("../domains/auth/pages/ResetPassword"));
+const Dashboard = lazy(() => import("../domains/dashboard/pages/Dashboard"));
 
-const Courses = lazy(() => import("../features/dashboard/pages/Courses"));
-const CreateCourse = lazy(() => import("../features/dashboard/pages/CreateCourse"));
-const CourseDetails = lazy(() => import("../features/dashboard/pages/CourseDetails"));
-const CourseVideos = lazy(() => import("../features/dashboard/pages/CourseVideos"));
-const CourseDocuments = lazy(() => import("../features/dashboard/pages/CourseDocuments"));
-const Categories = lazy(() => import("../features/dashboard/pages/Categories"));
-const MyCourses = lazy(() => import("../features/dashboard/pages/MyCourses"));
-const Certificates = lazy(() => import("../features/dashboard/pages/Certificates"));
-const RolesManagement = lazy(() => import("../features/dashboard/pages/RolesManagement"));
-// const UserProfile = lazy(() => import("../features/users/pages/UserProfile"));
-// const AdminPanel = lazy(() => import("../features/admin/pages/AdminPanel"));
-// const Unauthorized = lazy(() => import("../components/common/Unauthorized"));
-// const ModerationPanel = lazy(() => import("../features/moderation/pages/ModerationPanel"));
+const Courses = lazy(() => import("../domains/course/pages/Courses"));
+const CreateCourse = lazy(() => import("../domains/course/pages/CreateCourse"));
+const CourseDetails = lazy(() => import("../domains/course/pages/CourseDetails"));
+const CourseVideos = lazy(() => import("../domains/course/pages/CourseVideos"));
+const CourseDocuments = lazy(() => import("../domains/course/pages/CourseDocuments"));
+const Categories = lazy(() => import("../domains/category/pages/Categories"));
+const MyCourses = lazy(() => import("../domains/course/pages/MyCourses"));
+const Certificates = lazy(() => import("../domains/certificate/pages/Certificates"));
+const RolesManagement = lazy(() => import("../domains/role/pages/RolesManagement"));
+const Profile = lazy(() => import("../domains/user/pages/Profile"));
 
 export interface RouteConfig {
   path: string;
@@ -59,6 +56,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     path: paths.web.dashboard,
     name: "Dashboard",
     element: Dashboard,
+    permissions: [],
+  },
+  {
+    path: paths.web.profile,
+    name: "Profile",
+    element: Profile,
     permissions: [],
   },
   {

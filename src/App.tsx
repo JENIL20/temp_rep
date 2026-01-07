@@ -4,8 +4,10 @@ import { store, persistor } from './store';
 import AppRoutes from './routes/AppRoutes';
 import { useEffect } from 'react';
 import { useAppDispatch } from './store';
-import { setCredentials, logout } from './features/auth/authSlice';
-import api from './api/axios';
+import { setCredentials, logout } from './domains/auth/store/authSlice';
+import api from './shared/api/axios';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 
 // Component to handle auth initialization
@@ -40,6 +42,18 @@ function App() {
       <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
         <AuthInitializer>
           <AppRoutes />
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
         </AuthInitializer>
       </PersistGate>
     </Provider>

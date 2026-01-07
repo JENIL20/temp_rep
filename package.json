@@ -16,8 +16,10 @@
     "lucide-react": "^0.554.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-player": "^3.4.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4",
+    "react-toastify": "^11.0.5",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0"
   },
