@@ -188,17 +188,25 @@ const validateId = (id: number, name: string = 'ID'): void => {
     }
 };
 
+// Development Mode Flag
+const IS_DEV = import.meta.env.MODE === 'development';
+
 // Course Video API endpoints
 export const courseVideoApi = {
     // Get all videos for a course
     listByCourse: async (courseId: number): Promise<CourseVideoResponse[]> => {
+        if (IS_DEV) {
+            console.log("DEV MODE: Returning dummy videos");
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+            return DUMMY_VIDEOS.filter(v => v.courseId === Number(courseId));
+        }
+
         try {
             validateId(courseId, 'courseId');
             const response = await api.get(API.COURSE_VIDEO.LIST_BY_COURSE(courseId));
             const result = response.data;
             console.log("COURSE VIDEOS ", result);
             return Array.isArray(result) ? result : [];
-            return DUMMY_VIDEOS.filter(v => v.courseId === Number(courseId));
         } catch (error) {
             throw handleApiError(error, 'List videos by course');
         }
@@ -206,28 +214,28 @@ export const courseVideoApi = {
 
     // Get a specific video by ID
     getById: async (id: number): Promise<CourseVideoResponse> => {
-        try {
-            validateId(id);
-            // const response = await api.get(API.COURSE_VIDEO.GET_BY_ID(id));
-            // if (!response.data) throw new Error('Video not found');
-            // return response.data;
+        if (IS_DEV) {
             const video = DUMMY_VIDEOS.find(v => v.id === Number(id));
             if (!video) throw new Error('Video not found');
             return video;
+        }
+
+        try {
+            validateId(id);
+            const response = await api.get(API.COURSE_VIDEO.GET_BY_ID(id));
+            if (!response.data) throw new Error('Video not found');
+            return response.data;
         } catch (error) {
+            // Fallback to dummy data even in production if API fails (optional, but requested behavior implies strong fallback preference)
+            // But strictly following user "dev in background", specific logic for dev mode is best.
+            // If api fails in prod, we usually throw.
             throw handleApiError(error, 'Get video by ID');
         }
     },
 
     // Create a new video
     create: async (data: CourseVideoRequest): Promise<CourseVideoResponse> => {
-        try {
-            if (!data.title) throw new Error('Video title is required');
-            if (!data.videoUrl) throw new Error('Video URL is required');
-            validateId(data.courseId, 'courseId');
-
-            const response = await api.post(API.COURSE_VIDEO.CREATE(data.courseId), data);
-            return response.data;
+        if (IS_DEV) {
             const newVideo: CourseVideoResponse = {
                 ...data,
                 id: Math.floor(Math.random() * 1000) + 100,
@@ -235,6 +243,15 @@ export const courseVideoApi = {
                 updatedAt: new Date().toISOString()
             };
             return newVideo;
+        }
+
+        try {
+            if (!data.title) throw new Error('Video title is required');
+            if (!data.videoUrl) throw new Error('Video URL is required');
+            validateId(data.courseId, 'courseId');
+
+            const response = await api.post(API.COURSE_VIDEO.CREATE(data.courseId), data);
+            return response.data;
         } catch (error) {
             throw handleApiError(error, 'Create video');
         }
@@ -242,15 +259,18 @@ export const courseVideoApi = {
 
     // Update an existing video
     update: async (id: number, data: CourseVideoRequest): Promise<CourseVideoResponse> => {
-        try {
-            validateId(id);
-            const response = await api.put(API.COURSE_VIDEO.UPDATE(id), data);
-            return response.data;
+        if (IS_DEV) {
             return {
                 ...data,
                 id: id,
                 updatedAt: new Date().toISOString()
             };
+        }
+
+        try {
+            validateId(id);
+            const response = await api.put(API.COURSE_VIDEO.UPDATE(id), data);
+            return response.data;
         } catch (error) {
             throw handleApiError(error, 'Update video');
         }
@@ -258,10 +278,14 @@ export const courseVideoApi = {
 
     // Delete a video
     delete: async (id: number): Promise<void> => {
+        if (IS_DEV) {
+            console.log(`Mock deleted video ${id}`);
+            return;
+        }
+
         try {
             validateId(id);
-            // await api.delete(API.COURSE_VIDEO.DELETE(id));
-            console.log(`Mock deleted video ${id}`);
+            await api.delete(API.COURSE_VIDEO.DELETE(id));
         } catch (error) {
             throw handleApiError(error, 'Delete video');
         }
@@ -272,11 +296,15 @@ export const courseVideoApi = {
 export const courseApi = {
     // List all courses
     list: async () => {
+        if (IS_DEV) {
+            console.log("DEV MODE: Returning dummy courses");
+            return DUMMY_COURSES;
+        }
+
         try {
             const response = await api.get(API.COURSE.LIST);
             const result = response.data;
             return Array.isArray(result) ? result : [];
-            return DUMMY_COURSES;
         } catch (error) {
             throw handleApiError(error, 'List courses');
         }
@@ -284,14 +312,17 @@ export const courseApi = {
 
     // Get course by ID
     getById: async (id: number) => {
+        if (IS_DEV) {
+            const course = DUMMY_COURSES.find(c => c.id === Number(id));
+            if (!course) throw new Error('Course not found');
+            return course;
+        }
+
         try {
             validateId(id);
             const response = await api.get(API.COURSE.GET_BY_ID(id));
             if (!response.data) throw new Error('Course not found');
             return response.data;
-            const course = DUMMY_COURSES.find(c => c.id === Number(id));
-            if (!course) throw new Error('Course not found');
-            return course;
         } catch (error) {
             throw handleApiError(error, 'Get course by ID');
         }
@@ -299,16 +330,19 @@ export const courseApi = {
 
     // Create a new course
     create: async (data: any) => {
+        if (IS_DEV) {
+            return {
+                ...data,
+                id: Math.floor(Math.random() * 1000) + 100,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+        }
+
         try {
             if (!data.title) throw new Error('Course title is required');
             const response = await api.post(API.COURSE.CREATE, data);
             return response.data;
-            return {
-                ...data,
-                // id: Math.floor(Math.random() * 1000) + 100,
-                // createdAt: new Date().toISOString(),
-                // updatedAt: new Date().toISOString()
-            };
         } catch (error) {
             throw handleApiError(error, 'Create course');
         }
@@ -316,15 +350,18 @@ export const courseApi = {
 
     // Update a course
     update: async (id: number, data: any) => {
-        try {
-            validateId(id);
-            // const response = await api.put(API.COURSE.UPDATE(id), data);
-            // return response.data;
+        if (IS_DEV) {
             return {
                 ...data,
                 id: id,
                 updatedAt: new Date().toISOString()
             };
+        }
+
+        try {
+            validateId(id);
+            const response = await api.put(API.COURSE.UPDATE(id), data);
+            return response.data;
         } catch (error) {
             throw handleApiError(error, 'Update course');
         }
@@ -332,35 +369,49 @@ export const courseApi = {
 
     // Get courses by category
     getByCategory: async (categoryId: number) => {
+        if (IS_DEV) {
+            return DUMMY_COURSES.filter(c => c.categoryId === Number(categoryId));
+        }
+
         try {
             validateId(categoryId, 'categoryId');
-            // const response = await api.get(API.COURSE.GET_BY_CATEGORY(categoryId));
-            // const result = response.data;
-            // return Array.isArray(result) ? result : [];
-            return DUMMY_COURSES.filter(c => c.categoryId === Number(categoryId));
+            const response = await api.get(API.COURSE.GET_BY_CATEGORY(categoryId));
+            const result = response.data;
+            return Array.isArray(result) ? result : [];
         } catch (error) {
             throw handleApiError(error, 'Get courses by category');
         }
     },
 
     // Upload video file
-    uploadVideo: async (courseId: number, file: File) => {
+    uploadVideo: async (courseId: number, file: File, onProgress?: (progress: number) => void) => {
+        if (IS_DEV) {
+            if (onProgress) onProgress(100);
+            return {
+                url: URL.createObjectURL(file),
+                filename: file.name,
+                id: Math.floor(Math.random() * 1000)
+            };
+        }
+
         try {
             validateId(courseId, 'courseId');
             if (!file) throw new Error('File is required');
 
-            // const formData = new FormData();
-            // formData.append('file', file);
-            // const response = await api.post(API.COURSE.UPLOAD_VIDEO(courseId), formData, {
-            //     headers: {
-            //         'Content-Type': 'multipart/form-data',
-            //     },
-            // });
-            // return response.data;
-            return {
-                url: URL.createObjectURL(file),
-                filename: file.name
-            };
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await api.post(API.COURSE.UPLOAD_VIDEO(courseId), formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent: any) => {
+                    if (onProgress && progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress(progress);
+                    }
+                }
+            });
+            return response.data;
         } catch (error) {
             throw handleApiError(error, 'Upload video');
         }
@@ -368,31 +419,24 @@ export const courseApi = {
 
     // Get videos for a course
     getVideos: async (courseId: number) => {
+        if (IS_DEV) {
+            return DUMMY_VIDEOS.filter(v => v.courseId === Number(courseId));
+        }
+
         try {
             validateId(courseId, 'courseId');
-            // const response = await api.get(API.COURSE.GET_VIDEOS(courseId));
-            // const result = response.data;
-            // return Array.isArray(result) ? result : [];
-            return DUMMY_VIDEOS.filter(v => v.courseId === Number(courseId));
+            const response = await api.get(API.COURSE.GET_VIDEOS(courseId));
+            const result = response.data;
+            return Array.isArray(result) ? result : [];
         } catch (error) {
             throw handleApiError(error, 'Get videos for course');
         }
     },
 
     // Upload document
-    uploadDocument: async (courseId: number, file: File) => {
-        try {
-            validateId(courseId, 'courseId');
-            if (!file) throw new Error('File is required');
-
-            // const formData = new FormData();
-            // formData.append('file', file);
-            // const response = await api.post(API.COURSE.UPLOAD_DOCUMENT(courseId), formData, {
-            //     headers: {
-            //         'Content-Type': 'multipart/form-data',
-            //     },
-            // });
-            // return response.data;
+    uploadDocument: async (courseId: number, file: File, onProgress?: (progress: number) => void) => {
+        if (IS_DEV) {
+            if (onProgress) onProgress(100);
             return {
                 id: Math.floor(Math.random() * 1000),
                 courseId: courseId,
@@ -400,8 +444,28 @@ export const courseApi = {
                 fileUrl: URL.createObjectURL(file),
                 fileSize: file.size,
                 uploadedAt: new Date().toISOString(),
-                uploadedBy: 'Current User'
+                uploadedBy: 'Dev User'
             };
+        }
+
+        try {
+            validateId(courseId, 'courseId');
+            if (!file) throw new Error('File is required');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await api.post(API.COURSE.UPLOAD_DOCUMENT(courseId), formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent: any) => {
+                    if (onProgress && progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress(progress);
+                    }
+                }
+            });
+            return response.data;
         } catch (error) {
             throw handleApiError(error, 'Upload document');
         }
@@ -409,12 +473,15 @@ export const courseApi = {
 
     // Get documents for a course
     getDocuments: async (courseId: number) => {
+        if (IS_DEV) {
+            return DUMMY_DOCUMENTS.filter(d => d.courseId === Number(courseId));
+        }
+
         try {
             validateId(courseId, 'courseId');
-            // const response = await api.get(API.COURSE.GET_DOCUMENTS(courseId));
-            // const result = response.data;
-            // return Array.isArray(result) ? result : [];
-            return DUMMY_DOCUMENTS.filter(d => d.courseId === Number(courseId));
+            const response = await api.get(API.COURSE.GET_DOCUMENTS(courseId));
+            const result = response.data;
+            return Array.isArray(result) ? result : [];
         } catch (error) {
             throw handleApiError(error, 'Get documents for course');
         }
@@ -422,10 +489,14 @@ export const courseApi = {
 
     // Delete document
     deleteDocument: async (docId: number) => {
+        if (IS_DEV) {
+            console.log(`Mock deleted document ${docId}`);
+            return;
+        }
+
         try {
             validateId(docId, 'docId');
-            // await api.delete(API.COURSE.DELETE_DOCUMENT(docId));
-            console.log(`Mock deleted document ${docId}`);
+            await api.delete(API.COURSE.DELETE_DOCUMENT(docId));
         } catch (error) {
             throw handleApiError(error, 'Delete document');
         }
@@ -433,12 +504,15 @@ export const courseApi = {
 
     // Get enrollments for a course
     getEnrollments: async (courseId: number) => {
+        if (IS_DEV) {
+            return DUMMY_ENROLLMENTS.filter(e => e.courseId === Number(courseId));
+        }
+
         try {
             validateId(courseId, 'courseId');
-            // const response = await api.get(API.COURSE.GET_ENROLLMENTS(courseId));
-            // const result = response.data;
-            // return Array.isArray(result) ? result : [];
-            return DUMMY_ENROLLMENTS.filter(e => e.courseId === Number(courseId));
+            const response = await api.get(API.COURSE.GET_ENROLLMENTS(courseId));
+            const result = response.data;
+            return Array.isArray(result) ? result : [];
         } catch (error) {
             throw handleApiError(error, 'Get enrollments for course');
         }

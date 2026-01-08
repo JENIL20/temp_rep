@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../../shared/api/axios';
-import { API } from '../../../shared/api/endpoints';
+import { authApi } from '../api/authApi';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -15,10 +14,10 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      await api.post(API.AUTH.FORGOT_PASSWORD, { email });
+      await authApi.forgotPassword(email);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send reset email');
+      setError(err.message || 'Failed to send reset email');
     } finally {
       setLoading(false);
     }

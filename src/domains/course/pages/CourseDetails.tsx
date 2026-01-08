@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import ReactPlayer from "react-player";
+import { useAppSelector } from "../../../store";
+import { userCourseApi } from "../../enrollment/api/userCourseApi";
 
 const Player = ReactPlayer as any;
 import type { Course, CourseVideo, EnrolledUser } from "../types/course.types";
@@ -41,10 +43,15 @@ const CourseDetails = () => {
   const [videosLoading, setVideosLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
 
+  const { user } = useAppSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const [usingSampleData, setUsingSampleData] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(null);
   const [showPlayer, setShowPlayer] = useState(false);
+
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subLoading, setSubLoading] = useState(false);
+  const [checkingSub, setCheckingSub] = useState(false);
 
   // Fetch course details
   const fetchCourse = async () => {
@@ -108,6 +115,69 @@ const CourseDetails = () => {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  // Check subscription status
+  useEffect(() => {
+    const checkSub = async () => {
+      if (!user || !id) return;
+      setCheckingSub(true);
+      try {
+        const status = await userCourseApi.checkSubscription(Number(id));
+        setIsSubscribed(status.isSubscribed);
+      } catch (err) {
+        console.error("Failed to check subscription:", err);
+      } finally {
+        setCheckingSub(false);
+      }
+    };
+
+    checkSub();
+  }, [user, id]);
+
+  const handleSubscribe = async () => {
+    if (!user || !course) {
+      toast.error("Please login to subscribe");
+      return;
+    }
+    setSubLoading(true);
+    try {
+      await userCourseApi.subscribe({
+        userId: Number(user.id),
+        courseId: course.id
+      });
+      setIsSubscribed(true);
+      toast.success("Successfully subscribed!");
+      // Refresh enrollments if on that tab
+      if (activeTab === 'students') fetchEnrolledUsers();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to subscribe";
+      toast.error(message);
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
+  const handleUnsubscribe = async () => {
+    if (!user || !course) return;
+    if (!confirm("Are you sure you want to unsubscribe?")) return;
+
+    setSubLoading(true);
+    try {
+      await userCourseApi.unsubscribe({
+        userId: Number(user.id),
+        courseId: course.id
+      });
+      setIsSubscribed(false);
+      toast.info("Unsubscribed from course");
+      // Refresh enrollments if on that tab
+      if (activeTab === 'students') fetchEnrolledUsers();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to unsubscribe";
+      toast.error(message);
+    } finally {
+      setSubLoading(false);
+    }
+  };
 
   console.log("COURSE DETAILS", course);
   if (loading) {
@@ -193,6 +263,38 @@ const CourseDetails = () => {
                   <span className="capitalize">{course.difficulty}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Action Button Section */}
+            <div className="flex flex-col gap-4 min-w-[200px] mt-4 md:mt-0">
+              {user ? (
+                checkingSub ? (
+                  <div className="h-12 w-32 bg-white/20 animate-pulse rounded-lg"></div>
+                ) : isSubscribed ? (
+                  <button
+                    onClick={handleUnsubscribe}
+                    disabled={subLoading}
+                    className="bg-white/10 hover:bg-white/20 text-white border border-white/50 px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                  >
+                    {subLoading ? "Processing..." : "Unsubscribe"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSubscribe}
+                    disabled={subLoading}
+                    className="bg-secondary-gold hover:bg-secondary-gold-light text-primary-navy px-8 py-3 rounded-lg font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                  >
+                    {subLoading ? "Enrolling..." : "Enroll Now"}
+                  </button>
+                )
+              ) : (
+                <button
+                  onClick={() => navigate('/login')} // Assuming login route
+                  className="bg-secondary-gold hover:bg-secondary-gold-light text-primary-navy px-8 py-3 rounded-lg font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                >
+                  Login to Enroll
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -555,8 +657,12 @@ const CourseDetails = () => {
             {/* Video Player */}
             <div className="w-full h-full bg-black">
               {(() => {
-                const videoUrl = `https://keratometric-autotypic-collin.ngrok-free.dev${selectedVideo.videoUrl}`;
-                console.log("SELECTED VIDEO URL:", videoUrl);
+                const isAbsoluteUrl = (url: string) => url.startsWith('http://') || url.startsWith('https://');
+                const videoUrl = isAbsoluteUrl(selectedVideo.videoUrl)
+                  ? selectedVideo.videoUrl
+                  : `https://keratometric-autotypic-collin.ngrok-free.dev${selectedVideo.videoUrl}`;
+
+                // console.log("SELECTED VIDEO URL:", videoUrl);
                 // Extract YouTube video ID from URL
                 const getYouTubeId = (url: string) => {
                   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;

@@ -338,8 +338,8 @@ const VideoUploadModal = ({ isOpen, onClose, onUploadComplete }: VideoUploadModa
                         <div
                             onClick={() => !uploading && fileInputRef.current?.click()}
                             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${selectedFile
-                                    ? 'border-green-500 bg-green-50'
-                                    : 'border-gray-300 hover:border-blue-600 hover:bg-blue-50'
+                                ? 'border-green-500 bg-green-50'
+                                : 'border-gray-300 hover:border-blue-600 hover:bg-blue-50'
                                 } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             <Video className={`mx-auto mb-4 ${selectedFile ? 'text-green-600' : 'text-gray-400'}`} size={48} />
@@ -439,4 +439,4 @@ const VideoUploadModal = ({ isOpen, onClose, onUploadComplete }: VideoUploadModa
     );
 };
 
-export default VideoUploadApp;
+export default VideoUploadModal;

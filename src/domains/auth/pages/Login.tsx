@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../../../store';
 import { setCredentials } from '../store/authSlice';
-import api from '../../../shared/api/axios';
-import { API } from '../../../shared/api/endpoints';
+import { authApi } from '../api/authApi';
+// import { API } from '../../../shared/api/endpoints';
 
 import { toast } from 'react-toastify';
 
@@ -19,21 +19,27 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     console.log("Login submit clicked");
     e.preventDefault();
-    setLoading(true);
 
     try {
-      console.log("Sending login request for ", email);
-      const response = await api.post(API.AUTH.LOGIN, { email, password });
-      console.log("response = ", response.data);
-      const { user, token } = response.data[0];
+      setLoading(true);
+      const data = await authApi.login({ email, password });
 
-      dispatch(setCredentials({ user, token }));
-      toast.success(`Welcome back, ${user.name}!`);
-      navigate('/dashboard');
+      console.log('Login Response:', data);
+
+      const user = data?.user;
+      const token = data?.access_token;
+
+      if (user && token) {
+        dispatch(setCredentials({ user, token }));
+        localStorage.setItem("token", token);
+        toast.success("Login Successful!");
+        navigate("/dashboard");
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (err: any) {
-      console.error("error - ", err);
-      const message = err.response?.data?.message || 'Login failed';
-      toast.error(message);
+      console.error(err);
+      toast.error(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { courseApi, courseVideoApi, CourseVideoRequest } from "../api/courseApi";
+import { categoryApi } from "../../category/api/categoryApi";
 import {
     ArrowLeft,
     Save,
@@ -131,8 +132,12 @@ const CourseForm = () => {
 
     const fetchCategories = async () => {
         try {
-            const categories = await courseApi.getCategories();
-            setCategories(categories.map(c => ({ id: c.id, name: c.categoryName })));
+            const result = await categoryApi.list();
+            const categoryList = Array.isArray(result) ? result : [];
+            setCategories(categoryList.map((c: any) => ({
+                id: Number(c.id),
+                name: c.categoryName
+            })));
         } catch (error) {
             console.error("Failed to fetch categories:", error);
         }

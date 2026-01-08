@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "../../../store";
 import { setCredentials } from "../store/authSlice";
-import api from "../../../shared/api/axios";
-import { API } from "../../../shared/api/endpoints";
+import { authApi } from "../api/authApi";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -55,14 +54,15 @@ const Register = () => {
     setLoading(true);
     try {
       const { confirmPassword, ...data } = formData;
-      const response = await api.post(API.AUTH.REGISTER, data);
-      const { user, token } = response.data;
-
-      dispatch(setCredentials({ user, token }));
-      navigate("/dashboard");
+      const response = await authApi.register(data);
+      if (response && response.user && response.token) {
+        const { user, token } = response;
+        dispatch(setCredentials({ user, token }));
+        navigate("/dashboard");
+      }
     } catch (err: any) {
       setErrors({
-        general: err.response?.data?.message || "Registration failed",
+        general: err.message || "Registration failed",
       });
     } finally {
       setLoading(false);

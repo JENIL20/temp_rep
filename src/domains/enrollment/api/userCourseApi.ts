@@ -46,6 +46,30 @@ const validateCourseId = (courseId: number): void => {
     }
 };
 
+// Development Mode Flag
+const IS_DEV = import.meta.env.MODE === 'development';
+
+const DUMMY_ENROLLED_COURSES: EnrolledCourse[] = [
+    {
+        id: 1,
+        userId: 1,
+        courseId: 101,
+        enrolledAt: '2025-01-01T10:00:00Z',
+        progress: 10,
+        status: 'Active',
+        course: {
+            id: 101,
+            title: 'React Masterclass',
+            description: 'Learn React from scratch',
+            instructor: 'John Doe',
+            difficulty: 'Intermediate',
+            durationHours: 20,
+            price: 49.99,
+            rating: 4.5
+        }
+    }
+];
+
 export const userCourseApi = {
     /**
      * Subscribe to a course
@@ -54,17 +78,16 @@ export const userCourseApi = {
      * @throws Error if validation fails or API call fails
      */
     subscribe: async (data: SubscribeRequest) => {
+        if (IS_DEV) {
+            return { message: 'Subscribed successfully (mock)', ...data };
+        }
+
         try {
             validateSubscribeRequest(data);
-            const result = await api.post(API.USER_COURSE.SUBSCRIBE, data);
-
-            if (!result) {
-                throw new Error('No data returned from subscribe request');
-            }
-
-            return result;
+            const response = await api.post(API.USER_COURSE.SUBSCRIBE, data);
+            return response.data;
         } catch (error) {
-            handleApiError(error, 'Subscribe to course');
+            throw handleApiError(error, 'Subscribe to course');
         }
     },
 
@@ -75,17 +98,16 @@ export const userCourseApi = {
      * @throws Error if validation fails or API call fails
      */
     unsubscribe: async (data: SubscribeRequest) => {
+        if (IS_DEV) {
+            return { message: 'Unsubscribed successfully (mock)', ...data };
+        }
+
         try {
             validateSubscribeRequest(data);
-            const result = await api.post(API.USER_COURSE.UNSUBSCRIBE, data);
-
-            if (!result) {
-                throw new Error('No data returned from unsubscribe request');
-            }
-
-            return result;
+            const response = await api.post(API.USER_COURSE.UNSUBSCRIBE, data);
+            return response.data;
         } catch (error) {
-            handleApiError(error, 'Unsubscribe from course');
+            throw handleApiError(error, 'Unsubscribe from course');
         }
     },
 
@@ -95,8 +117,13 @@ export const userCourseApi = {
      * @throws Error if API call fails
      */
     getMyCourses: async (): Promise<EnrolledCourse[]> => {
+        if (IS_DEV) {
+            return DUMMY_ENROLLED_COURSES;
+        }
+
         try {
-            const result = await api.get(API.USER_COURSE.MY_COURSES);
+            const response = await api.get(API.USER_COURSE.MY_COURSES);
+            const result = response.data;
 
             if (!result) {
                 console.warn('[UserCourseAPI] No courses data returned, returning empty array');
@@ -106,7 +133,7 @@ export const userCourseApi = {
             // Ensure we always return an array
             return Array.isArray(result) ? result : [];
         } catch (error) {
-            handleApiError(error, 'Get my courses');
+            throw handleApiError(error, 'Get my courses');
         }
     },
 
@@ -116,8 +143,13 @@ export const userCourseApi = {
      * @throws Error if API call fails
      */
     getSubscribedList: async (): Promise<EnrolledCourse[]> => {
+        if (IS_DEV) {
+            return DUMMY_ENROLLED_COURSES;
+        }
+
         try {
-            const result = await api.get(API.USER_COURSE.SUBSCRIBED_LIST);
+            const response = await api.get(API.USER_COURSE.SUBSCRIBED_LIST);
+            const result = response.data;
 
             if (!result) {
                 console.warn('[UserCourseAPI] No subscribed courses data returned, returning empty array');
@@ -127,7 +159,7 @@ export const userCourseApi = {
             // Ensure we always return an array
             return Array.isArray(result) ? result : [];
         } catch (error) {
-            handleApiError(error, 'Get subscribed courses');
+            throw handleApiError(error, 'Get subscribed courses');
         }
     },
 
@@ -138,17 +170,16 @@ export const userCourseApi = {
      * @throws Error if validation fails or API call fails
      */
     checkSubscription: async (courseId: number): Promise<SubscriptionStatus> => {
+        if (IS_DEV) {
+            return { isSubscribed: true }; // Mocking as subscribed for testing
+        }
+
         try {
             validateCourseId(courseId);
-            const result = await api.get(API.USER_COURSE.CHECK_SUBSCRIPTION(courseId));
-
-            if (!result) {
-                throw new Error('No subscription status data returned');
-            }
-
-            return result as SubscriptionStatus;
+            const response = await api.get(API.USER_COURSE.CHECK_SUBSCRIPTION(courseId));
+            return response.data;
         } catch (error) {
-            handleApiError(error, 'Check subscription status');
+            throw handleApiError(error, 'Check subscription status');
         }
     },
 };

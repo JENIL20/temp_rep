@@ -1,6 +1,7 @@
 // User Course Enrollment Types
 
 export interface SubscribeRequest {
+    userId: number;
     courseId: number;
 }
 

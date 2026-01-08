@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, CheckCircle, AlertCircle, File, Video } from 'lucide-react';
-import api from '../../../shared/api/axios';
-import { API } from '../../../shared/api/endpoints';
+import { courseApi } from '../api/courseApi';
 
 interface FileUploadProps {
     courseId: number;
@@ -51,34 +50,26 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const handleUpload = async () => {
         if (!selectedFile) return;
 
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-
-        const endpoint = uploadType === 'video'
-            ? API.COURSE.UPLOAD_VIDEO(courseId)
-            : API.COURSE.UPLOAD_DOCUMENT(courseId);
-
         try {
             setUploading(true);
             setUploadStatus('idle');
 
-            const response = await api.post(endpoint, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                onUploadProgress: (progressEvent: any) => {
-                    const progress = progressEvent.total
-                        ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                        : 0;
+            let response;
+            if (uploadType === 'video') {
+                response = await courseApi.uploadVideo(courseId, selectedFile, (progress) => {
                     setUploadProgress(progress);
-                },
-            });
+                });
+            } else {
+                response = await courseApi.uploadDocument(courseId, selectedFile, (progress) => {
+                    setUploadProgress(progress);
+                });
+            }
 
             setUploadStatus('success');
             setUploadProgress(100);
 
             if (onUploadSuccess) {
-                onUploadSuccess(response.data);
+                onUploadSuccess(response);
             }
 
             // Reset after 2 seconds
@@ -93,7 +84,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         } catch (error: any) {
             console.error('Upload error:', error);
             setUploadStatus('error');
-            setErrorMessage(error.response?.data?.message || 'Upload failed. Please try again.');
+            setErrorMessage(error.message || 'Upload failed. Please try again.');
 
             if (onUploadError) {
                 onUploadError(error);

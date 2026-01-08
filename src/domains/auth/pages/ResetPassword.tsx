@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import api from '../../../shared/api/axios';
-import { API } from '../../../shared/api/endpoints';
+import { authApi } from '../api/authApi';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -32,7 +31,7 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      await api.post(API.AUTH.RESET_PASSWORD, {
+      await authApi.resetPassword({
         token,
         password: formData.password,
       });
@@ -40,7 +39,7 @@ const ResetPassword = () => {
         state: { message: 'Password reset successful! Please login.' },
       });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+      setError(err.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }
