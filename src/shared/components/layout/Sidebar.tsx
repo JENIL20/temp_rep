@@ -39,14 +39,15 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/profile", label: "Profile", icon: User },
     { to: "/courses", label: "Courses", icon: BookOpen },
     { to: "/my-courses", label: "My Courses", icon: GraduationCap },
     { to: "/categories", label: "Categories", icon: Layers },
     { to: "/certificates", label: "Certificates", icon: Award },
     { to: "/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
-    { to: "/projects", label: "Projects", icon: Briefcase },
-    { to: "/settings", label: "Settings", icon: Settings },
+    { to: "/admin/users", label: "Users Management", icon: User },
+    { to: "/profile", label: "Profile", icon: User },
+    // { to: "/projects", label: "Projects", icon: Briefcase },
+    // { to: "/settings", label: "Settings", icon: Settings },
   ];
 
   return (

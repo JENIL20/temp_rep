@@ -12,6 +12,7 @@ import {
     Check,
     ChevronRight
 } from "lucide-react";
+import { categoryApi } from "@/domains/category/api/categoryApi";
 
 interface CourseFormData {
     title: string;
@@ -50,7 +51,7 @@ const CreateCourse = () => {
 
     useEffect(() => {
         if (isEditMode && id) {
-            fetchCourseData();
+            categoryApi.list();
         }
         fetchCategories();
     }, [id]);
@@ -75,7 +76,7 @@ const CreateCourse = () => {
 
     const fetchCategories = async () => {
         try {
-            const categories = await courseApi.getCategories();
+            const categories = await categoryApi.list();
             console.log("fetched categories =", categories);
             setCategories(categories);
         } catch (error) {
@@ -137,6 +138,8 @@ const CreateCourse = () => {
                 alert("Course updated successfully!");
                 navigate(`/courses/${courseId}/videos`);
             } else {
+                console.log("Creating course with data =", courseData);
+                // return
                 const res = await courseApi.create(courseData);
                 console.log("Create course response =", res);
                 courseId = res[0]?.courseId || res?.courseId;

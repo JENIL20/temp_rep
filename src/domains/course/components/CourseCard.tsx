@@ -8,7 +8,7 @@ interface CourseCardProps {
 
 const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     // Handle ID mismatch if any (api vs local type)
-    const courseId = course.id;
+    const courseId = course.courseId;
 
     return (
         <div className="bg-white rounded-xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col h-full">

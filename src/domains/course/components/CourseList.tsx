@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import { Course } from "../types/course.types";
 import CourseCard from "./CourseCard";
@@ -13,7 +13,12 @@ interface CourseListProps {
     courses: Course[];
     categories: Category[];
     isLoading: boolean;
-    itemsPerPage?: number;
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    onSearch: (term: string) => void;
     emptyMessage?: string;
     className?: string;
 }
@@ -22,86 +27,32 @@ const CourseList: React.FC<CourseListProps> = ({
     courses,
     categories,
     isLoading,
-    itemsPerPage = 6,
+    totalCount,
+    currentPage,
+    pageSize,
+    totalPages,
+    onPageChange,
+    onSearch,
     emptyMessage = "Try adjusting your search or filters",
     className = ""
 }) => {
-    // Filter & Search State
+    // UI Local State for immediate feedback
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
     const [selectedDifficulty, setSelectedDifficulty] = useState<string | "all">("all");
     const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
     const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high" | "rating">("newest");
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-
-    // Filter Logic
-    const filteredCourses = useMemo(() => {
-        let result = [...courses];
-
-        // Search
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(course =>
-                course.title.toLowerCase().includes(query) ||
-                course.description.toLowerCase().includes(query) ||
-                course.instructor.toLowerCase().includes(query)
-            );
-        }
-
-        // Filter by Category
-        if (selectedCategory !== "all") {
-            result = result.filter(course => course.categoryId === selectedCategory);
-        }
-
-        // Filter by Difficulty
-        if (selectedDifficulty !== "all") {
-            result = result.filter(course => course.difficulty.toLowerCase() === selectedDifficulty.toLowerCase());
-        }
-
-        // Filter by Status
-        if (selectedStatus !== "all") {
-            result = result.filter(course =>
-                selectedStatus === "active" ? course.isActive : !course.isActive
-            );
-        }
-
-        // Sorting
-        switch (sortBy) {
-            case "price-low":
-                result.sort((a, b) => a.price - b.price);
-                break;
-            case "price-high":
-                result.sort((a, b) => b.price - a.price);
-                break;
-            case "rating":
-                result.sort((a, b) => b.rating - a.rating);
-                break;
-            case "newest":
-            default:
-                result.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime());
-                break;
-        }
-
-        return result;
-    }, [courses, searchQuery, selectedCategory, selectedDifficulty, selectedStatus, sortBy]);
-
-    // Reset page when filters change
+    // Debounce search
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, selectedCategory, selectedDifficulty, selectedStatus, sortBy]);
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
-    const paginatedCourses = filteredCourses.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+        const timer = setTimeout(() => {
+            onSearch(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery, onSearch]);
 
     const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        // Optional: Scroll to top of list
+        onPageChange(page);
         const listElement = document.getElementById('course-list-top');
         if (listElement) {
             listElement.scrollIntoView({ behavior: 'smooth' });
@@ -198,12 +149,18 @@ const CourseList: React.FC<CourseListProps> = ({
                 </div>
             </div>
 
+            {/* Pagination Metadata */}
+            <div className="flex items-center justify-between px-2 text-sm text-slate-500">
+                <p>Showing <span className="font-bold text-slate-700">{courses.length}</span> results of <span className="font-bold text-slate-700">{totalCount}</span> total items</p>
+                <p>Page <span className="font-bold text-slate-700">{currentPage}</span> of <span className="font-bold text-slate-700">{totalPages}</span> (Page Size: {pageSize})</p>
+            </div>
+
             {/* Results Section */}
             {isLoading ? (
                 <div className="py-12">
                     <LoadingSpinner variant="dots" size="lg" message="Loading courses..." />
                 </div>
-            ) : paginatedCourses.length === 0 ? (
+            ) : courses.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
                     <div className="text-gray-400 mb-4">
                         <Search size={48} className="mx-auto" />
@@ -214,7 +171,7 @@ const CourseList: React.FC<CourseListProps> = ({
             ) : (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {paginatedCourses.map((course) => (
+                        {courses.map((course) => (
                             <CourseCard key={course.id} course={course} />
                         ))}
                     </div>

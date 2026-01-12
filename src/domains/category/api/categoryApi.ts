@@ -13,7 +13,7 @@ const handleApiError = (error: any, context: string): never => {
 };
 
 // Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
+const IS_DEV = !(import.meta.env.MODE === 'development');
 
 const DUMMY_CATEGORIES = [
     { id: 1, categoryName: "Web Development" },

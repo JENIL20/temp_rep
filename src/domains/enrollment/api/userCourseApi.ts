@@ -47,7 +47,7 @@ const validateCourseId = (courseId: number): void => {
 };
 
 // Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
+const IS_DEV = !(import.meta.env.MODE === 'development');
 
 const DUMMY_ENROLLED_COURSES: EnrolledCourse[] = [
     {

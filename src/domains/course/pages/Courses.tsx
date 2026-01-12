@@ -1,34 +1,50 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { courseApi } from "../api/courseApi";
 import { PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Course } from "../types/course.types";
+import { Course, CourseListRequest } from "../types/course.types";
 import CourseList from "../components/CourseList";
 
 const Courses = () => {
   const navigate = useNavigate();
+
+  // Data State
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<{ id: number; categoryName: string }[]>([]);
+
+  // Pagination & Search State
+  const [pageState, setPageState] = useState({
+    items: [] as Course[],
+    totalCount: 0,
+    pageNumber: 1,
+    pageSize: 6,
+    totalPages: 0
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // UI State
   const [loading, setLoading] = useState(true);
   const [usingSampleData, setUsingSampleData] = useState(false);
 
-  const fetchCourses = async () => {
-    console.log("Fetching courses from API...");
+  const fetchCourses = useCallback(async (requestParams: CourseListRequest) => {
+    setLoading(true);
+    console.log("Fetching courses from API with params:", requestParams);
     try {
-      const data = await courseApi.list();
+      const response = await courseApi.list(requestParams);
+      console.log("Fetched courses:", response);
       const categoriesData = await courseApi.getCategories();
-      console.log("Fetched courses:", data);
 
-      // Ensure data is array
-      const courseList = Array.isArray(data) ? data : [];
-      setCourses(courseList);
+      setPageState({
+        items: response.items,
+        totalCount: response.totalCount,
+        pageNumber: response.pageNumber,
+        pageSize: response.pageSize,
+        totalPages: response.totalPages
+      });
+      setCourses(response.items);
       setCategories(categoriesData);
       setUsingSampleData(false);
-
-      if (courseList.length > 0) {
-        toast.success(`Loaded ${courseList.length} courses successfully!`);
-      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load courses";
       console.error("Failed to load courses:", err);
@@ -36,11 +52,25 @@ const Courses = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Effect for initial load and changes
+  useEffect(() => {
+    fetchCourses({
+      searchTerm,
+      pageNumber: pageState.pageNumber,
+      pageSize: 15 || pageState.pageSize
+    });
+  }, [searchTerm, pageState.pageNumber, pageState.pageSize, fetchCourses]);
+
+  const handlePageChange = (newPage: number) => {
+    setPageState(prev => ({ ...prev, pageNumber: newPage }));
   };
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setPageState(prev => ({ ...prev, pageNumber: 1 })); // Reset to first page on search
+  };
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
@@ -58,6 +88,9 @@ const Courses = () => {
         <div>
           <h1 className="text-2xl font-bold text-primary-navy">Courses</h1>
           <p className="text-gray-600 mt-1">Manage and organize your educational content</p>
+          <p className="text-xs text-slate-400 mt-1 font-medium">
+            Showing {pageState.items.length} of {pageState.totalCount} courses
+          </p>
         </div>
 
         <button
@@ -71,10 +104,15 @@ const Courses = () => {
 
       {/* Course Listing Component */}
       <CourseList
-        courses={courses}
+        courses={pageState.items}
         categories={categories}
         isLoading={loading}
-        itemsPerPage={9}
+        totalCount={pageState.totalCount}
+        currentPage={pageState.pageNumber}
+        pageSize={pageState.pageSize}
+        totalPages={pageState.totalPages}
+        onPageChange={handlePageChange}
+        onSearch={handleSearch}
       />
     </div>
   );

@@ -1,85 +1,57 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
-import { UserRole } from '../types/role.types';
+import { AssignRoleRequest, Role } from '../types/role.types';
+import userApi from '../../user/api/userApi';
+import { UserListRequest } from '../../user/types/user.types';
 
 /**
- * API Error Handler
+ * User Role API Service
+ * Handles assigning and removing roles for specific users
  */
-const handleApiError = (error: any, context: string): never => {
-    console.error(`[UserRoleAPI Error - ${context}]:`, error);
-    if (error.response) {
-        const message = error.response.data?.message || error.response.statusText || 'Server error occurred';
-        throw new Error(`${context}: ${message}`);
-    } else if (error.request) {
-        throw new Error(`${context}: No response from server. Please check your connection.`);
-    } else {
-        throw new Error(`${context}: ${error.message || 'Unknown error occurred'}`);
-    }
-};
-
-/**
- * Validates ID
- */
-const validateId = (id: number, name: string = 'ID'): void => {
-    if (!id || typeof id !== 'number' || id <= 0) {
-        throw new Error(`Valid ${name} is required`);
-    }
-};
-
 export const userRoleApi = {
     /**
-     * Assign role to user
-     * @param userId - User ID
-     * @param roleId - Role ID
-     * @returns Promise with assignment response
-     * @throws Error if validation fails or API call fails
+     * Assign a role to a user
      */
-    assign: async (userId: number, roleId: number) => {
+    assign: async (data: AssignRoleRequest): Promise<void> => {
         try {
-            validateId(userId, 'userId');
-            validateId(roleId, 'roleId');
-            const result = await api.post(API.USER_ROLE.ASSIGN, null, {
-                params: { userId, roleId },
-            });
-            return result;
-        } catch (error) {
-            handleApiError(error, 'Assign role to user');
+            await api.post(API.USER_PERMISSIONS.ASSIGN_ROLE, data);
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to assign role to user');
         }
     },
 
     /**
-     * Remove role from user
-     * @param userId - User ID
-     * @param roleId - Role ID
-     * @returns Promise with removal response
-     * @throws Error if validation fails or API call fails
+     * Remove a role from a user
      */
-    remove: async (userId: number, roleId: number) => {
+    remove: async (userId: number, roleId: number): Promise<void> => {
         try {
-            validateId(userId, 'userId');
-            validateId(roleId, 'roleId');
-            const result = await api.delete(API.USER_ROLE.REMOVE, {
-                params: { userId, roleId },
-            });
-            return result;
-        } catch (error) {
-            handleApiError(error, 'Remove role from user');
+            await api.delete(API.USER_PERMISSIONS.REMOVE_USER_ROLE(userId, roleId));
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to remove role from user');
         }
     },
 
     /**
-     * Get user roles
-     * @param userId - User ID
-     * @returns Promise with array of user roles
-     * @throws Error if validation fails or API call fails
+     * Get all roles assigned to a specific user
      */
-    getUserRoles: async (userId: number): Promise<UserRole[]> => {
+    getUserRoles: async (userId: number): Promise<Role[]> => {
         try {
-            validateId(userId, 'userId');
-            const result = await api.get(API.USER_ROLE.GET_USER_ROLES(userId));
-            return Array.isArray(result) ? result : [];
-        } catch (error) {
-            handleApiError(error, 'Get user roles');
+            const response = await api.get<Role[]>(API.USER_PERMISSIONS.USER_PERMISSIONS(userId));
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch user roles');
         }
     },
+
+    /**
+     * List users with optional pagination (proxied to userApi)
+     */
+    listUsers: async (params?: UserListRequest) => {
+        try {
+            const data = await userApi.list(params);
+            return data;
+        } catch (error: any) {
+            throw new Error(error.message || 'Failed to fetch users');
+        }
+    }
 };

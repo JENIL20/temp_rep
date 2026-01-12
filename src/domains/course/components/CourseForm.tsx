@@ -36,6 +36,7 @@ interface VideoFormData {
     isActive: boolean;
 }
 
+
 const CourseForm = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -244,11 +245,11 @@ const CourseForm = () => {
                         courseId: courseId,
                         title: video.title,
                         description: video.description || '',
-                        videoUrl: video.videoUrl,
-                        duration: video.duration || 0,
-                        orderIndex: video.order,
-                        thumbnailUrl: video.thumbnailUrl || '',
-                        isPreview: video.isActive,
+                        // videoUrl: video.videoUrl,
+                        // duration: video.duration || 0,
+                        // orderIndex: video.order,
+                        // thumbnailUrl: video.thumbnailUrl || '',
+                        // isPreview: video.isActive,
                     };
 
                     if (video.id) {
@@ -564,7 +565,7 @@ const CourseForm = () => {
                         {activeStep === 'videos' && (
                             <div className="space-y-6 animate-fadeIn">
                                 <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-2xl font-bold text-gray-900">Course Videos</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900">Course asdfVideos</h2>
                                     <button
                                         onClick={() => {
                                             setShowVideoForm(true);

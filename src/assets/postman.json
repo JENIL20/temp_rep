@@ -1,0 +1,1141 @@
+{
+  "info": {
+    "name": "LMS_SoulCode API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /api/Auth/login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Auth/register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Auth/forgot-password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Auth/forgot-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Auth",
+            "forgot-password"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Auth/reset-password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Auth/reset-password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Auth",
+            "reset-password"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Category/list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Category/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Category",
+            "list"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Category/paginated",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Category/paginated",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Category",
+            "paginated"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Category/{id}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Category/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Category",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Category/create",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Category/create",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Category",
+            "create"
+          ]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/Category/update/{id}",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Category/update/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Category",
+            "update",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/Category/delete/{id}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Category/delete/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Category",
+            "delete",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Certificates/generate",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/generate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "generate"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Certificates/{id}/download",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/{id}/download",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "{id}",
+            "download"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Certificates/validate/{code}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/validate/{code}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "validate",
+            "{code}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Certificates/{id}/revoke",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/{id}/revoke",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "{id}",
+            "revoke"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Certificates/Certificate/{userId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/Certificate/{userId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "Certificate",
+            "{userId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Certificates/list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "list"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Certificates/paginated",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Certificates/paginated",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Certificates",
+            "paginated"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Course/list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "list"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Course/{id}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Course/category/{categoryId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/category/{categoryId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "category",
+            "{categoryId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Course/create",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/create",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "create"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Course/{courseId}/upload-video",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/{courseId}/upload-video",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "{courseId}",
+            "upload-video"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Course/{courseId}/upload-document",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/{courseId}/upload-document",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "{courseId}",
+            "upload-document"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Course/{courseId}/documents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Course/{courseId}/documents",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Course",
+            "{courseId}",
+            "documents"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/CourseVideo/list/{courseId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/CourseVideo/list/{courseId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "CourseVideo",
+            "list",
+            "{courseId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/CourseVideo/coursevideolist",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/CourseVideo/coursevideolist",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "CourseVideo",
+            "coursevideolist"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/CourseVideo/list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/CourseVideo/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "CourseVideo",
+            "list"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/CourseVideo/stream/{videoId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/CourseVideo/stream/{videoId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "CourseVideo",
+            "stream",
+            "{videoId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/Crypto/upload-file",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Crypto/upload-file",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Crypto",
+            "upload-file"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Crypto/download/{fileName}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Crypto/download/{fileName}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Crypto",
+            "download",
+            "{fileName}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/Crypto/stream/{fileName}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/Crypto/stream/{fileName}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "Crypto",
+            "stream",
+            "{fileName}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/modules/all",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/modules/all",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "modules",
+            "all"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/modules",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/modules",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "modules"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/user-permissions/modules",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/modules",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "modules"
+          ]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/user-permissions/modules/{id}",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/modules/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "modules",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/user-permissions/modules/{id}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/modules/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "modules",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/user-permissions/modules/assign-permissions",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/modules/assign-permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "modules",
+            "assign-permissions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/permissions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "permissions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/reports/course/{userId}/{courseId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/reports/course/{userId}/{courseId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "course",
+            "{userId}",
+            "{courseId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/reports/list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/reports/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "list"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/role-modules/all",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/role-modules/all",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "role-modules",
+            "all"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/role-modules",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/role-modules",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "role-modules"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/user-permissions/role-modules",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/role-modules",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "role-modules"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/role-modules/role/{roleId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/role-modules/role/{roleId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "role-modules",
+            "role",
+            "{roleId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/user-permissions/role-modules/{id}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/role-modules/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "role-modules",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/roles",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "roles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/user-permissions/roles",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/roles",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "roles"
+          ]
+        }
+      }
+    },
+    {
+      "name": "PUT /api/user-permissions/roles/{id}",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/roles/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "roles",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/user-permissions/roles/{id}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/roles/{id}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "roles",
+            "{id}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/User/userlist",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/User/userlist",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "User",
+            "userlist"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/UserCourse/subscribe",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/UserCourse/subscribe",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "UserCourse",
+            "subscribe"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/UserCourse/unsubscribe",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/UserCourse/unsubscribe",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "UserCourse",
+            "unsubscribe"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/UserCourse/my-courses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/UserCourse/my-courses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "UserCourse",
+            "my-courses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/UserCourse/Subscribed-List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/UserCourse/Subscribed-List",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "UserCourse",
+            "Subscribed-List"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/UserCourse/check/{courseId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/UserCourse/check/{courseId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "UserCourse",
+            "check",
+            "{courseId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/UserCourse/list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/UserCourse/list",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "UserCourse",
+            "list"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/user-permissions/assign-role",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/assign-role",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "assign-role"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /api/user-permissions/assign-permissions",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/assign-permissions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "assign-permissions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/user/{userId}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/user/{userId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "user",
+            "{userId}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /api/user-permissions/user/{userId}/check/{moduleCode}/{permissionCode}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/user/{userId}/check/{moduleCode}/{permissionCode}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "user",
+            "{userId}",
+            "check",
+            "{moduleCode}",
+            "{permissionCode}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /api/user-permissions/user/{userId}/role/{roleId}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/user-permissions/user/{userId}/role/{roleId}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user-permissions",
+            "user",
+            "{userId}",
+            "role",
+            "{roleId}"
+          ]
+        }
+      }
+    }
+  ]
+}

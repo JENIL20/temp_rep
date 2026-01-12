@@ -26,8 +26,8 @@ const Login = () => {
 
       console.log('Login Response:', data);
 
-      const user = data?.user;
-      const token = data?.access_token;
+      const user = data[0]?.user;
+      const token = data[0]?.token;
 
       if (user && token) {
         dispatch(setCredentials({ user, token }));

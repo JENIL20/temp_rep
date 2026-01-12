@@ -1,38 +1,54 @@
-// Role and Permission Types
+export interface Module {
+    id: number;
+    code: string;
+    name: string;
+    isActive: boolean;
+}
 
 export interface Permission {
     id: number;
-    permissionName: string;
-    createdAt: string;
-    updatedAt?: string;
-}
-
-export interface CreatePermissionRequest {
-    permissionName: string;
+    code: string;
+    name: string;
+    isActive: boolean;
 }
 
 export interface Role {
     id: number;
+    code: string;
+    name: string;
+    isActive: boolean;
+}
+
+export interface RoleModule {
+    id: number;
+    roleId: number;
     roleName: string;
-    createdAt: string;
-    updatedAt?: string;
-    permissions?: Permission[];
+    moduleId: number;
+    moduleName: string;
+    moduleCode: string;
 }
 
 export interface CreateRoleRequest {
-    roleName: string;
-    permissionIds?: number[];
+    code: string;
+    name: string;
 }
 
-export interface RolePermission {
+export interface UpdateRoleRequest {
+    name: string;
+}
+
+export interface CreateModuleRequest {
+    code: string;
+    name: string;
+}
+
+export interface AssignPermissionRequest {
     roleId: number;
-    roleName: string;
-    permissions: Permission[];
+    moduleId: number;
+    permissionIds: number[];
 }
 
-export interface UserRole {
+export interface AssignRoleRequest {
     userId: number;
     roleId: number;
-    role: Role;
-    assignedAt: string;
 }

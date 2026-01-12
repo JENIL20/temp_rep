@@ -1,123 +1,68 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
-import { Role, CreateRoleRequest } from '../types/role.types';
+import { Role, CreateRoleRequest, UpdateRoleRequest, RoleModule } from '../types/role.types';
 
 /**
- * API Error Handler
+ * Role API Service
+ * Handles CRUD operations for Roles based on User Permissions schema
  */
-const handleApiError = (error: any, context: string): never => {
-    console.error(`[RoleAPI Error - ${context}]:`, error);
-    if (error.response) {
-        const message = error.response.data?.message || error.response.statusText || 'Server error occurred';
-        throw new Error(`${context}: ${message}`);
-    } else if (error.request) {
-        throw new Error(`${context}: No response from server. Please check your connection.`);
-    } else {
-        throw new Error(`${context}: ${error.message || 'Unknown error occurred'}`);
-    }
-};
-
-/**
- * Validates ID
- */
-const validateId = (id: number, name: string = 'ID'): void => {
-    if (!id || typeof id !== 'number' || id <= 0) {
-        throw new Error(`Valid ${name} is required`);
-    }
-};
-
 export const roleApi = {
     /**
-     * Create a role
-     * @param data - Role creation request
-     * @returns Promise with created role
-     * @throws Error if validation fails or API call fails
-     */
-    create: async (data: CreateRoleRequest): Promise<Role> => {
-        try {
-            if (!data.name) throw new Error('Role name is required');
-            const result = await api.post(API.ROLE.CREATE, data);
-            return result as Role;
-        } catch (error) {
-            handleApiError(error, 'Create role');
-        }
-    },
-
-    /**
-     * Update a role
-     * @param id - Role ID
-     * @param data - Role update request
-     * @returns Promise with updated role
-     * @throws Error if validation fails or API call fails
-     */
-    update: async (id: number, data: CreateRoleRequest): Promise<Role> => {
-        try {
-            validateId(id);
-            if (!data.name) throw new Error('Role name is required');
-            const result = await api.put(API.ROLE.UPDATE(id), data);
-            return result as Role;
-        } catch (error) {
-            handleApiError(error, 'Update role');
-        }
-    },
-
-    /**
      * List all roles
-     * @returns Promise with array of all roles
-     * @throws Error if API call fails
      */
     list: async (): Promise<Role[]> => {
         try {
-            const result = await api.get(API.ROLE.LIST);
-            return Array.isArray(result) ? result : [];
-        } catch (error) {
-            handleApiError(error, 'List roles');
+            const response = await api.get<Role[]>(API.USER_PERMISSIONS.ROLES);
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch roles');
         }
     },
 
     /**
-     * Get role permissions list
-     * @returns Promise with array of role permissions
-     * @throws Error if API call fails
+     * Create a new role
      */
-    getRolePermissions: async (): Promise<any[]> => {
+    create: async (data: CreateRoleRequest): Promise<Role> => {
         try {
-            const result = await api.get(API.ROLE.ROLE_PERMISSION_LIST);
-            return Array.isArray(result) ? result : [];
-        } catch (error) {
-            handleApiError(error, 'Get role permissions list');
+            const response = await api.post<Role>(API.USER_PERMISSIONS.ROLES, data);
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to create role');
         }
     },
 
     /**
-     * Get role by ID
-     * @param id - Role ID
-     * @returns Promise with role details
-     * @throws Error if validation fails or API call fails
+     * Update an existing role
      */
-    getById: async (id: number): Promise<Role> => {
+    update: async (id: number, data: UpdateRoleRequest): Promise<Role> => {
         try {
-            validateId(id);
-            const result = await api.get(API.ROLE.GET_BY_ID(id));
-            if (!result) throw new Error('Role not found');
-            return result as Role;
-        } catch (error) {
-            handleApiError(error, 'Get role by ID');
+            const response = await api.put<Role>(API.USER_PERMISSIONS.ROLE_BY_ID(id), data);
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to update role');
         }
     },
 
     /**
      * Delete a role
-     * @param id - Role ID
-     * @returns Promise that resolves when deletion is complete
-     * @throws Error if validation fails or API call fails
      */
     delete: async (id: number): Promise<void> => {
         try {
-            validateId(id);
-            await api.delete(API.ROLE.DELETE(id));
-        } catch (error) {
-            handleApiError(error, 'Delete role');
+            await api.delete(API.USER_PERMISSIONS.ROLE_BY_ID(id));
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to delete role');
         }
     },
+
+    /**
+     * List modules associated with a specific role
+     */
+    getRoleModules: async (roleId: number): Promise<RoleModule[]> => {
+        try {
+            const response = await api.get<RoleModule[]>(API.USER_PERMISSIONS.ROLE_MODULES_BY_ROLE(roleId));
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch role modules');
+        }
+    }
 };

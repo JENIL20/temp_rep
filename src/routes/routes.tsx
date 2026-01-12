@@ -18,6 +18,7 @@ const MyCourses = lazy(() => import("../domains/course/pages/MyCourses"));
 const Certificates = lazy(() => import("../domains/certificate/pages/Certificates"));
 const RolesManagement = lazy(() => import("../domains/role/pages/RolesManagement"));
 const Profile = lazy(() => import("../domains/user/pages/Profile"));
+const UserList = lazy(() => import("../domains/user/pages/UserList"));
 
 export interface RouteConfig {
   path: string;
@@ -122,6 +123,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     path: paths.web.rolesManagement,
     name: "Roles Management",
     element: RolesManagement,
+    permissions: ["admin"],
+  },
+  {
+    path: paths.web.usersManagement,
+    name: "Users Management",
+    element: UserList,
     permissions: ["admin"],
   },
   // {

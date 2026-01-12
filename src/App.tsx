@@ -17,21 +17,22 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
+      console.log("AuthInitializer - token =", token);
 
-      if (token) {
-        try {
-          // Verify token and get user data
-          const response = await api.get('/auth/me');
-          dispatch(setCredentials({ user: response.data, token }));
-        } catch (error) {
-          // Token is invalid, clear it
-          dispatch(logout());
-        }
-      }
+      // if (token) {
+      //   try {
+      //     // Verify token and get user data
+      //     const response = await api.get('/auth/me');
+      //     dispatch(setCredentials({ user: response.data, token }));
+      //   } catch (error) {
+      //     // Token is invalid, clear it
+      //     dispatch(logout());
+      //   }
+      // }
     };
 
     initAuth();
-  }, [dispatch]);
+  }, []);
 
   return <>{children}</>;
 };

@@ -1,6 +1,6 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
-import { Course, EnrolledUser } from '../types/course.types';
+import { Course, EnrolledUser, CourseListRequest, PaginatedCourseResponse } from '../types/course.types';
 
 // Dummy Data
 const generateDummyCourses = (): Course[] => {
@@ -23,7 +23,7 @@ const generateDummyCourses = (): Course[] => {
 
 const DUMMY_COURSES: Course[] = generateDummyCourses();
 
-const DUMMY_VIDEOS: CourseVideoResponse[] = [
+export const DUMMY_VIDEOS: CourseVideoResponse[] = [
     {
         id: 1,
         courseId: 1,
@@ -189,7 +189,7 @@ const validateId = (id: number, name: string = 'ID'): void => {
 };
 
 // Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
+const IS_DEV = !(import.meta.env.MODE === 'development');
 
 // Course Video API endpoints
 export const courseVideoApi = {
@@ -294,17 +294,68 @@ export const courseVideoApi = {
 
 // Course API endpoints
 export const courseApi = {
-    // List all courses
-    list: async () => {
+    // List all courses (Paginated)
+    list: async (params?: CourseListRequest): Promise<PaginatedCourseResponse> => {
+        const { searchTerm = '', pageNumber = 1, pageSize = 10 } = params || {};
+
         if (IS_DEV) {
-            console.log("DEV MODE: Returning dummy courses");
-            return DUMMY_COURSES;
+            console.log("DEV MODE: Returning paginated dummy courses", params);
+            let filtered = [...DUMMY_COURSES];
+            if (searchTerm) {
+                const query = searchTerm.toLowerCase();
+                filtered = filtered.filter(c =>
+                    c.title.toLowerCase().includes(query) ||
+                    c.description.toLowerCase().includes(query)
+                );
+            }
+
+            const totalCount = filtered.length;
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const items = filtered.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+            return {
+                items,
+                totalCount,
+                pageNumber,
+                pageSize,
+                totalPages
+            };
         }
 
         try {
-            const response = await api.get(API.COURSE.LIST);
+            const response = await api.get(API.COURSE.LIST, {
+                params: {
+                    SearchTerm: searchTerm,
+                    PageNumber: pageNumber,
+                    PageSize: pageSize
+                }
+            });
+
+            // Handle various possible response structures from backend
             const result = response.data;
-            return Array.isArray(result) ? result : [];
+
+            if (result && Array.isArray(result.items)) {
+                return result as PaginatedCourseResponse;
+            }
+
+            // Fallback if the API returns an array directly instead of a paginated object
+            if (Array.isArray(result)) {
+                return {
+                    items: result,
+                    totalCount: result.length,
+                    pageNumber: 1,
+                    pageSize: result.length,
+                    totalPages: 1
+                };
+            }
+
+            return {
+                items: [],
+                totalCount: 0,
+                pageNumber: 1,
+                pageSize: 10,
+                totalPages: 0
+            };
         } catch (error) {
             throw handleApiError(error, 'List courses');
         }
