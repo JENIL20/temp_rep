@@ -12,12 +12,15 @@ const Courses = lazy(() => import("../domains/course/pages/Courses"));
 const CreateCourse = lazy(() => import("../domains/course/pages/CreateCourse"));
 const CourseDetails = lazy(() => import("../domains/course/pages/CourseDetails"));
 const CourseVideos = lazy(() => import("../domains/course/pages/CourseVideos"));
+const AddCourseVideo = lazy(() => import("../domains/course/pages/AddCourseVideo"));
 const CourseDocuments = lazy(() => import("../domains/course/pages/CourseDocuments"));
 const Categories = lazy(() => import("../domains/category/pages/Categories"));
 const MyCourses = lazy(() => import("../domains/course/pages/MyCourses"));
 const Certificates = lazy(() => import("../domains/certificate/pages/Certificates"));
 const RolesManagement = lazy(() => import("../domains/role/pages/RolesManagement"));
+const AssignRoles = lazy(() => import("../domains/role/pages/AssignRoles"));
 const Profile = lazy(() => import("../domains/user/pages/Profile"));
+const UserList = lazy(() => import("../domains/user/pages/UserList"));
 
 export interface RouteConfig {
   path: string;
@@ -101,6 +104,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     permissions: [],
   },
   {
+    path: paths.web.courseAddVideo,
+    name: "Add Course Video",
+    element: AddCourseVideo,
+    permissions: [],
+  },
+  {
     path: paths.web.courseDocuments,
     name: "Course Documents",
     element: CourseDocuments,
@@ -122,7 +131,19 @@ export const ProtectedRoutes: RouteConfig[] = [
     path: paths.web.rolesManagement,
     name: "Roles Management",
     element: RolesManagement,
-    permissions: ["admin"],
+    permissions: [],
+  },
+  {
+    path: paths.web.assignRoles,
+    name: "Assign Roles",
+    element: AssignRoles,
+    permissions: [],
+  },
+  {
+    path: paths.web.usersManagement,
+    name: "Users Management",
+    element: UserList,
+    permissions: [],
   },
   // {
   //   path: paths.web.admin,

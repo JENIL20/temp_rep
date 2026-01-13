@@ -1,16 +1,13 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
-import { User } from '../../auth/store/authSlice';
-
-interface LoginResponse {
-    user: User;
-    access_token: string;
-}
-
-interface RegisterResponse {
-    user: User;
-    token?: string;
-}
+import {
+    LoginRequest,
+    RegisterRequest,
+    AuthResponse,
+    ForgotPasswordRequest,
+    ResetPasswordRequest
+} from '../types/auth.types';
+import { IS_OFFLINE_MODE } from '../../../shared/config';
 
 const handleApiError = (error: any, context: string): never => {
     console.error(`[AuthAPI Error - ${context}]:`, error);
@@ -20,31 +17,31 @@ const handleApiError = (error: any, context: string): never => {
     throw new Error(error.message || 'Unknown error occurred');
 };
 
-// Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
-
-const DUMMY_USER: User = {
-    id: '1',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user',
-};
-
 export const authApi = {
     /**
      * Login user
      */
-    login: async (credentials: { email: string; password: string }) => {
-        if (IS_DEV) {
-            console.log("DEV: Returning dummy login");
+    login: async (credentials: LoginRequest) => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // Return a dummy admin user
             return {
-                user: DUMMY_USER,
-                access_token: 'dummy_token_12345'
-            };
+                token: 'dummy-jwt-token-' + Date.now(),
+                expiration: new Date(Date.now() + 86400000).toISOString(),
+                user: {
+                    id: 1,
+                    userName: 'admin',
+                    firstName: 'Admin',
+                    lastName: 'User',
+                    email: credentials.email || 'admin@example.com',
+                    roles: ['Admin', 'Instructor'],
+                    mobile: '1234567890'
+                }
+            } as AuthResponse;
         }
 
         try {
-            const response = await api.post<LoginResponse>(API.AUTH.LOGIN, credentials);
+            const response = await api.post<AuthResponse>(API.AUTH.LOGIN, credentials);
             return response.data;
         } catch (error) {
             handleApiError(error, 'Login');
@@ -54,16 +51,26 @@ export const authApi = {
     /**
      * Register new user
      */
-    register: async (userData: any) => {
-        if (IS_DEV) {
+    register: async (userData: RegisterRequest) => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 500));
             return {
-                user: { ...DUMMY_USER, ...userData, id: '2' },
-                token: 'dummy_token_54321'
-            };
+                token: 'dummy-jwt-token-' + Date.now(),
+                expiration: new Date(Date.now() + 86400000).toISOString(),
+                user: {
+                    id: Math.floor(Math.random() * 1000),
+                    userName: userData.userName || 'newuser',
+                    firstName: userData.firstName || 'New',
+                    lastName: userData.lastName || 'User',
+                    email: userData.email || 'new@example.com',
+                    roles: ['Student'],
+                    mobile: userData.mobile
+                }
+            } as AuthResponse;
         }
 
         try {
-            const response = await api.post<RegisterResponse>(API.AUTH.REGISTER, userData);
+            const response = await api.post<AuthResponse>(API.AUTH.REGISTER, userData);
             return response.data;
         } catch (error) {
             handleApiError(error, 'Register');
@@ -73,13 +80,14 @@ export const authApi = {
     /**
      * Forgot password request
      */
-    forgotPassword: async (email: string) => {
-        if (IS_DEV) {
-            return { message: 'Reset email sent (mock)' };
+    forgotPassword: async (data: ForgotPasswordRequest) => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return { message: 'Password reset link sent to email (mock)' };
         }
 
         try {
-            const response = await api.post(API.AUTH.FORGOT_PASSWORD, { email });
+            const response = await api.post(API.AUTH.FORGOT_PASSWORD, data);
             return response.data;
         } catch (error) {
             handleApiError(error, 'Forgot Password');
@@ -89,9 +97,10 @@ export const authApi = {
     /**
      * Reset password with token
      */
-    resetPassword: async (data: any) => {
-        if (IS_DEV) {
-            return { message: 'Password reset successful (mock)' };
+    resetPassword: async (data: ResetPasswordRequest) => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return { message: 'Password reset successfully (mock)' };
         }
 
         try {

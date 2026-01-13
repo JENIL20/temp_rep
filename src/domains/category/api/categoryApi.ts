@@ -1,5 +1,6 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
+import { IS_OFFLINE_MODE } from '../../../shared/config';
 
 /**
  * Handle API errors
@@ -12,31 +13,82 @@ const handleApiError = (error: any, context: string): never => {
     throw new Error(error.message || 'Unknown error occurred');
 };
 
-// Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
 
-const DUMMY_CATEGORIES = [
+
+import { Category, CategoryListRequest, PaginatedCategoryResponse } from '../types/category.types';
+
+// ... imports remain ...
+
+const DUMMY_CATEGORIES: Category[] = [
     { id: 1, categoryName: "Web Development" },
     { id: 2, categoryName: "Mobile Development" },
     { id: 3, categoryName: "Data Science" },
     { id: 4, categoryName: "Design" },
     { id: 5, categoryName: "Business" },
+    { id: 6, categoryName: "Marketing" },
+    { id: 7, categoryName: "Photography" },
+    { id: 8, categoryName: "Music" },
+    { id: 9, categoryName: "Health & Fitness" },
+    { id: 10, categoryName: "Lifestyle" },
+    { id: 11, categoryName: "IT & Software" },
+    { id: 12, categoryName: "Personal Development" },
 ];
 
 export const categoryApi = {
     /**
-     * List all categories
+     * List categories with pagination
      */
-    list: async () => {
-        if (IS_DEV) {
-            return DUMMY_CATEGORIES;
+    list: async (params?: CategoryListRequest): Promise<PaginatedCategoryResponse> => {
+        if (IS_OFFLINE_MODE) {
+            // Simulate API latency
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            let filtered = [...DUMMY_CATEGORIES];
+
+            // Search Filter
+            if (params?.searchTerm) {
+                const lowerTerm = params.searchTerm.toLowerCase();
+                filtered = filtered.filter(c =>
+                    c.categoryName.toLowerCase().includes(lowerTerm)
+                );
+            }
+
+            // Pagination
+            const pageNumber = params?.pageNumber || 1;
+            const pageSize = params?.pageSize || 10;
+            const totalCount = filtered.length;
+            const totalPages = Math.ceil(totalCount / pageSize);
+
+            const start = (pageNumber - 1) * pageSize;
+            const end = start + pageSize;
+            const items = filtered.slice(start, end);
+
+            return {
+                items,
+                totalCount,
+                pageNumber,
+                pageSize,
+                totalPages
+            };
         }
 
         try {
-            const response = await api.get(API.CATEGORY.LIST);
+            // Pass query params to API
+            const response = await api.get(API.CATEGORY.LIST, { params });
+            // Handle possible non-paginated legacy response by wrapping it
+            if (Array.isArray(response.data)) {
+                return {
+                    items: response.data,
+                    totalCount: response.data.length,
+                    pageNumber: 1,
+                    pageSize: response.data.length,
+                    totalPages: 1
+                };
+            }
             return response.data;
         } catch (error) {
             handleApiError(error, 'List categories');
+            throw error;
         }
     },
 
@@ -44,7 +96,7 @@ export const categoryApi = {
      * Get category by ID
      */
     getById: async (id: number | string) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             const category = DUMMY_CATEGORIES.find(c => c.id === Number(id));
             if (!category) throw new Error('Category not found');
             return category;
@@ -62,7 +114,7 @@ export const categoryApi = {
      * Create new category
      */
     create: async (data: any) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return {
                 ...data,
                 id: Math.floor(Math.random() * 1000) + 10
@@ -81,7 +133,7 @@ export const categoryApi = {
      * Update category
      */
     update: async (id: number | string, data: any) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return {
                 ...data,
                 id: id
@@ -100,7 +152,7 @@ export const categoryApi = {
      * Delete category
      */
     delete: async (id: number | string) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             console.log(`Mock deleted category ${id}`);
             return true;
         }

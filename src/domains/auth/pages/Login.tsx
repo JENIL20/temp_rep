@@ -24,10 +24,10 @@ const Login = () => {
       setLoading(true);
       const data = await authApi.login({ email, password });
 
-      console.log('Login Response:', data);
+      console.log('Login Response:', data[0]);
 
-      const user = data?.user;
-      const token = data?.access_token;
+      const user = data[0]?.user;
+      const token = data[0]?.token;
 
       if (user && token) {
         dispatch(setCredentials({ user, token }));

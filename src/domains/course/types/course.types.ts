@@ -43,3 +43,17 @@ export interface EnrolledUser {
         avatarUrl?: string;
     };
 }
+
+export interface CourseListRequest {
+    searchTerm?: string;
+    pageNumber?: number;
+    pageSize?: number;
+}
+
+export interface PaginatedCourseResponse {
+    items: Course[];
+    totalCount: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+}

@@ -45,6 +45,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { to: "/categories", label: "Categories", icon: Layers },
     { to: "/certificates", label: "Certificates", icon: Award },
     { to: "/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
+    { to: "/admin/users", label: "Users Management", icon: User },
     { to: "/projects", label: "Projects", icon: Briefcase },
     { to: "/settings", label: "Settings", icon: Settings },
   ];

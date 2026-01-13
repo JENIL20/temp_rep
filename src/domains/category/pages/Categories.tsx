@@ -1,20 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { categoryApi } from "../api/categoryApi";
-import { PlusCircle, X, Pencil, Trash2, Search, Zap, LayoutGrid, AlertCircle } from "lucide-react";
+import { PlusCircle, X, Pencil, Trash2, Search, LayoutGrid, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-
-// Define strict types
-interface Category {
-  id: string | number;
-  categoryName: string;
-}
+import { Pagination } from "../../../shared/components/common";
+import { Category } from "../types/category.types";
 
 const Categories = () => {
+  // Data State
   const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
 
+  // Pagination & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<Category | null>(null);
@@ -35,11 +38,26 @@ const Categories = () => {
   }, [modalOpen]);
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
-      const data = await categoryApi.list();
-      const loadedCategories = Array.isArray(data) ? data : [];
-      setCategories(loadedCategories);
-      setFilteredCategories(loadedCategories);
+      const response = await categoryApi.list({
+        pageNumber: currentPage,
+        pageSize: pageSize,
+        searchTerm: searchQuery
+      });
+
+      // Handle response structure (paginated or flat array)
+      if ('items' in response) {
+        setCategories(response.items);
+        setTotalCount(response.totalCount);
+        setTotalPages(response.totalPages);
+      } else {
+        // Fallback if API returns array (should not happen with updated API mock)
+        const items = response as Category[];
+        setCategories(items);
+        setTotalCount(items.length);
+        setTotalPages(1);
+      }
     } catch (error: any) {
       console.error("Failed to fetch categories:", error);
       toast.error(error.message || "Unable to fetch categories");
@@ -48,20 +66,19 @@ const Categories = () => {
     }
   };
 
+  // Debounced Search Effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to page 1 on search
+      fetchCategories();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch when pagination changes
   useEffect(() => {
     fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCategories(categories);
-    } else {
-      const lowerQuery = searchQuery.toLowerCase();
-      setFilteredCategories(categories.filter(c =>
-        c.categoryName.toLowerCase().includes(lowerQuery)
-      ));
-    }
-  }, [searchQuery, categories]);
+  }, [currentPage, pageSize]); // searchQuery is handled by debounce effect
 
   const openCreateModal = () => {
     setForm({ categoryName: "", id: "" });
@@ -116,17 +133,6 @@ const Categories = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-navy border-t-secondary-gold"></div>
-          <p className="text-gray-500 font-medium">Loading Categories...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 md:p-8">
       {/* Header Section */}
@@ -152,6 +158,15 @@ const Categories = () => {
               className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none w-full sm:w-64 transition-all shadow-sm group-hover:shadow-md"
             />
           </div>
+
+          <button
+            onClick={fetchCategories}
+            className="p-2.5 bg-white border border-gray-200 text-slate-600 hover:bg-slate-50 rounded-xl transition-all active:scale-95 shadow-sm"
+            title="Refresh Data"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+
           <button
             onClick={openCreateModal}
             className="flex items-center justify-center gap-2 bg-gradient-to-r from-secondary-gold to-secondary-gold-dark text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-secondary-gold/20 hover:shadow-secondary-gold/40 hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
@@ -162,69 +177,100 @@ const Categories = () => {
         </div>
       </div>
 
-      {/* Grid List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredCategories.length > 0 ? (
-          filteredCategories.map((cat, index) => (
-            <div
-              key={cat.id}
-              className="group relative bg-white rounded-2xl p-6 border border-white/50 shadow-sm hover:shadow-xl hover:border-secondary-gold/30 transition-all duration-300"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <button
-                  onClick={() => openEditModal(cat)}
-                  className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                  title="Edit"
-                >
-                  <Pencil size={16} />
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(cat)}
-                  className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+      <div className="mb-4 text-sm text-gray-500 font-medium">
+        Showing <span className="text-gray-900 font-bold">{categories.length}</span> of <span className="text-gray-900 font-bold">{totalCount}</span> categories
+      </div>
 
-              <div className="flex items-start justify-between mb-4">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center text-primary-navy group-hover:scale-110 transition-transform duration-300">
-                  <Zap size={24} className={index % 2 === 0 ? "text-secondary-gold" : "text-primary-navy"} />
+      {/* Table Section */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        {/* Table Header */}
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+          <div className="grid grid-cols-12 gap-4 items-center">
+            <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider">ID</div>
+            <div className="col-span-8 text-xs font-black text-slate-400 uppercase tracking-wider">Category Name</div>
+            <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Actions</div>
+          </div>
+        </div>
+
+        {/* Table Body */}
+        <div className="divide-y divide-slate-100">
+          {loading ? (
+            <div className="py-20 flex flex-col items-center">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-navy border-t-secondary-gold mb-4"></div>
+              <p className="text-gray-500 font-medium">Loading Categories...</p>
+            </div>
+          ) : categories.length > 0 ? (
+            categories.map((cat, index) => (
+              <div
+                key={cat.id}
+                className="px-6 py-4 hover:bg-slate-50/50 transition-colors group"
+                style={{ animationDelay: `${index * 50} ms` }}
+              >
+                <div className="grid grid-cols-12 gap-4 items-center">
+                  {/* ID */}
+                  <div className="col-span-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                      #{cat.id}
+                    </span>
+                  </div>
+
+                  {/* Name */}
+                  <div className="col-span-8">
+                    <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors text-lg">
+                      {cat.categoryName}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="col-span-2 flex items-center justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => openEditModal(cat)}
+                      className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(cat)}
+                      className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <h3 className="text-xl font-bold text-gray-800 mb-2 truncate pr-16 group-hover:text-primary-navy transition-colors">
-                {cat.categoryName}
-              </h3>
-
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                Active
-                <span className="mx-1">•</span>
-                ID: {cat.id}
+            ))
+          ) : (
+            <div className="col-span-full py-16 flex flex-col items-center justify-center text-center">
+              <div className="bg-gray-50 p-4 rounded-full mb-4">
+                <Search size={32} className="text-gray-400" />
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">No categories found</h3>
+              <p className="text-gray-500 max-w-sm mb-6">
+                {searchQuery ? "Try adjusting your search terms" : "Get started by creating your first category."}
+              </p>
+              {!searchQuery && (
+                <button
+                  onClick={openCreateModal}
+                  className="text-secondary-gold font-semibold hover:underline"
+                >
+                  Create your first category
+                </button>
+              )}
             </div>
-          ))
-        ) : (
-          <div className="col-span-full py-16 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-dashed border-gray-300">
-            <div className="bg-gray-50 p-4 rounded-full mb-4">
-              <Search size={32} className="text-gray-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No categories found</h3>
-            <p className="text-gray-500 max-w-sm mb-6">
-              {searchQuery ? "Try adjusting your search terms" : "Get started by creating your first category to organize your courses."}
-            </p>
-            {!searchQuery && (
-              <button
-                onClick={openCreateModal}
-                className="text-secondary-gold font-semibold hover:underline"
-              >
-                Create your first category
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+        />
       </div>
 
       {/* ---------------- MODAL (CREATE / EDIT) ---------------- */}

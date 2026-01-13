@@ -1,6 +1,31 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
 import { CreateCertificateRequest, Certificate, CertificateValidation } from '../types/certificate.types';
+import { IS_OFFLINE_MODE } from '../../../shared/config';
+
+// Dummy Data
+const DUMMY_CERTIFICATES: Certificate[] = [
+    {
+        id: 1,
+        courseId: 101,
+        userId: 1,
+        user: { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+        course: { id: 101, title: 'React Masterclass', instructor: 'Jane Doe', durationHours: 20 },
+        issuedDate: '2025-01-15T10:00:00Z',
+        certificateCode: 'CERT-123456',
+        isRevoked: false
+    },
+    {
+        id: 2,
+        courseId: 102,
+        userId: 1,
+        user: { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+        course: { id: 102, title: 'Advanced Python', instructor: 'John Smith', durationHours: 15 },
+        issuedDate: '2025-02-01T14:30:00Z',
+        certificateCode: 'CERT-789012',
+        isRevoked: false
+    }
+];
 
 /**
  * API Error Handler
@@ -60,6 +85,30 @@ export const certificateApi = {
      * @throws Error if validation fails or API call fails
      */
     generate: async (data: CreateCertificateRequest): Promise<Certificate> => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return {
+                id: Math.floor(Math.random() * 1000),
+                courseId: data.courseId,
+                userId: data.userId,
+                issuedDate: new Date().toISOString(),
+                certificateCode: `CERT-${Date.now()}`,
+                isRevoked: false,
+                course: {
+                    id: data.courseId,
+                    title: 'Mock Course',
+                    instructor: 'Mock Instructor',
+                    durationHours: 10
+                },
+                user: {
+                    id: data.userId,
+                    firstName: 'Mock',
+                    lastName: 'User',
+                    email: 'mock@example.com'
+                }
+            } as Certificate;
+        }
+
         try {
             validateCertificateRequest(data);
             const result = await api.post(API.CERTIFICATE.GENERATE, data);
@@ -68,7 +117,7 @@ export const certificateApi = {
                 throw new Error('No certificate data returned');
             }
 
-            return result as Certificate;
+            return result.data;
         } catch (error) {
             handleApiError(error, 'Generate certificate');
         }
@@ -81,6 +130,11 @@ export const certificateApi = {
      * @throws Error if validation fails or API call fails
      */
     download: async (id: number): Promise<Blob> => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return new Blob(['Mock PDF Content'], { type: 'application/pdf' });
+        }
+
         try {
             validateId(id, 'Certificate ID');
             const result = await api.get(API.CERTIFICATE.DOWNLOAD(id), {
@@ -93,6 +147,12 @@ export const certificateApi = {
 
             // Validate that we received a blob
             if (!(result instanceof Blob)) {
+
+                // Check if it is really a blob or just some random object
+                if (result.data instanceof Blob) {
+                    return result.data;
+                }
+
                 throw new Error('Invalid certificate file format received');
             }
 
@@ -109,6 +169,16 @@ export const certificateApi = {
      * @throws Error if validation fails or API call fails
      */
     validate: async (code: string): Promise<CertificateValidation> => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return {
+                isValid: true,
+                message: 'Certificate is valid',
+                certificate: DUMMY_CERTIFICATES[0]
+            };
+        }
+
+
         try {
             validateCode(code);
             const result = await api.get(API.CERTIFICATE.VALIDATE(code.trim()));
@@ -130,6 +200,11 @@ export const certificateApi = {
      * @throws Error if validation fails or API call fails
      */
     revoke: async (id: number) => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return { success: true, message: 'Certificate revoked (mock)' };
+        }
+
         try {
             validateId(id, 'Certificate ID');
             const result = await api.post(API.CERTIFICATE.REVOKE(id));
@@ -151,6 +226,11 @@ export const certificateApi = {
      * @throws Error if validation fails or API call fails
      */
     getUserCertificates: async (userId: number): Promise<Certificate[]> => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return DUMMY_CERTIFICATES.filter(c => c.userId === userId);
+        }
+
         try {
             validateId(userId, 'User ID');
             const result = await api.get(API.CERTIFICATE.GET_USER_CERTIFICATES(userId));
@@ -173,6 +253,10 @@ export const certificateApi = {
      * @throws Error if API call fails
      */
     list: async (): Promise<Certificate[]> => {
+        if (IS_OFFLINE_MODE) {
+            return DUMMY_CERTIFICATES;
+        }
+
         try {
             const result = await api.get(API.CERTIFICATE.LIST);
 

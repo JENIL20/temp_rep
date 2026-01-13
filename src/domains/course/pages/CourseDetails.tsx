@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { courseApi, courseVideoApi } from "../api/courseApi";
+import { courseApi, courseVideoApi, DUMMY_COURSES } from "../api/courseApi";
 import {
   ArrowLeft,
   Play,
+  Plus,
   Users,
   BookOpen,
   Clock,
@@ -52,13 +53,14 @@ const CourseDetails = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
   const [checkingSub, setCheckingSub] = useState(false);
+  console.log(DUMMY_COURSES)
 
   // Fetch course details
   const fetchCourse = async () => {
     try {
       const course = await courseApi.getById(Number(id || '1'));
       console.log("Fetched course:", course); // log the fetched course obje  c
-      setCourse(course[0]);
+      setCourse(course[0] || course);
       setUsingSampleData(false);
     } catch (err) {
       console.error("Failed to load course:", err);
@@ -143,7 +145,7 @@ const CourseDetails = () => {
     try {
       await userCourseApi.subscribe({
         userId: Number(user.id),
-        courseId: course.id
+        courseId: course.courseId
       });
       setIsSubscribed(true);
       toast.success("Successfully subscribed!");
@@ -165,7 +167,7 @@ const CourseDetails = () => {
     try {
       await userCourseApi.unsubscribe({
         userId: Number(user.id),
-        courseId: course.id
+        courseId: course.courseId
       });
       setIsSubscribed(false);
       toast.info("Unsubscribed from course");
@@ -428,6 +430,17 @@ const CourseDetails = () => {
         {/* Videos Tab */}
         {activeTab === 'videos' && (
           <div className="animate-fadeIn">
+            {/* Add Video Button */}
+            <div className="mb-6 flex justify-end">
+              <button
+                onClick={() => navigate(`/courses/${id}/add-video`)}
+                className="flex items-center gap-2 bg-primary-navy hover:bg-primary-navy-dark text-white px-6 py-3 rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 font-semibold"
+              >
+                <Plus size={20} />
+                Add Video
+              </button>
+            </div>
+
             {videosLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-pulse text-gray-600">Loading videos...</div>
@@ -436,7 +449,14 @@ const CourseDetails = () => {
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
                 <Video className="mx-auto text-gray-400 mb-4" size={64} />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No Videos Available</h3>
-                <p className="text-gray-600">Videos for this course will appear here once they are added.</p>
+                <p className="text-gray-600 mb-6">Videos for this course will appear here once they are added.</p>
+                <button
+                  onClick={() => navigate(`/courses/${id}/add-video`)}
+                  className="inline-flex items-center gap-2 bg-primary-navy hover:bg-primary-navy-dark text-white px-6 py-3 rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 font-semibold"
+                >
+                  <Plus size={20} />
+                  Add Your First Video
+                </button>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -677,6 +697,13 @@ const CourseDetails = () => {
                   return match ? match[1] : null;
                 };
 
+                // Extract Google Drive ID
+                const getGoogleDriveId = (url: string) => {
+                  const regExp = /\/file\/d\/([a-zA-Z0-9_-]+)/;
+                  const match = url.match(regExp);
+                  return match ? match[1] : null;
+                };
+
                 // Check if it's a direct video file
                 const isDirectVideo = (url: string) => {
                   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
@@ -684,6 +711,7 @@ const CourseDetails = () => {
 
                 const youtubeId = getYouTubeId(videoUrl);
                 const vimeoId = getVimeoId(videoUrl);
+                const googleDriveId = getGoogleDriveId(videoUrl);
                 const isDirect = isDirectVideo(videoUrl);
 
                 // YouTube iframe embed
@@ -709,6 +737,21 @@ const CourseDetails = () => {
                       width="100%"
                       height="100%"
                       allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                      title={selectedVideo.title}
+                    />
+                  );
+                }
+
+                // Google Drive iframe embed
+                if (googleDriveId) {
+                  return (
+                    <iframe
+                      src={`https://drive.google.com/file/d/${googleDriveId}/preview`}
+                      width="100%"
+                      height="100%"
+                      allow="autoplay; fullscreen"
                       allowFullScreen
                       className="w-full h-full"
                       title={selectedVideo.title}

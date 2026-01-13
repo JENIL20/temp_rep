@@ -1,6 +1,9 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
-import { SubscribeRequest, EnrolledCourse, SubscriptionStatus } from '../types/enrollment.types';
+import { IS_OFFLINE_MODE } from '../../../shared/config';
+import { SubscribeRequest, EnrolledCourse, SubscriptionStatus, EnrollmentListRequest, PaginatedEnrollmentResponse } from '../types/enrollment.types';
+
+// ... (rest of imports/error handling)
 
 /**
  * API Error Handler
@@ -46,8 +49,7 @@ const validateCourseId = (courseId: number): void => {
     }
 };
 
-// Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
+
 
 const DUMMY_ENROLLED_COURSES: EnrolledCourse[] = [
     {
@@ -67,18 +69,120 @@ const DUMMY_ENROLLED_COURSES: EnrolledCourse[] = [
             price: 49.99,
             rating: 4.5
         }
+    },
+    {
+        id: 2,
+        userId: 1,
+        courseId: 102,
+        enrolledAt: '2024-12-15T10:00:00Z',
+        completedAt: '2025-01-10T15:30:00Z',
+        progress: 100,
+        status: 'Completed',
+        course: {
+            id: 102,
+            title: 'Advanced Python',
+            description: 'Master Python features',
+            instructor: 'Jane Smith',
+            difficulty: 'Advanced',
+            durationHours: 30,
+            price: 59.99,
+            rating: 4.8
+        }
+    },
+    {
+        id: 3,
+        userId: 1,
+        courseId: 103,
+        enrolledAt: '2025-01-05T09:00:00Z',
+        progress: 45,
+        status: 'Active',
+        course: {
+            id: 103,
+            title: 'UI/UX Design Fundamentals',
+            description: 'Create beautiful user interfaces',
+            instructor: 'Mike Johnson',
+            difficulty: 'Beginner',
+            durationHours: 15,
+            price: 39.99,
+            rating: 4.7
+        }
+    },
+    {
+        id: 4,
+        userId: 1,
+        courseId: 104,
+        enrolledAt: '2024-11-20T10:00:00Z',
+        progress: 100,
+        status: 'Completed',
+        course: {
+            id: 104,
+            title: 'Docker & Kubernetes',
+            description: 'Containerization mastery',
+            instructor: 'Sarah Lee',
+            difficulty: 'Advanced',
+            durationHours: 40,
+            price: 89.99,
+            rating: 4.9
+        }
+    },
+    {
+        id: 5,
+        userId: 1,
+        courseId: 105,
+        enrolledAt: '2025-01-10T12:00:00Z',
+        progress: 5,
+        status: 'Active',
+        course: {
+            id: 105,
+            title: 'Machine Learning Basics',
+            description: 'Intro to AI and ML',
+            instructor: 'David Kim',
+            difficulty: 'Intermediate',
+            durationHours: 25,
+            price: 69.99,
+            rating: 4.6
+        }
     }
 ];
+
+// Helper to simulate DB persistence in memory (resets on reload)
+let mockEnrollments: EnrolledCourse[] = [...DUMMY_ENROLLED_COURSES];
 
 export const userCourseApi = {
     /**
      * Subscribe to a course
-     * @param data - Subscription request containing userId and courseId
-     * @returns Promise with subscription response
-     * @throws Error if validation fails or API call fails
      */
     subscribe: async (data: SubscribeRequest) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate latency
+
+            // Check if already subscribed
+            const exists = mockEnrollments.find(e => e.courseId === data.courseId && e.userId === data.userId);
+            if (exists) {
+                return { message: 'Already subscribed', ...data };
+            }
+
+            // Create new enrollment
+            const newEnrollment: EnrolledCourse = {
+                id: Math.floor(Math.random() * 10000),
+                userId: data.userId,
+                courseId: data.courseId,
+                enrolledAt: new Date().toISOString(),
+                progress: 0,
+                status: 'Active',
+                course: {
+                    id: data.courseId,
+                    title: 'New Course', // In real app, would fetch course details
+                    description: 'Description',
+                    instructor: 'Instructor',
+                    difficulty: 'Beginner',
+                    durationHours: 10,
+                    price: 0,
+                    rating: 0
+                }
+            };
+
+            mockEnrollments.push(newEnrollment);
             return { message: 'Subscribed successfully (mock)', ...data };
         }
 
@@ -93,12 +197,11 @@ export const userCourseApi = {
 
     /**
      * Unsubscribe from a course
-     * @param data - Subscription request containing userId and courseId
-     * @returns Promise with unsubscription response
-     * @throws Error if validation fails or API call fails
      */
     unsubscribe: async (data: SubscribeRequest) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            mockEnrollments = mockEnrollments.filter(e => !(e.courseId === data.courseId && e.userId === data.userId));
             return { message: 'Unsubscribed successfully (mock)', ...data };
         }
 
@@ -112,26 +215,55 @@ export const userCourseApi = {
     },
 
     /**
-     * Get user's enrolled courses
-     * @returns Promise with array of enrolled courses
-     * @throws Error if API call fails
+     * Get user's enrolled courses with pagination
      */
-    getMyCourses: async (): Promise<EnrolledCourse[]> => {
-        if (IS_DEV) {
-            return DUMMY_ENROLLED_COURSES;
+    getMyCourses: async (params?: EnrollmentListRequest): Promise<PaginatedEnrollmentResponse> => {
+        if (IS_OFFLINE_MODE) {
+            // Simulate API latency
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            let filtered = [...mockEnrollments];
+
+            // Filter by Status
+            if (params?.status && params.status !== 'all') {
+                filtered = filtered.filter(c => c.status.toLowerCase() === params.status?.toLowerCase());
+            }
+
+            // Pagination
+            const pageNumber = params?.pageNumber || 1;
+            const pageSize = params?.pageSize || 10;
+            const totalCount = filtered.length;
+            const totalPages = Math.ceil(totalCount / pageSize);
+
+            const start = (pageNumber - 1) * pageSize;
+            const end = start + pageSize;
+            const items = filtered.slice(start, end);
+
+            return {
+                items,
+                totalCount,
+                pageNumber,
+                pageSize,
+                totalPages
+            };
         }
 
         try {
-            const response = await api.get(API.USER_COURSE.MY_COURSES);
+            const response = await api.get(API.USER_COURSE.MY_COURSES, { params });
             const result = response.data;
 
-            if (!result) {
-                console.warn('[UserCourseAPI] No courses data returned, returning empty array');
-                return [];
+            // Handle legacy array response if backend not updated
+            if (Array.isArray(result)) {
+                return {
+                    items: result,
+                    totalCount: result.length,
+                    pageNumber: 1,
+                    pageSize: result.length,
+                    totalPages: 1
+                };
             }
 
-            // Ensure we always return an array
-            return Array.isArray(result) ? result : [];
+            return result;
         } catch (error) {
             throw handleApiError(error, 'Get my courses');
         }
@@ -143,8 +275,8 @@ export const userCourseApi = {
      * @throws Error if API call fails
      */
     getSubscribedList: async (): Promise<EnrolledCourse[]> => {
-        if (IS_DEV) {
-            return DUMMY_ENROLLED_COURSES;
+        if (IS_OFFLINE_MODE) {
+            return mockEnrollments;
         }
 
         try {
@@ -165,13 +297,12 @@ export const userCourseApi = {
 
     /**
      * Check if user is subscribed to a course
-     * @param courseId - The ID of the course to check
-     * @returns Promise with subscription status
-     * @throws Error if validation fails or API call fails
      */
     checkSubscription: async (courseId: number): Promise<SubscriptionStatus> => {
-        if (IS_DEV) {
-            return { isSubscribed: true }; // Mocking as subscribed for testing
+        if (IS_OFFLINE_MODE) {
+            // Check against mock memory
+            const isSubscribed = mockEnrollments.some(e => e.courseId === courseId);
+            return { isSubscribed };
         }
 
         try {

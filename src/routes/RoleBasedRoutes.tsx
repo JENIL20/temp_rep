@@ -1,11 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store';
+import { ReactNode } from 'react';
 
 interface RoleBasedRouteProps {
   allowedRoles: string[];
+  children?: ReactNode;
 }
 
-const RoleBasedRoute = ({ allowedRoles }: RoleBasedRouteProps) => {
+const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
   const { user, isAuthenticated, loading } = useAppSelector((state) => state.auth);
 
   // Show loading spinner while checking auth
@@ -21,17 +23,19 @@ const RoleBasedRoute = ({ allowedRoles }: RoleBasedRouteProps) => {
   }
 
   // Redirect to login if not authenticated
-  if (isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   // Check if user has the required role
-  if (user && !allowedRoles.includes(user.role)) {
+  const hasRequiredRole = user?.roles?.some(role => allowedRoles.includes(role));
+
+  if (user && !hasRequiredRole) {
     return <Navigate to="/unauthorized" replace />;
   }
 
   // Render child routes if user has proper role
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default RoleBasedRoute;

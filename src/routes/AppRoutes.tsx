@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoutes";
+import RoleBasedRoute from "./RoleBasedRoutes"; // Import added
 import { paths } from "./path";
 import { AuthRoutes, ProtectedRoutes } from './routes';
 import Wrapper from "@/shared/components/layout/Wrapper";
@@ -32,9 +33,9 @@ const AppRoutes = () => {
                   path={path}
                   element={
                     permissions.length > 0 ? (
-                      // <RoleBasedRoute allowedRoles={permissions} >
-                      <Element />
-                      // </RoleBasedRoute>
+                      <RoleBasedRoute allowedRoles={permissions} >
+                        <Element />
+                      </RoleBasedRoute>
                     ) : (
                       <Element />
                     )

@@ -32,3 +32,18 @@ export interface SubscriptionStatus {
     enrolledAt?: string;
     progress?: number;
 }
+
+export interface EnrollmentListRequest {
+    pageNumber: number;
+    pageSize: number;
+    status?: 'all' | 'active' | 'completed';
+    searchTerm?: string;
+}
+
+export interface PaginatedEnrollmentResponse {
+    items: EnrolledCourse[];
+    totalCount: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+}

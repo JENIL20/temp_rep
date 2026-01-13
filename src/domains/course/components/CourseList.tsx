@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Search, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Filter, ArrowUpDown, LayoutGrid } from "lucide-react";
 import { Course } from "../types/course.types";
 import CourseCard from "./CourseCard";
-import { LoadingSpinner } from "../../../shared/components/common";
+import { LoadingSpinner, Pagination } from "../../../shared/components/common";
 
 interface Category {
     id: number;
@@ -13,110 +13,71 @@ interface CourseListProps {
     courses: Course[];
     categories: Category[];
     isLoading: boolean;
-    itemsPerPage?: number;
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    onSearch: (term: string) => void;
     emptyMessage?: string;
     className?: string;
+    gridConfig?: { columns: number; rows: number };
+    onGridChange?: (config: { columns: number; rows: number }) => void;
 }
 
 const CourseList: React.FC<CourseListProps> = ({
     courses,
     categories,
     isLoading,
-    itemsPerPage = 6,
+    totalCount,
+    currentPage,
+    pageSize,
+    totalPages,
+    onPageChange,
+    onSearch,
     emptyMessage = "Try adjusting your search or filters",
-    className = ""
+    className = "",
+    gridConfig,
+    onGridChange
 }) => {
-    // Filter & Search State
+    // UI Local State for immediate feedback
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
     const [selectedDifficulty, setSelectedDifficulty] = useState<string | "all">("all");
     const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
     const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high" | "rating">("newest");
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-
-    // Filter Logic
-    const filteredCourses = useMemo(() => {
-        let result = [...courses];
-
-        // Search
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(course =>
-                course.title.toLowerCase().includes(query) ||
-                course.description.toLowerCase().includes(query) ||
-                course.instructor.toLowerCase().includes(query)
-            );
-        }
-
-        // Filter by Category
-        if (selectedCategory !== "all") {
-            result = result.filter(course => course.categoryId === selectedCategory);
-        }
-
-        // Filter by Difficulty
-        if (selectedDifficulty !== "all") {
-            result = result.filter(course => course.difficulty.toLowerCase() === selectedDifficulty.toLowerCase());
-        }
-
-        // Filter by Status
-        if (selectedStatus !== "all") {
-            result = result.filter(course =>
-                selectedStatus === "active" ? course.isActive : !course.isActive
-            );
-        }
-
-        // Sorting
-        switch (sortBy) {
-            case "price-low":
-                result.sort((a, b) => a.price - b.price);
-                break;
-            case "price-high":
-                result.sort((a, b) => b.price - a.price);
-                break;
-            case "rating":
-                result.sort((a, b) => b.rating - a.rating);
-                break;
-            case "newest":
-            default:
-                result.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime());
-                break;
-        }
-
-        return result;
-    }, [courses, searchQuery, selectedCategory, selectedDifficulty, selectedStatus, sortBy]);
-
-    // Reset page when filters change
+    // Debounce search
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, selectedCategory, selectedDifficulty, selectedStatus, sortBy]);
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
-    const paginatedCourses = filteredCourses.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        // Optional: Scroll to top of list
-        const listElement = document.getElementById('course-list-top');
-        if (listElement) {
-            listElement.scrollIntoView({ behavior: 'smooth' });
-        }
-    };
+        const timer = setTimeout(() => {
+            onSearch(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery, onSearch]);
 
     const hasActiveFilters = searchQuery || selectedCategory !== "all" || selectedDifficulty !== "all" || selectedStatus !== "all";
+
+    // Dynamic Grid Class
+    const getGridClass = () => {
+        if (!gridConfig) return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+
+        switch (gridConfig.columns) {
+            case 1: return "grid-cols-1";
+            case 2: return "grid-cols-1 sm:grid-cols-2";
+            case 3: return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+            case 4: return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+            case 5: return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
+            default: return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+        }
+    };
 
     return (
         <div className={`space-y-6 ${className}`} id="course-list-top">
             {/* Controls Section */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col xl:flex-row gap-4">
                     {/* Search */}
-                    <div className="flex-1 relative">
+                    <div className="flex-1 relative min-w-[300px]">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
@@ -127,19 +88,64 @@ const CourseList: React.FC<CourseListProps> = ({
                         />
                     </div>
 
-                    {/* Sort */}
-                    <div className="flex items-center gap-2 min-w-[200px]">
-                        <ArrowUpDown size={18} className="text-gray-500" />
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as "newest" | "price-low" | "price-high" | "rating")}
-                            className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent outline-none cursor-pointer"
-                        >
-                            <option value="newest">Newest First</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="rating">Highest Rated</option>
-                        </select>
+                    <div className="flex flex-wrap items-center gap-4">
+                        {/* Sort */}
+                        <div className="flex items-center gap-2 min-w-[200px] flex-1">
+                            <ArrowUpDown size={18} className="text-gray-500" />
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as "newest" | "price-low" | "price-high" | "rating")}
+                                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent outline-none cursor-pointer"
+                            >
+                                <option value="newest">Newest First</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                                <option value="rating">Highest Rated</option>
+                            </select>
+                        </div>
+
+                        {/* Grid Settings */}
+                        {gridConfig && onGridChange && (
+                            <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <LayoutGrid size={18} className="text-gray-500" />
+                                    <span className="text-sm font-medium text-gray-700 hidden sm:inline">Grid:</span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-500 font-medium">Cols:</label>
+                                    <select
+                                        value={gridConfig.columns}
+                                        onChange={(e) => onGridChange({ ...gridConfig, columns: Number(e.target.value) })}
+                                        className="text-sm bg-white border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-primary-navy/20 outline-none cursor-pointer"
+                                    >
+                                        <option value={1}>1</option>
+                                        <option value={2}>2</option>
+                                        <option value={3}>3</option>
+                                        <option value={4}>4</option>
+                                    </select>
+                                </div>
+
+                                <div className="h-4 w-px bg-gray-300"></div>
+
+                                <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-500 font-medium">Rows:</label>
+                                    <select
+                                        value={gridConfig.rows}
+                                        onChange={(e) => onGridChange({ ...gridConfig, rows: Number(e.target.value) })}
+                                        className="text-sm bg-white border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-primary-navy/20 outline-none cursor-pointer"
+                                    >
+                                        <option value={2}>2</option>
+                                        <option value={3}>3</option>
+                                        <option value={4}>4</option>
+                                        <option value={5}>5</option>
+                                        <option value={6}>6</option>
+                                        <option value={8}>8</option>
+                                        <option value={10}>10</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -203,7 +209,7 @@ const CourseList: React.FC<CourseListProps> = ({
                 <div className="py-12">
                     <LoadingSpinner variant="dots" size="lg" message="Loading courses..." />
                 </div>
-            ) : paginatedCourses.length === 0 ? (
+            ) : courses.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
                     <div className="text-gray-400 mb-4">
                         <Search size={48} className="mx-auto" />
@@ -213,48 +219,28 @@ const CourseList: React.FC<CourseListProps> = ({
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {paginatedCourses.map((course) => (
-                            <CourseCard key={course.id} course={course} />
+                    {/* Course Count Metadata */}
+                    <div className="flex items-center justify-between px-2 text-sm text-slate-500">
+                        <p>Showing <span className="font-bold text-slate-700">{courses.length}</span> of <span className="font-bold text-slate-700">{totalCount}</span> courses</p>
+                    </div>
+
+                    <div className={`grid gap-6 ${getGridClass()}`}>
+                        {courses.map((course) => (
+                            <CourseCard key={course.courseId} course={course} />
                         ))}
                     </div>
 
                     {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center items-center gap-2 mt-8">
-                            <button
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-
-                            {/* Simple Page Numbers */}
-                            <div className="flex gap-1 overflow-x-auto max-w-[200px] md:max-w-none">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                    <button
-                                        key={page}
-                                        onClick={() => handlePageChange(page)}
-                                        className={`w-10 h-10 rounded-lg font-medium transition-colors flex-shrink-0 ${currentPage === page
-                                            ? "bg-primary-navy text-white shadow-md"
-                                            : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                                            }`}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronRight size={20} />
-                            </button>
-                        </div>
-                    )}
+                    <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={onPageChange}
+                            pageSize={pageSize}
+                            onPageSizeChange={() => { }} // Page size is controlled by grid settings
+                            showPageSizeOptions={false} // Hide standard page size selector in favor of grid settings
+                        />
+                    </div>
                 </>
             )}
         </div>

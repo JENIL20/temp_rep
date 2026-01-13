@@ -55,6 +55,7 @@ const CourseVideos = () => {
         order: 1,
         thumbnailUrl: "",
         isActive: true,
+        videoFile: null as File | null,
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -104,7 +105,7 @@ const CourseVideos = () => {
     };
 
     const handleAddVideo = () => {
-        if (!videoFormData.title || !videoFormData.videoUrl) {
+        if (!videoFormData.title) {
             toast.error("Please fill in video title and URL");
             return;
         }
@@ -187,25 +188,35 @@ const CourseVideos = () => {
             // Process each video
             for (const video of videos) {
                 console.log("Saving video: ", video);
-                const videoData: CourseVideoRequest = {
-                    courseId: courseId,
-                    title: video.title,
-                    description: video.description || '',
-                    videoUrl: video.videoUrl,
-                    duration: video.duration || 0,
-                    orderIndex: video.order,
-                    thumbnailUrl: video.thumbnailUrl || '',
-                    isPreview: video.isActive,
-                };
-                console.log("VIDEO DATA ", videoData);
+
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('courseId', courseId);
+                formData.append('title', video.title);
+                formData.append('description', video.description || '');
+                formData.append('duration', String(video.duration || 0));
+                formData.append('orderIndex', String(video.order));
+                formData.append('thumbnailUrl', video.thumbnailUrl || '');
+                formData.append('isPreview', String(video.isActive));
+
+                // Add the video file if it exists
+                if (video.videoFile instanceof File) {
+                    formData.append('File', video.videoFile);
+                } else if (video.videoUrl) {
+                    // If it's a URL string (for existing videos)
+                    formData.append('videoUrl', video.videoUrl);
+                }
+
+                console.log("VIDEO DATA ", Object.fromEntries(formData));
+
                 if (video.id) {
                     // Update existing video
-                    const res = await courseVideoApi.update(video.id, videoData);
+                    const res = await courseVideoApi.update(video.id, formData);
                     console.log("Updated video: ", res);
                     console.log("Updated video ID:", video.id);
                 } else {
                     // Create new video
-                    const created = await courseVideoApi.create(videoData);
+                    const created = await courseVideoApi.create(formData);
                     console.log("Created video ID:", created.id);
                     video.id = created.id; // Update with server ID
                 }
@@ -220,7 +231,6 @@ const CourseVideos = () => {
             setSaving(false);
         }
     };
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -479,28 +489,28 @@ const CourseVideos = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Video URL <span className="text-red-500">*</span>
+                                    Video File <span className="text-red-500">*</span>
                                 </label>
                                 <div className="flex gap-2">
                                     <input
-                                        type="url"
-                                        name="videoUrl"
-                                        value={videoFormData.videoUrl}
-                                        onChange={handleVideoInputChange}
-                                        placeholder="https://www.youtube.com/watch?v=... or upload a file"
-                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent"
+                                        type="file"
+                                        name="videoFile"
+                                        accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                // Store the file in your form data
+                                                setVideoFormData({
+                                                    ...videoFormData,
+                                                    videoFile: file
+                                                });
+                                            }
+                                        }}
+                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-navy file:text-white hover:file:bg-primary-navy-light"
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowUploadModal(true)}
-                                        className="px-4 py-3 bg-primary-navy text-white rounded-lg hover:bg-primary-navy-light transition-colors flex items-center gap-2"
-                                    >
-                                        <Upload size={20} />
-                                        <span className="hidden sm:inline">Upload</span>
-                                    </button>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Paste a YouTube/Vimeo URL or upload your own video file
+                                    Select an MP4, MOV, AVI, or WebM video file
                                 </p>
                             </div>
 

@@ -19,14 +19,14 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem('token');
 
       if (token) {
-        try {
-          // Verify token and get user data
-          const response = await api.get('/auth/me');
-          dispatch(setCredentials({ user: response.data, token }));
-        } catch (error) {
-          // Token is invalid, clear it
-          dispatch(logout());
-        }
+        // try {
+        //   // Verify token and get user data
+        //   const response = await api.get('/auth/me');
+        //   dispatch(setCredentials({ user: response.data, token }));
+        // } catch (error) {
+        //   // Token is invalid, clear it
+        //   dispatch(logout());
+        // }
       }
     };
 

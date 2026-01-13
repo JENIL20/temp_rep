@@ -14,6 +14,37 @@ export const API = {
     RESET_PASSWORD: '/api/Auth/reset-password',
   },
 
+  // User Permissions & RBAC endpoints
+  USER_PERMISSIONS: {
+    // Modules
+    MODULES_ALL: '/api/user-permissions/modules/all',
+    MODULES: '/api/user-permissions/modules',
+    MODULE_BY_ID: (id: number | string) => `/api/user-permissions/modules/${id}`,
+    ASSIGN_MODULE_PERMISSIONS: '/api/user-permissions/modules/assign-permissions',
+
+    // Permissions
+    PERMISSIONS: '/api/user-permissions/permissions',
+
+    // Roles
+    ROLES: '/api/user-permissions/roles',
+    ROLE_BY_ID: (id: number | string) => `/api/user-permissions/roles/${id}`,
+
+    // Role Modules (Mapping)
+    ROLE_MODULES_ALL: '/api/user-permissions/role-modules/all',
+    ROLE_MODULES: '/api/user-permissions/role-modules',
+    ROLE_MODULES_BY_ROLE: (roleId: number | string) => `/api/user-permissions/role-modules/role/${roleId}`,
+    ROLE_MODULE_BY_ID: (id: number | string) => `/api/user-permissions/role-modules/${id}`,
+
+    // User Permissions Assignments
+    ASSIGN_ROLE: '/api/user-permissions/assign-role',
+    ASSIGN_PERMISSIONS: '/api/user-permissions/assign-permissions',
+    USER_PERMISSIONS: (userId: number | string) => `/api/user-permissions/user/${userId}`,
+    CHECK_PERMISSION: (userId: number | string, moduleCode: string, permissionCode: string) =>
+      `/api/user-permissions/user/${userId}/check/${moduleCode}/${permissionCode}`,
+    REMOVE_USER_ROLE: (userId: number | string, roleId: number | string) =>
+      `/api/user-permissions/user/${userId}/role/${roleId}`,
+  },
+
   // Category endpoints
   CATEGORY: {
     LIST: '/api/Category/list',
@@ -64,33 +95,14 @@ export const API = {
     STREAM: (fileName: string) => `/api/Crypto/stream/${fileName}`,
   },
 
-  // Permission endpoints
-  PERMISSION: {
-    LIST: '/api/Permission/list',
-    GET_BY_ID: (id: number | string) => `/api/Permission/${id}`,
-    CREATE: '/api/Permission/create',
-    UPDATE: (id: number | string) => `/api/Permission/update/${id}`,
-    DELETE: (id: number | string) => `/api/Permission/delete/${id}`,
-  },
-
   // Reports endpoints
   REPORTS: {
     COURSE_REPORT: (userId: number | string, courseId: number | string) => `/api/reports/course/${userId}/${courseId}`,
   },
 
-  // Role endpoints
-  ROLE: {
-    LIST: '/api/Role/list',
-    GET_BY_ID: (id: number | string) => `/api/Role/${id}`,
-    CREATE: '/api/Role/create',
-    UPDATE: (id: number | string) => `/api/Role/update/${id}`,
-    DELETE: (id: number | string) => `/api/Role/delete/${id}`,
-    ROLE_PERMISSION_LIST: '/api/Role/RolePermissionlist',
-  },
-
   // User endpoints
   USER: {
-    LIST: '/api/User/UserList',
+    LIST: '/api/User/userlist',
   },
 
   // User Course endpoints
@@ -100,13 +112,6 @@ export const API = {
     MY_COURSES: '/api/UserCourse/my-courses',
     SUBSCRIBED_LIST: '/api/UserCourse/Subscribed-List',
     CHECK_SUBSCRIPTION: (courseId: number | string) => `/api/UserCourse/check/${courseId}`,
-  },
-
-  // User Role endpoints
-  USER_ROLE: {
-    ASSIGN: '/api/UserRole/assign',
-    REMOVE: '/api/UserRole/remove',
-    GET_USER_ROLES: (userId: number | string) => `/api/UserRole/${userId}`,
   },
 } as const;
 

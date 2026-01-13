@@ -23,6 +23,7 @@ export const paths = {
     courseDetails: "/courses/:id",
     courseEdit: "/courses/edit/:id",
     courseVideos: "/courses/:id/videos",
+    courseAddVideo: "/courses/:id/add-video",
     courseDocuments: "/courses/:id/documents",
 
     // User Course Routes
@@ -33,6 +34,8 @@ export const paths = {
 
     // Admin Routes
     rolesManagement: "/admin/roles",
+    assignRoles: "/admin/assign-roles",
     permissionsManagement: "/admin/permissions",
+    usersManagement: "/admin/users",
   },
 };

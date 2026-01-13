@@ -1,6 +1,7 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
-import { Course, EnrolledUser } from '../types/course.types';
+import { Course, EnrolledUser, CourseListRequest, PaginatedCourseResponse } from '../types/course.types';
+import { IS_OFFLINE_MODE } from '../../../shared/config';
 
 // Dummy Data
 const generateDummyCourses = (): Course[] => {
@@ -20,8 +21,7 @@ const generateDummyCourses = (): Course[] => {
         updatedAt: new Date().toISOString()
     }));
 };
-
-const DUMMY_COURSES: Course[] = generateDummyCourses();
+export const DUMMY_COURSES: Course[] = generateDummyCourses();
 
 const DUMMY_VIDEOS: CourseVideoResponse[] = [
     {
@@ -29,7 +29,7 @@ const DUMMY_VIDEOS: CourseVideoResponse[] = [
         courseId: 1,
         title: 'Introduction to React Native',
         description: 'Getting started with the environment setup and "Hello World".',
-        videoUrl: 'https://www.youtube.com/watch?v=ysz5S6PUM-U',
+        videoUrl: 'https://drive.google.com/file/d/1TXdWRMHjjtFKeXsj9sPIustkftCrjfQN/view?usp=drive_link',
         duration: 1200,
         orderIndex: 1,
         thumbnailUrl: 'https://img.youtube.com/vi/ysz5S6PUM-U/maxresdefault.jpg',
@@ -42,7 +42,7 @@ const DUMMY_VIDEOS: CourseVideoResponse[] = [
         courseId: 1,
         title: 'Components and Props',
         description: 'Understanding functional components, props, and basic styling.',
-        videoUrl: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
+        videoUrl: 'http://keratometric-autotypic-collin.ngrok-free.dev/api/CourseVideo/stream/1015',
         duration: 1500,
         orderIndex: 2,
         thumbnailUrl: 'https://img.youtube.com/vi/LXb3EKWsInQ/maxresdefault.jpg',
@@ -188,14 +188,13 @@ const validateId = (id: number, name: string = 'ID'): void => {
     }
 };
 
-// Development Mode Flag
-const IS_DEV = import.meta.env.MODE === 'development';
+
 
 // Course Video API endpoints
 export const courseVideoApi = {
     // Get all videos for a course
     listByCourse: async (courseId: number): Promise<CourseVideoResponse[]> => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             console.log("DEV MODE: Returning dummy videos");
             await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
             return DUMMY_VIDEOS.filter(v => v.courseId === Number(courseId));
@@ -214,7 +213,7 @@ export const courseVideoApi = {
 
     // Get a specific video by ID
     getById: async (id: number): Promise<CourseVideoResponse> => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             const video = DUMMY_VIDEOS.find(v => v.id === Number(id));
             if (!video) throw new Error('Video not found');
             return video;
@@ -235,7 +234,7 @@ export const courseVideoApi = {
 
     // Create a new video
     create: async (data: CourseVideoRequest): Promise<CourseVideoResponse> => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             const newVideo: CourseVideoResponse = {
                 ...data,
                 id: Math.floor(Math.random() * 1000) + 100,
@@ -259,7 +258,7 @@ export const courseVideoApi = {
 
     // Update an existing video
     update: async (id: number, data: CourseVideoRequest): Promise<CourseVideoResponse> => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return {
                 ...data,
                 id: id,
@@ -278,7 +277,7 @@ export const courseVideoApi = {
 
     // Delete a video
     delete: async (id: number): Promise<void> => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             console.log(`Mock deleted video ${id}`);
             return;
         }
@@ -294,17 +293,68 @@ export const courseVideoApi = {
 
 // Course API endpoints
 export const courseApi = {
-    // List all courses
-    list: async () => {
-        if (IS_DEV) {
-            console.log("DEV MODE: Returning dummy courses");
-            return DUMMY_COURSES;
+    // List all courses (Paginated)
+    list: async (params?: CourseListRequest): Promise<PaginatedCourseResponse> => {
+        const { searchTerm = '', pageNumber = 1, pageSize = 10 } = params || {};
+
+        if (IS_OFFLINE_MODE) {
+            console.log("DEV MODE: Returning paginated dummy courses", params);
+            let filtered = [...DUMMY_COURSES];
+            if (searchTerm) {
+                const query = searchTerm.toLowerCase();
+                filtered = filtered.filter(c =>
+                    c.title.toLowerCase().includes(query) ||
+                    c.description.toLowerCase().includes(query)
+                );
+            }
+
+            const totalCount = filtered.length;
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const items = filtered.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+
+            return {
+                items,
+                totalCount,
+                pageNumber,
+                pageSize,
+                totalPages
+            };
         }
 
         try {
-            const response = await api.get(API.COURSE.LIST);
+            const response = await api.get(API.COURSE.LIST, {
+                params: {
+                    SearchTerm: searchTerm,
+                    PageNumber: pageNumber,
+                    PageSize: pageSize
+                }
+            });
+
+            // Handle various possible response structures from backend
             const result = response.data;
-            return Array.isArray(result) ? result : [];
+
+            if (result && Array.isArray(result.items)) {
+                return result as PaginatedCourseResponse;
+            }
+
+            // Fallback if the API returns an array directly instead of a paginated object
+            if (Array.isArray(result)) {
+                return {
+                    items: result,
+                    totalCount: result.length,
+                    pageNumber: 1,
+                    pageSize: result.length,
+                    totalPages: 1
+                };
+            }
+
+            return {
+                items: [],
+                totalCount: 0,
+                pageNumber: 1,
+                pageSize: 10,
+                totalPages: 0
+            };
         } catch (error) {
             throw handleApiError(error, 'List courses');
         }
@@ -312,10 +362,10 @@ export const courseApi = {
 
     // Get course by ID
     getById: async (id: number) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             const course = DUMMY_COURSES.find(c => c.id === Number(id));
             if (!course) throw new Error('Course not found');
-            return course;
+            // return course;
         }
 
         try {
@@ -330,7 +380,7 @@ export const courseApi = {
 
     // Create a new course
     create: async (data: any) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return {
                 ...data,
                 id: Math.floor(Math.random() * 1000) + 100,
@@ -350,7 +400,7 @@ export const courseApi = {
 
     // Update a course
     update: async (id: number, data: any) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return {
                 ...data,
                 id: id,
@@ -369,7 +419,7 @@ export const courseApi = {
 
     // Get courses by category
     getByCategory: async (categoryId: number) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return DUMMY_COURSES.filter(c => c.categoryId === Number(categoryId));
         }
 
@@ -385,7 +435,7 @@ export const courseApi = {
 
     // Upload video file
     uploadVideo: async (courseId: number, file: File, onProgress?: (progress: number) => void) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             if (onProgress) onProgress(100);
             return {
                 url: URL.createObjectURL(file),
@@ -419,7 +469,7 @@ export const courseApi = {
 
     // Get videos for a course
     getVideos: async (courseId: number) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return DUMMY_VIDEOS.filter(v => v.courseId === Number(courseId));
         }
 
@@ -435,7 +485,7 @@ export const courseApi = {
 
     // Upload document
     uploadDocument: async (courseId: number, file: File, onProgress?: (progress: number) => void) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             if (onProgress) onProgress(100);
             return {
                 id: Math.floor(Math.random() * 1000),
@@ -473,7 +523,7 @@ export const courseApi = {
 
     // Get documents for a course
     getDocuments: async (courseId: number) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return DUMMY_DOCUMENTS.filter(d => d.courseId === Number(courseId));
         }
 
@@ -489,7 +539,7 @@ export const courseApi = {
 
     // Delete document
     deleteDocument: async (docId: number) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             console.log(`Mock deleted document ${docId}`);
             return;
         }
@@ -504,7 +554,7 @@ export const courseApi = {
 
     // Get enrollments for a course
     getEnrollments: async (courseId: number) => {
-        if (IS_DEV) {
+        if (IS_OFFLINE_MODE) {
             return DUMMY_ENROLLMENTS.filter(e => e.courseId === Number(courseId));
         }
 
