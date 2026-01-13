@@ -13,6 +13,11 @@ const handleApiError = (error: any, context: string): never => {
     throw new Error(error.message || 'Unknown error occurred');
 };
 
+<<<<<<< HEAD
+=======
+// Development Mode Flag
+const IS_DEV = !(import.meta.env.MODE === 'development');
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
 
 import { Category, CategoryListRequest, PaginatedCategoryResponse } from '../types/category.types';

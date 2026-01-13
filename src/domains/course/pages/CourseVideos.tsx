@@ -597,7 +597,7 @@ const CourseVideos = () => {
                     </div>
                 </div>
             )}
-
+            {console.log(videoFormData)}
             {/* Video Upload Modal */}
             <VideoUploadModal
                 isOpen={showUploadModal}

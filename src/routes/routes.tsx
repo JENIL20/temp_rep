@@ -145,6 +145,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     element: UserList,
     permissions: [],
   },
+  {
+    path: paths.web.usersManagement,
+    name: "Users Management",
+    element: UserList,
+    permissions: ["admin"],
+  },
   // {
   //   path: paths.web.admin,
   //   name: "Admin Panel",

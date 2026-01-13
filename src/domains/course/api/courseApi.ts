@@ -1,7 +1,10 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
 import { Course, EnrolledUser, CourseListRequest, PaginatedCourseResponse } from '../types/course.types';
+<<<<<<< HEAD
 import { IS_OFFLINE_MODE } from '../../../shared/config';
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
 // Dummy Data
 const generateDummyCourses = (): Course[] => {
@@ -23,7 +26,7 @@ const generateDummyCourses = (): Course[] => {
 };
 export const DUMMY_COURSES: Course[] = generateDummyCourses();
 
-const DUMMY_VIDEOS: CourseVideoResponse[] = [
+export const DUMMY_VIDEOS: CourseVideoResponse[] = [
     {
         id: 1,
         courseId: 1,
@@ -188,7 +191,12 @@ const validateId = (id: number, name: string = 'ID'): void => {
     }
 };
 
+<<<<<<< HEAD
 
+=======
+// Development Mode Flag
+const IS_DEV = !(import.meta.env.MODE === 'development');
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
 // Course Video API endpoints
 export const courseVideoApi = {
@@ -297,7 +305,11 @@ export const courseApi = {
     list: async (params?: CourseListRequest): Promise<PaginatedCourseResponse> => {
         const { searchTerm = '', pageNumber = 1, pageSize = 10 } = params || {};
 
+<<<<<<< HEAD
         if (IS_OFFLINE_MODE) {
+=======
+        if (IS_DEV) {
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
             console.log("DEV MODE: Returning paginated dummy courses", params);
             let filtered = [...DUMMY_COURSES];
             if (searchTerm) {

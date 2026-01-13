@@ -10,6 +10,10 @@ const Courses = () => {
   const navigate = useNavigate();
 
   // Data State
+<<<<<<< HEAD
+=======
+  const [courses, setCourses] = useState<Course[]>([]);
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
   const [categories, setCategories] = useState<{ id: number; categoryName: string }[]>([]);
 
   // Pagination & Search State
@@ -26,6 +30,7 @@ const Courses = () => {
   const [loading, setLoading] = useState(true);
   const [usingSampleData, setUsingSampleData] = useState(false);
 
+<<<<<<< HEAD
   // Grid Configuration
   const [gridConfig, setGridConfig] = useState({
     columns: 3,
@@ -51,12 +56,29 @@ const Courses = () => {
 
       setPageState(prev => ({
         ...prev,
+=======
+  const fetchCourses = useCallback(async (requestParams: CourseListRequest) => {
+    setLoading(true);
+    console.log("Fetching courses from API with params:", requestParams);
+    try {
+      const response = await courseApi.list(requestParams);
+      console.log("Fetched courses:", response);
+      const categoriesData = await courseApi.getCategories();
+
+      setPageState({
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
         items: response.items,
         totalCount: response.totalCount,
         pageNumber: response.pageNumber,
         pageSize: response.pageSize,
+<<<<<<< HEAD
         totalPages: response.pageNumber + 1
       }));
+=======
+        totalPages: response.totalPages
+      });
+      setCourses(response.items);
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
       setCategories(categoriesData);
       setUsingSampleData(false);
     } catch (err) {
@@ -73,7 +95,11 @@ const Courses = () => {
     fetchCourses({
       searchTerm,
       pageNumber: pageState.pageNumber,
+<<<<<<< HEAD
       pageSize: pageState.pageSize
+=======
+      pageSize: 15 || pageState.pageSize
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
     });
   }, [searchTerm, pageState.pageNumber, pageState.pageSize, fetchCourses]);
 
@@ -127,8 +153,11 @@ const Courses = () => {
         totalPages={pageState.totalPages}
         onPageChange={handlePageChange}
         onSearch={handleSearch}
+<<<<<<< HEAD
         gridConfig={gridConfig}
         onGridChange={handleGridChange}
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
       />
     </div>
   );

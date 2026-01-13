@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { Search, Filter, ArrowUpDown, LayoutGrid } from "lucide-react";
+=======
+import { Search, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 import { Course } from "../types/course.types";
 import CourseCard from "./CourseCard";
 import { LoadingSpinner, Pagination } from "../../../shared/components/common";
@@ -54,6 +58,17 @@ const CourseList: React.FC<CourseListProps> = ({
         }, 500);
         return () => clearTimeout(timer);
     }, [searchQuery, onSearch]);
+<<<<<<< HEAD
+=======
+
+    const handlePageChange = (page: number) => {
+        onPageChange(page);
+        const listElement = document.getElementById('course-list-top');
+        if (listElement) {
+            listElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
     const hasActiveFilters = searchQuery || selectedCategory !== "all" || selectedDifficulty !== "all" || selectedStatus !== "all";
 
@@ -204,6 +219,12 @@ const CourseList: React.FC<CourseListProps> = ({
                 </div>
             </div>
 
+            {/* Pagination Metadata */}
+            <div className="flex items-center justify-between px-2 text-sm text-slate-500">
+                <p>Showing <span className="font-bold text-slate-700">{courses.length}</span> results of <span className="font-bold text-slate-700">{totalCount}</span> total items</p>
+                <p>Page <span className="font-bold text-slate-700">{currentPage}</span> of <span className="font-bold text-slate-700">{totalPages}</span> (Page Size: {pageSize})</p>
+            </div>
+
             {/* Results Section */}
             {isLoading ? (
                 <div className="py-12">
@@ -219,6 +240,7 @@ const CourseList: React.FC<CourseListProps> = ({
                 </div>
             ) : (
                 <>
+<<<<<<< HEAD
                     {/* Course Count Metadata */}
                     <div className="flex items-center justify-between px-2 text-sm text-slate-500">
                         <p>Showing <span className="font-bold text-slate-700">{courses.length}</span> of <span className="font-bold text-slate-700">{totalCount}</span> courses</p>
@@ -227,6 +249,11 @@ const CourseList: React.FC<CourseListProps> = ({
                     <div className={`grid gap-6 ${getGridClass()}`}>
                         {courses.map((course) => (
                             <CourseCard key={course.courseId} course={course} />
+=======
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {courses.map((course) => (
+                            <CourseCard key={course.id} course={course} />
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
                         ))}
                     </div>
 

@@ -1,5 +1,6 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
+<<<<<<< HEAD
 import { User, UserListRequest, PaginatedUserResponse } from '../types/user.types';
 import { IS_OFFLINE_MODE } from '../../../shared/config';
 
@@ -9,6 +10,9 @@ const DUMMY_USERS: User[] = [
     { id: 2, userName: 'instructor', firstName: 'John', lastName: 'Doe', email: 'john@example.com', roles: ['Instructor'], isActive: true },
     { id: 3, userName: 'student', firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', roles: ['Student'], isActive: true }
 ];
+=======
+import { UserListRequest, PaginatedUserResponse } from '../types/user.types';
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
 /**
  * User API Service
@@ -19,6 +23,7 @@ export const userApi = {
      * List users with pagination and search
      */
     list: async (params?: UserListRequest): Promise<PaginatedUserResponse> => {
+<<<<<<< HEAD
         if (IS_OFFLINE_MODE) {
             await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -42,6 +47,8 @@ export const userApi = {
             return { items, totalCount, pageNumber, pageSize, totalPages };
         }
 
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
         try {
             const response = await api.get(API.USER.LIST, {
                 params: {

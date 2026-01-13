@@ -17,7 +17,9 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
+      console.log("AuthInitializer - token =", token);
 
+<<<<<<< HEAD
       if (token) {
         // try {
         //   // Verify token and get user data
@@ -28,10 +30,22 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
         //   dispatch(logout());
         // }
       }
+=======
+      // if (token) {
+      //   try {
+      //     // Verify token and get user data
+      //     const response = await api.get('/auth/me');
+      //     dispatch(setCredentials({ user: response.data, token }));
+      //   } catch (error) {
+      //     // Token is invalid, clear it
+      //     dispatch(logout());
+      //   }
+      // }
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
     };
 
     initAuth();
-  }, [dispatch]);
+  }, []);
 
   return <>{children}</>;
 };

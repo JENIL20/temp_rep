@@ -7,7 +7,10 @@ import {
     ForgotPasswordRequest,
     ResetPasswordRequest
 } from '../types/auth.types';
+<<<<<<< HEAD
 import { IS_OFFLINE_MODE } from '../../../shared/config';
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
 const handleApiError = (error: any, context: string): never => {
     console.error(`[AuthAPI Error - ${context}]:`, error);
@@ -22,6 +25,7 @@ export const authApi = {
      * Login user
      */
     login: async (credentials: LoginRequest) => {
+<<<<<<< HEAD
         if (IS_OFFLINE_MODE) {
             await new Promise(resolve => setTimeout(resolve, 500));
             // Return a dummy admin user
@@ -40,6 +44,8 @@ export const authApi = {
             } as AuthResponse;
         }
 
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
         try {
             const response = await api.post<AuthResponse>(API.AUTH.LOGIN, credentials);
             return response.data;
@@ -52,6 +58,7 @@ export const authApi = {
      * Register new user
      */
     register: async (userData: RegisterRequest) => {
+<<<<<<< HEAD
         if (IS_OFFLINE_MODE) {
             await new Promise(resolve => setTimeout(resolve, 500));
             return {
@@ -69,6 +76,8 @@ export const authApi = {
             } as AuthResponse;
         }
 
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
         try {
             const response = await api.post<AuthResponse>(API.AUTH.REGISTER, userData);
             return response.data;
@@ -81,11 +90,14 @@ export const authApi = {
      * Forgot password request
      */
     forgotPassword: async (data: ForgotPasswordRequest) => {
+<<<<<<< HEAD
         if (IS_OFFLINE_MODE) {
             await new Promise(resolve => setTimeout(resolve, 300));
             return { message: 'Password reset link sent to email (mock)' };
         }
 
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
         try {
             const response = await api.post(API.AUTH.FORGOT_PASSWORD, data);
             return response.data;
@@ -98,11 +110,14 @@ export const authApi = {
      * Reset password with token
      */
     resetPassword: async (data: ResetPasswordRequest) => {
+<<<<<<< HEAD
         if (IS_OFFLINE_MODE) {
             await new Promise(resolve => setTimeout(resolve, 300));
             return { message: 'Password reset successfully (mock)' };
         }
 
+=======
+>>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
         try {
             const response = await api.post(API.AUTH.RESET_PASSWORD, data);
             return response.data;
