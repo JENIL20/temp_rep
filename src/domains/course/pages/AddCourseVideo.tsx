@@ -119,52 +119,30 @@ const AddCourseVideo: React.FC = () => {
         setUploadProgress(0);
 
         try {
-            // Step 1: Upload video file
-            toast.info('Uploading video file...');
-            const videoUploadResult = await courseApi.uploadVideo(
+            const formDataToSend = new FormData();
+
+            // ✅ REQUIRED
+            formDataToSend.append('file', formData.videoFile);
+            formDataToSend.append('title', formData.title);
+
+            // ✅ OPTIONAL / METADATA
+            formDataToSend.append('description', formData.description || '');
+            formDataToSend.append('duration', String(formData.duration || 0));
+            formDataToSend.append('orderIndex', String(formData.orderIndex || 0));
+            formDataToSend.append('isPreview', String(formData.isPreview));
+
+            toast.info('Uploading video...');
+
+            const response = await courseApi.uploadVideo(
                 Number(courseId),
-                formData.videoFile,
+                formDataToSend,
                 (progress) => {
-                    setUploadProgress(progress * 0.7); // Video upload is 70% of total progress
+                    setUploadProgress(progress);
                 }
             );
 
-            let thumbnailUrl = '';
-
-            // Step 2: Upload thumbnail if provided
-            if (formData.thumbnailFile) {
-                toast.info('Uploading thumbnail...');
-                // Create FormData for thumbnail
-                const thumbnailFormData = new FormData();
-                thumbnailFormData.append('file', formData.thumbnailFile);
-
-                // You might need to create a separate endpoint for thumbnail upload
-                // For now, we'll use a placeholder or skip it
-                setUploadProgress(85);
-            }
-
-            // Step 3: Create video record with metadata
-            toast.info('Creating video record...');
-            const videoData = {
-                courseId: Number(courseId),
-                title: formData.title,
-                description: formData.description,
-                videoUrl: videoUploadResult.url || videoUploadResult.filename,
-                duration: formData.duration,
-                orderIndex: formData.orderIndex,
-                thumbnailUrl: thumbnailUrl,
-                isPreview: formData.isPreview
-            };
-
-            await courseVideoApi.create(videoData);
-
-            setUploadProgress(100);
             toast.success('Video uploaded successfully!');
-
-            // Navigate back to course details after a short delay
-            setTimeout(() => {
-                navigate(`/courses/${courseId}`);
-            }, 1500);
+            navigate(`/courses/${courseId}`);
 
         } catch (error: any) {
             console.error('Upload error:', error);
@@ -174,6 +152,7 @@ const AddCourseVideo: React.FC = () => {
             setUploading(false);
         }
     };
+
 
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';

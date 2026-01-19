@@ -17,23 +17,27 @@ export const API = {
   // User Permissions & RBAC endpoints
   USER_PERMISSIONS: {
     // Modules
-    MODULES_ALL: '/api/user-permissions/modules/all',
+    MODULES_ALL: '/api/modules/list',
     MODULES: '/api/user-permissions/modules',
     MODULE_BY_ID: (id: number | string) => `/api/user-permissions/modules/${id}`,
     ASSIGN_MODULE_PERMISSIONS: '/api/user-permissions/modules/assign-permissions',
 
     // Permissions
-    PERMISSIONS: '/api/user-permissions/permissions',
+    PERMISSIONS: '/api/permissions/list',
 
     // Roles
-    ROLES: '/api/user-permissions/roles',
+    ROLES: '/api/rolemodules/list',
+    ROLE_CREATE: '/api/roles/create',
+    ROLE_UPDATE: (id: number | string) => `/api/roles/update/${id}`,
+        ROLE_DELETE: (id: number | string) => `/api/roles/delete/${id}`,
+
     ROLE_BY_ID: (id: number | string) => `/api/user-permissions/roles/${id}`,
 
     // Role Modules (Mapping)
-    ROLE_MODULES_ALL: '/api/user-permissions/role-modules/all',
-    ROLE_MODULES: '/api/user-permissions/role-modules',
-    ROLE_MODULES_BY_ROLE: (roleId: number | string) => `/api/user-permissions/role-modules/role/${roleId}`,
-    ROLE_MODULE_BY_ID: (id: number | string) => `/api/user-permissions/role-modules/${id}`,
+    ROLE_MODULES_ALL: '/api/modules/list',
+    ROLE_MODULES: '/api/modules/list',
+    ROLE_MODULES_BY_ROLE: (roleId: number | string) => `/api/rolemodules/role/${roleId}`,
+    ROLE_MODULE_BY_ID: (id: number | string) => `/api/rolemodules/${id}`,
 
     // User Permissions Assignments
     ASSIGN_ROLE: '/api/user-permissions/assign-role',
@@ -44,6 +48,7 @@ export const API = {
     REMOVE_USER_ROLE: (userId: number | string, roleId: number | string) =>
       `/api/user-permissions/user/${userId}/role/${roleId}`,
   },
+
 
   // Category endpoints
   CATEGORY: {

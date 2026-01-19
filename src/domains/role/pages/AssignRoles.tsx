@@ -349,11 +349,11 @@ const AssignRoles: React.FC = () => {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                                     {roles.map(role => {
-                                        const isAssigned = userRoles.includes(role.id);
+                                        const isAssigned = userRoles.includes(role.roleId);
                                         return (
                                             <button
                                                 key={role.id}
-                                                onClick={() => handleToggleRole(role.id)}
+                                                onClick={() => handleToggleRole(role.roleId)}
                                                 className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all group ${isAssigned
                                                     ? 'bg-primary-navy border-primary-navy text-white shadow-lg shadow-primary-navy/20'
                                                     : 'bg-slate-50 border-slate-200 hover:border-primary-navy/30 text-slate-700'
@@ -365,10 +365,10 @@ const AssignRoles: React.FC = () => {
                                                         <Shield className={`w-5 h-5 ${isAssigned ? 'text-white' : 'text-slate-400'}`} />
                                                     </div>
                                                     <div className="text-left">
-                                                        <p className="font-bold text-sm leading-tight">{role.name}</p>
+                                                        <p className="font-bold text-sm leading-tight">{role.roleName}</p>
                                                         <p className={`text-[10px] font-bold uppercase tracking-widest ${isAssigned ? 'text-white/60' : 'text-slate-400'
                                                             }`}>
-                                                            {role.code}
+                                                            {role.roleCode}
                                                         </p>
                                                     </div>
                                                 </div>

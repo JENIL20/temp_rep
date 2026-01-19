@@ -51,7 +51,6 @@ export interface AssignPermissionRequest {
 export interface AssignRoleRequest {
     userId: number;
     roleId: number;
-<<<<<<< HEAD
 }
 
 export interface PaginatedRoleResponse {
@@ -70,6 +69,19 @@ export interface UserWithRoles {
     lastName?: string;
     roles: Role[];
     isActive?: boolean;
-=======
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
+}
+
+export interface ModulePermission {
+    moduleId: number;
+    moduleName: string;
+    moduleCode: string;
+    permissions: Permission[];
+    assignedPermissionIds: number[];
+}
+
+export interface RolePermissionDetail {
+    roleId: number;
+    roleName: string;
+    roleCode: string;
+    modulePermissions: ModulePermission[];
 }

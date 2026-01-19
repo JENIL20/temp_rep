@@ -23,22 +23,18 @@ const RoleBasedRoute = ({ allowedRoles, children }: RoleBasedRouteProps) => {
   }
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   // Check if user has the required role
   const hasRequiredRole = user?.roles?.some(role => allowedRoles.includes(role));
 
-<<<<<<< HEAD
-  if (user && !hasRequiredRole) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-=======
+
   // if (user && !hasRequiredRole) {
   //   return <Navigate to="/unauthorized" replace />;
   // }
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
+
 
   // Render child routes if user has proper role
   return children ? <>{children}</> : <Outlet />;

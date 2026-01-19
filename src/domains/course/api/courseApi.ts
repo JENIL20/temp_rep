@@ -1,10 +1,9 @@
 import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
 import { Course, EnrolledUser, CourseListRequest, PaginatedCourseResponse } from '../types/course.types';
-<<<<<<< HEAD
+
 import { IS_OFFLINE_MODE } from '../../../shared/config';
-=======
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
+
 
 // Dummy Data
 const generateDummyCourses = (): Course[] => {
@@ -153,11 +152,12 @@ export interface CourseVideoRequest {
     courseId: number;
     title: string;
     description?: string;
-    videoUrl: string;
+    videoUrl?: string;
     duration?: number;
     orderIndex: number;
     thumbnailUrl?: string;
     isPreview: boolean;
+    file?: File;
 }
 
 export interface CourseVideoResponse extends CourseVideoRequest {
@@ -191,12 +191,6 @@ const validateId = (id: number, name: string = 'ID'): void => {
     }
 };
 
-<<<<<<< HEAD
-
-=======
-// Development Mode Flag
-const IS_DEV = !(import.meta.env.MODE === 'development');
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
 
 // Course Video API endpoints
 export const courseVideoApi = {
@@ -247,18 +241,41 @@ export const courseVideoApi = {
                 ...data,
                 id: Math.floor(Math.random() * 1000) + 100,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                videoUrl: data.file ? URL.createObjectURL(data.file) : (data.videoUrl || '')
             };
             return newVideo;
         }
 
         try {
             if (!data.title) throw new Error('Video title is required');
-            if (!data.videoUrl) throw new Error('Video URL is required');
+            if (!data.videoUrl && !data.file) throw new Error('Video URL or File is required');
             validateId(data.courseId, 'courseId');
 
-            const response = await api.post(API.COURSE_VIDEO.CREATE(data.courseId), data);
-            return response.data;
+            if (data.file) {
+                const formData = new FormData();
+                formData.append('file', data.file);
+                // Append other fields as string/blob
+                // Note: Ideally backend expects a flat structure or specific field names. 
+                // Assuming standard field mapping:
+                formData.append('title', data.title);
+                if (data.description) formData.append('description', data.description);
+                formData.append('orderIndex', data.orderIndex.toString());
+                formData.append('isPreview', String(data.isPreview));
+                if (data.duration) formData.append('duration', data.duration.toString());
+                if (data.thumbnailUrl) formData.append('thumbnailUrl', data.thumbnailUrl);
+                if (data.videoUrl) formData.append('videoUrl', data.videoUrl);
+
+                const response = await api.post(API.COURSE_VIDEO.CREATE(data.courseId), formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }
+                });
+                return response.data;
+            } else {
+                const response = await api.post(API.COURSE_VIDEO.CREATE(data.courseId), data);
+                return response.data;
+            }
         } catch (error) {
             throw handleApiError(error, 'Create video');
         }
@@ -305,11 +322,9 @@ export const courseApi = {
     list: async (params?: CourseListRequest): Promise<PaginatedCourseResponse> => {
         const { searchTerm = '', pageNumber = 1, pageSize = 10 } = params || {};
 
-<<<<<<< HEAD
+
         if (IS_OFFLINE_MODE) {
-=======
-        if (IS_DEV) {
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
+
             console.log("DEV MODE: Returning paginated dummy courses", params);
             let filtered = [...DUMMY_COURSES];
             if (searchTerm) {
@@ -334,11 +349,12 @@ export const courseApi = {
         }
 
         try {
-            const response = await api.get(API.COURSE.LIST, {
+            const response: any = await api.get(API.COURSE.LIST, {
                 params: {
                     SearchTerm: searchTerm,
                     PageNumber: pageNumber,
-                    PageSize: pageSize
+                    PageSize: pageSize,
+
                 }
             });
 
@@ -354,9 +370,9 @@ export const courseApi = {
                 return {
                     items: result,
                     totalCount: result.length,
-                    pageNumber: 1,
+                    pageNumber: response.pageNumber,
                     pageSize: result.length,
-                    totalPages: 1
+                    totalPages: response.totalPages
                 };
             }
 
@@ -446,38 +462,38 @@ export const courseApi = {
     },
 
     // Upload video file
-    uploadVideo: async (courseId: number, file: File, onProgress?: (progress: number) => void) => {
-        if (IS_OFFLINE_MODE) {
-            if (onProgress) onProgress(100);
-            return {
-                url: URL.createObjectURL(file),
-                filename: file.name,
-                id: Math.floor(Math.random() * 1000)
-            };
-        }
-
+    uploadVideo: async (
+        courseId: number,
+        formData: FormData,
+        onProgress?: (progress: number) => void
+    ) => {
         try {
             validateId(courseId, 'courseId');
-            if (!file) throw new Error('File is required');
 
-            const formData = new FormData();
-            formData.append('file', file);
-            const response = await api.post(API.COURSE.UPLOAD_VIDEO(courseId), formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                onUploadProgress: (progressEvent: any) => {
-                    if (onProgress && progressEvent.total) {
-                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        onProgress(progress);
-                    }
+            const response = await api.post(
+                API.COURSE.UPLOAD_VIDEO(courseId),
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    onUploadProgress: (progressEvent) => {
+                        if (onProgress && progressEvent.total) {
+                            const progress = Math.round(
+                                (progressEvent.loaded * 100) / progressEvent.total
+                            );
+                            onProgress(progress);
+                        }
+                    },
                 }
-            });
+            );
+
             return response.data;
         } catch (error) {
             throw handleApiError(error, 'Upload video');
         }
     },
+
 
     // Get videos for a course
     getVideos: async (courseId: number) => {

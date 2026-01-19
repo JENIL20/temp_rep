@@ -21,7 +21,7 @@ import {
     Image as ImageIcon,
     Play
 } from "lucide-react";
-import VideoUploadModal from "./VideoUploadModal";
+
 
 type StepType = 'basic' | 'details' | 'videos' | 'preview';
 
@@ -34,6 +34,7 @@ interface VideoFormData {
     order: number;
     thumbnailUrl: string;
     isActive: boolean;
+    file?: File;
 }
 
 
@@ -73,8 +74,7 @@ const CourseForm = () => {
         isActive: true,
     });
 
-    // Video upload modal
-    const [showUploadModal, setShowUploadModal] = useState(false);
+
 
     // Categories for dropdown
     const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
@@ -161,8 +161,8 @@ const CourseForm = () => {
     };
 
     const handleAddVideo = () => {
-        if (!videoFormData.title || !videoFormData.videoUrl) {
-            alert("Please fill in video title and URL");
+        if (!videoFormData.title || (!videoFormData.videoUrl && !videoFormData.file)) {
+            alert("Please provide a video title and either a URL or upload a file");
             return;
         }
 
@@ -186,6 +186,7 @@ const CourseForm = () => {
             order: videos.length + 2,
             thumbnailUrl: "",
             isActive: true,
+            file: undefined
         });
         setShowVideoForm(false);
     };
@@ -245,11 +246,12 @@ const CourseForm = () => {
                         courseId: courseId,
                         title: video.title,
                         description: video.description || '',
-                        // videoUrl: video.videoUrl,
-                        // duration: video.duration || 0,
-                        // orderIndex: video.order,
-                        // thumbnailUrl: video.thumbnailUrl || '',
-                        // isPreview: video.isActive,
+                        videoUrl: video.videoUrl,
+                        duration: video.duration || 0,
+                        orderIndex: video.order,
+                        thumbnailUrl: video.thumbnailUrl || '',
+                        isPreview: video.isActive,
+                        file: video.file
                     };
 
                     if (video.id) {
@@ -578,6 +580,7 @@ const CourseForm = () => {
                                                 order: videos.length + 1,
                                                 thumbnailUrl: "",
                                                 isActive: true,
+                                                file: undefined
                                             });
                                         }}
                                         className="flex items-center gap-2 px-4 py-2 bg-primary-navy text-white rounded-lg hover:bg-primary-navy-light transition-colors"
@@ -637,29 +640,69 @@ const CourseForm = () => {
 
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Video URL <span className="text-red-500">*</span>
+                                                        Video Source <span className="text-red-500">*</span>
                                                     </label>
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="url"
-                                                            name="videoUrl"
-                                                            value={videoFormData.videoUrl}
-                                                            onChange={handleVideoInputChange}
-                                                            placeholder="https://www.youtube.com/watch?v=... or upload a file"
-                                                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowUploadModal(true)}
-                                                            className="px-4 py-3 bg-primary-navy text-white rounded-lg hover:bg-primary-navy-light transition-colors flex items-center gap-2"
-                                                        >
-                                                            <Upload size={20} />
-                                                            <span className="hidden sm:inline">Upload</span>
-                                                        </button>
+                                                    <div className="space-y-3">
+                                                        <div className="flex gap-2">
+                                                            <div className="relative flex-1">
+                                                                <input
+                                                                    type="url"
+                                                                    name="videoUrl"
+                                                                    value={videoFormData.videoUrl}
+                                                                    onChange={handleVideoInputChange}
+                                                                    placeholder="e.g. YouTube URL"
+                                                                    disabled={!!videoFormData.file}
+                                                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent ${videoFormData.file ? 'bg-gray-100 text-gray-400' : 'border-gray-300'}`}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 hover:bg-gray-50 transition-colors text-center group cursor-pointer"
+                                                            onClick={() => document.getElementById('video-upload-input')?.click()}>
+                                                            <input
+                                                                id="video-upload-input"
+                                                                type="file"
+                                                                accept="video/*"
+                                                                className="hidden"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                        setVideoFormData({
+                                                                            ...videoFormData,
+                                                                            file: file,
+                                                                            videoUrl: '', // Clear URL if file is selected
+                                                                            title: videoFormData.title || file.name.replace(/\.[^/.]+$/, "") // Auto-fill title if empty
+                                                                        });
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <div className={`p-3 rounded-full ${videoFormData.file ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform'}`}>
+                                                                    {videoFormData.file ? <Video size={24} /> : <Upload size={24} />}
+                                                                </div>
+                                                                {videoFormData.file ? (
+                                                                    <div>
+                                                                        <p className="font-semibold text-gray-900">{videoFormData.file.name}</p>
+                                                                        <p className="text-xs text-green-600 mt-1">Ready for upload</p>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setVideoFormData({ ...videoFormData, file: undefined });
+                                                                            }}
+                                                                            className="text-xs text-red-500 hover:underline mt-2"
+                                                                        >
+                                                                            Remove file
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div>
+                                                                        <p className="font-medium text-gray-700">Click to upload video file</p>
+                                                                        <p className="text-xs text-gray-500 mt-1">MP4, WebM, or OGG (max 500MB)</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        Paste a YouTube/Vimeo URL or upload your own video file
-                                                    </p>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-4">
@@ -939,15 +982,7 @@ const CourseForm = () => {
                 </div>
             </div>
 
-            {/* Video Upload Modal */}
-            <VideoUploadModal
-                isOpen={showUploadModal}
-                onClose={() => setShowUploadModal(false)}
-                onUploadComplete={(videoUrl) => {
-                    setVideoFormData({ ...videoFormData, videoUrl });
-                    setShowUploadModal(false);
-                }}
-            />
+
         </div>
     );
 };

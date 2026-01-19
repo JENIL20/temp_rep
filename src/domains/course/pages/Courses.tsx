@@ -1,36 +1,29 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { courseApi } from "../api/courseApi";
 import { PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Course, CourseListRequest } from "../types/course.types";
+import { Course } from "../types/course.types";
 import CourseList from "../components/CourseList";
 
 const Courses = () => {
   const navigate = useNavigate();
 
   // Data State
-<<<<<<< HEAD
-=======
-  const [courses, setCourses] = useState<Course[]>([]);
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
   const [categories, setCategories] = useState<{ id: number; categoryName: string }[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Pagination & Search State
-  const [pageState, setPageState] = useState({
-    items: [] as Course[],
-    totalCount: 0,
-    pageNumber: 1,
-    pageSize: 6,
-    totalPages: 0
-  });
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
   const [searchTerm, setSearchTerm] = useState("");
 
   // UI State
   const [loading, setLoading] = useState(true);
   const [usingSampleData, setUsingSampleData] = useState(false);
 
-<<<<<<< HEAD
   // Grid Configuration
   const [gridConfig, setGridConfig] = useState({
     columns: 3,
@@ -39,78 +32,68 @@ const Courses = () => {
 
   const handleGridChange = (newConfig: { columns: number; rows: number }) => {
     setGridConfig(newConfig);
-    setPageState(prev => ({
-      ...prev,
-      pageSize: newConfig.columns * newConfig.rows,
-      pageNumber: 1 // Reset to first page when grid layout changes
-    }));
+    setPageSize(newConfig.columns * newConfig.rows);
+    setPageNumber(1);
   };
 
-  const fetchCourses = useCallback(async (requestParams: CourseListRequest) => {
-    setLoading(true);
-    // console.log("Fetching courses from API with params:", requestParams);
-    try {
-      const response = await courseApi.list(requestParams);
-      console.log("Courses API Response:", response);
-      const categoriesData = await courseApi.getCategories();
+  // Fetch categories once on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await courseApi.getCategories();
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+      }
+    };
 
-      setPageState(prev => ({
-        ...prev,
-=======
-  const fetchCourses = useCallback(async (requestParams: CourseListRequest) => {
-    setLoading(true);
-    console.log("Fetching courses from API with params:", requestParams);
-    try {
-      const response = await courseApi.list(requestParams);
-      console.log("Fetched courses:", response);
-      const categoriesData = await courseApi.getCategories();
-
-      setPageState({
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
-        items: response.items,
-        totalCount: response.totalCount,
-        pageNumber: response.pageNumber,
-        pageSize: response.pageSize,
-<<<<<<< HEAD
-        totalPages: response.pageNumber + 1
-      }));
-=======
-        totalPages: response.totalPages
-      });
-      setCourses(response.items);
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
-      setCategories(categoriesData);
-      setUsingSampleData(false);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load courses";
-      console.error("Failed to load courses:", err);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
+    fetchCategories();
   }, []);
 
-  // Effect for initial load and changes
+  // Fetch courses whenever dependencies change
   useEffect(() => {
-    fetchCourses({
-      searchTerm,
-      pageNumber: pageState.pageNumber,
-<<<<<<< HEAD
-      pageSize: pageState.pageSize
-=======
-      pageSize: 15 || pageState.pageSize
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
-    });
-  }, [searchTerm, pageState.pageNumber, pageState.pageSize, fetchCourses]);
+    const fetchCourses = async () => {
+      setLoading(true);
+      try {
+        const response = await courseApi.list({
+          searchTerm,
+          pageNumber,
+          pageSize
+        });
+
+        console.log("Courses API Response for page:", pageNumber, response);
+
+        setCourses(response.items);
+        setTotalCount(response.totalCount);
+        setTotalPages(response.totalPages);
+        setUsingSampleData(false);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to load courses";
+        console.error("Failed to load courses:", err);
+        toast.error(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [searchTerm, pageNumber, pageSize]);
 
   const handlePageChange = (newPage: number) => {
-    setPageState(prev => ({ ...prev, pageNumber: newPage }));
+    console.log("🔄 Page change requested:", newPage);
+    setPageNumber(newPage);
   };
 
   const handleSearch = (term: string) => {
+    console.log("🔍 Search requested:", term);
     setSearchTerm(term);
-    setPageState(prev => ({ ...prev, pageNumber: 1 })); // Reset to first page on search
+    setPageNumber(1);
   };
+
+  // Debug logging
+  useEffect(() => {
+    console.log("📊 Current state:", { pageNumber, pageSize, searchTerm });
+  }, [pageNumber, pageSize, searchTerm]);
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
@@ -129,7 +112,7 @@ const Courses = () => {
           <h1 className="text-2xl font-bold text-primary-navy">Courses</h1>
           <p className="text-gray-600 mt-1">Manage and organize your educational content</p>
           <p className="text-xs text-slate-400 mt-1 font-medium">
-            Showing {pageState.items.length} of {pageState.totalCount} courses
+            Showing {courses.length} of {totalCount} courses
           </p>
         </div>
 
@@ -144,20 +127,17 @@ const Courses = () => {
 
       {/* Course Listing Component */}
       <CourseList
-        courses={pageState.items}
+        courses={courses}
         categories={categories}
         isLoading={loading}
-        totalCount={pageState.totalCount}
-        currentPage={pageState.pageNumber}
-        pageSize={pageState.pageSize}
-        totalPages={pageState.totalPages}
+        totalCount={totalCount}
+        currentPage={pageNumber}
+        pageSize={pageSize}
+        totalPages={totalPages}
         onPageChange={handlePageChange}
         onSearch={handleSearch}
-<<<<<<< HEAD
         gridConfig={gridConfig}
         onGridChange={handleGridChange}
-=======
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
       />
     </div>
   );

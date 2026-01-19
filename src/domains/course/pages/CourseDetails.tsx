@@ -706,8 +706,12 @@ const CourseDetails = () => {
 
                 // Check if it's a direct video file
                 const isDirectVideo = (url: string) => {
-                  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+                  return (
+                    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url) ||
+                    url.includes('/stream/')
+                  );
                 };
+
 
                 const youtubeId = getYouTubeId(videoUrl);
                 const vimeoId = getVimeoId(videoUrl);

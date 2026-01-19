@@ -78,7 +78,7 @@ const CreateCourse = () => {
         try {
             const categories = await categoryApi.list();
             console.log("fetched categories =", categories);
-            setCategories(categories);
+            setCategories(categories?.items);
         } catch (error) {
             console.error("Failed to fetch categories:", error);
         }

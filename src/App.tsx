@@ -1,7 +1,7 @@
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
-import AppRoutes from './routes/AppRoutes';
+import AppRoutes from './routes/AppRoutes.tsx';
 import { useEffect } from 'react';
 import { useAppDispatch } from './store';
 import { setCredentials, logout } from './domains/auth/store/authSlice';
@@ -19,18 +19,6 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem('token');
       console.log("AuthInitializer - token =", token);
 
-<<<<<<< HEAD
-      if (token) {
-        // try {
-        //   // Verify token and get user data
-        //   const response = await api.get('/auth/me');
-        //   dispatch(setCredentials({ user: response.data, token }));
-        // } catch (error) {
-        //   // Token is invalid, clear it
-        //   dispatch(logout());
-        // }
-      }
-=======
       // if (token) {
       //   try {
       //     // Verify token and get user data
@@ -41,7 +29,6 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
       //     dispatch(logout());
       //   }
       // }
->>>>>>> 924b8b78288db38f5f08c997d5af64470735c093
     };
 
     initAuth();
