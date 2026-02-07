@@ -8,14 +8,10 @@ import {
     Mail,
     ArrowLeft,
     Shield,
-    Check,
-    X,
-    Save,
-    Loader2,
-    ChevronLeft,
-    ChevronRight,
     CheckCircle2,
-    XCircle
+    XCircle,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -35,7 +31,7 @@ const UserPermissionPage: React.FC = () => {
     const [allRoles, setAllRoles] = useState<Role[]>([]);
     const [assignedRoleIds, setAssignedRoleIds] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -59,15 +55,9 @@ const UserPermissionPage: React.FC = () => {
             const userRoles = await userRoleApi.getUserRoles(Number(userId));
             setAssignedRoleIds(userRoles.map((r: Role) => r.id));
 
-            // For demo purposes, create user info
-            // In a real app, you'd fetch this from a user API
-            setUser({
-                id: Number(userId),
-                userName: `user_${userId}`,
-                email: `user${userId}@example.com`,
-                firstName: 'John',
-                lastName: 'Doe'
-            });
+            // Fetch real user details
+            const userDetails = await userRoleApi.getUserDetails(Number(userId));
+            setUser(userDetails);
         } catch (error: any) {
             toast.error(error.message || 'Failed to load user data');
         } finally {
@@ -93,17 +83,7 @@ const UserPermissionPage: React.FC = () => {
         }
     };
 
-    const handleSaveAll = async () => {
-        try {
-            setSaving(true);
-            toast.success('All changes have been saved!');
-            await fetchUserData();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to save changes');
-        } finally {
-            setSaving(false);
-        }
-    };
+
 
     // Pagination logic
     const totalPages = Math.ceil(allRoles.length / pageSize);
@@ -278,12 +258,12 @@ const UserPermissionPage: React.FC = () => {
                     {/* Roles List */}
                     <div className="divide-y divide-slate-100">
                         {paginatedRoles.map((role) => {
-                            const isAssigned = assignedRoleIds.includes(role.roleId);
+                            const isAssigned = assignedRoleIds.includes(role.id);
 
                             return (
                                 <button
                                     key={role.id}
-                                    onClick={() => toggleRole(role.roleId)}
+                                    onClick={() => toggleRole(role.id)}
                                     className={`w-full p-6 flex items-center justify-between transition-all group hover:bg-slate-50 ${isAssigned ? 'bg-emerald-50/50' : ''
                                         }`}
                                 >
@@ -297,11 +277,11 @@ const UserPermissionPage: React.FC = () => {
                                         <div className="text-left">
                                             <h3 className={`text-lg font-bold transition-colors ${isAssigned ? 'text-slate-900' : 'text-slate-600 group-hover:text-slate-900'
                                                 }`}>
-                                                {role.roleName}
+                                                {role.name}
                                             </h3>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded text-xs font-bold uppercase tracking-wide">
-                                                    {role.roleCode}
+                                                    {role.code}
                                                 </span>
                                                 {role.isActive && (
                                                     <div className="flex items-center gap-1">
@@ -350,7 +330,7 @@ const UserPermissionPage: React.FC = () => {
                         </div>
 
                         <button
-                            onClick={() => navigate('/roles')}
+                            onClick={() => navigate('/admin/roles')}
                             className="px-6 py-3 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95"
                         >
                             Done

@@ -23,6 +23,17 @@ interface CourseListProps {
     className?: string;
     gridConfig?: { columns: number; rows: number };
     onGridChange?: (config: { columns: number; rows: number }) => void;
+
+    // Filter Props
+    selectedCategory: number | "all";
+    onCategoryChange: (category: number | "all") => void;
+    selectedDifficulty: string | "all";
+    onDifficultyChange: (difficulty: string | "all") => void;
+    selectedStatus: "all" | "active" | "inactive";
+    onStatusChange: (status: "all" | "active" | "inactive") => void;
+    sortBy: "newest" | "price-low" | "price-high" | "rating";
+    onSortChange: (sort: "newest" | "price-low" | "price-high" | "rating") => void;
+    onClearFilters: () => void;
 }
 
 const CourseList: React.FC<CourseListProps> = ({
@@ -38,14 +49,19 @@ const CourseList: React.FC<CourseListProps> = ({
     emptyMessage = "Try adjusting your search or filters",
     className = "",
     gridConfig,
-    onGridChange
+    onGridChange,
+    selectedCategory,
+    onCategoryChange,
+    selectedDifficulty,
+    onDifficultyChange,
+    selectedStatus,
+    onStatusChange,
+    sortBy,
+    onSortChange,
+    onClearFilters
 }) => {
     // UI Local State for immediate feedback
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
-    const [selectedDifficulty, setSelectedDifficulty] = useState<string | "all">("all");
-    const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
-    const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high" | "rating">("newest");
 
     // Debounce search
     useEffect(() => {
@@ -63,6 +79,8 @@ const CourseList: React.FC<CourseListProps> = ({
             listElement.scrollIntoView({ behavior: 'smooth' });
         }
     };
+
+    // Check if any filter is active (excluding default sort)
     const hasActiveFilters = searchQuery || selectedCategory !== "all" || selectedDifficulty !== "all" || selectedStatus !== "all";
 
     // Dynamic Grid Class
@@ -102,7 +120,7 @@ const CourseList: React.FC<CourseListProps> = ({
                             <ArrowUpDown size={18} className="text-gray-500" />
                             <select
                                 value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as "newest" | "price-low" | "price-high" | "rating")}
+                                onChange={(e) => onSortChange(e.target.value as "newest" | "price-low" | "price-high" | "rating")}
                                 className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent outline-none cursor-pointer"
                             >
                                 <option value="newest">Newest First</option>
@@ -166,7 +184,7 @@ const CourseList: React.FC<CourseListProps> = ({
 
                     <select
                         value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value === "all" ? "all" : Number(e.target.value))}
+                        onChange={(e) => onCategoryChange(e.target.value === "all" ? "all" : Number(e.target.value))}
                         className="text-sm px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:border-primary-navy cursor-pointer"
                     >
                         <option value="all">All Categories</option>
@@ -177,7 +195,7 @@ const CourseList: React.FC<CourseListProps> = ({
 
                     <select
                         value={selectedDifficulty}
-                        onChange={(e) => setSelectedDifficulty(e.target.value)}
+                        onChange={(e) => onDifficultyChange(e.target.value)}
                         className="text-sm px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:border-primary-navy cursor-pointer"
                     >
                         <option value="all">All Difficulties</option>
@@ -188,7 +206,7 @@ const CourseList: React.FC<CourseListProps> = ({
 
                     <select
                         value={selectedStatus}
-                        onChange={(e) => setSelectedStatus(e.target.value as "all" | "active" | "inactive")}
+                        onChange={(e) => onStatusChange(e.target.value as "all" | "active" | "inactive")}
                         className="text-sm px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:border-primary-navy cursor-pointer"
                     >
                         <option value="all">All Status</option>
@@ -199,10 +217,8 @@ const CourseList: React.FC<CourseListProps> = ({
                     {hasActiveFilters && (
                         <button
                             onClick={() => {
-                                setSearchQuery("");
-                                setSelectedCategory("all");
-                                setSelectedDifficulty("all");
-                                setSelectedStatus("all");
+                                setSearchQuery(""); // Clear local search
+                                onClearFilters(); // Clear parent filters
                             }}
                             className="text-sm text-red-600 hover:text-red-700 font-medium ml-auto"
                         >

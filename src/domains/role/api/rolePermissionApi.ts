@@ -2,6 +2,8 @@ import api from '../../../shared/api/axios';
 import { API } from '../../../shared/api/endpoints';
 import { IS_OFFLINE_MODE } from '../../../shared/config';
 import { ModulePermission, RolePermissionDetail } from '../types/role.types';
+import { moduleApi } from './moduleApi';
+import { permissionApi } from './permissionApi';
 
 // Dummy Data for offline mode
 const DUMMY_ROLE_PERMISSIONS: RolePermissionDetail = {
@@ -60,30 +62,66 @@ export const rolePermissionApi = {
         }
 
         try {
-            // Fetch role modules
+            // Fetch role modules for this role
             const roleModulesResponse = await api.get(API.USER_PERMISSIONS.ROLE_MODULES_BY_ROLE(roleId));
-            const roleModules = roleModulesResponse.data;
+            const roleModules = Array.isArray(roleModulesResponse.data) ? roleModulesResponse.data : [];
 
-            // Fetch all permissions
-            const permissionsResponse = await api.get(API.USER_PERMISSIONS.ROLE_MODULE_BY_ID(roleId));
-            const allPermissions = permissionsResponse.data;
+            // Fetch all available permissions
+            const allPermissions = await permissionApi.list();
 
-            // Organize permissions by module
-            const modulePermissions: ModulePermission[] = roleModules.map((rm: any) => ({
-                moduleId: rm.moduleId,
-                moduleName: rm.moduleName,
-                moduleCode: rm.moduleCode,
-                permissions: allPermissions,
-                assignedPermissionIds: rm.permissionIds || []
-            }));
+            // Fetch all modules
+            const allModules = await moduleApi.listAll();
+
+            // Get role module permissions to find which permissions are assigned
+            const roleModulePermissionsResponse = await api.get(API.USER_PERMISSIONS.ROLE_MODULE_PERMISSIONS_LIST, {
+                params: { RoleId: roleId }
+            });
+            const roleModulePermissions = Array.isArray(roleModulePermissionsResponse.data?.items)
+                ? roleModulePermissionsResponse.data.items
+                : (Array.isArray(roleModulePermissionsResponse.data) ? roleModulePermissionsResponse.data : []);
+
+            // Build module permissions structure
+            const modulePermissions: ModulePermission[] = roleModules.map((rm: any) => {
+                // Find the module details
+                const moduleDetails = allModules.find(m => m.id === rm.moduleId) || {
+                    id: rm.moduleId,
+                    code: rm.moduleCode || `MOD_${rm.moduleId}`,
+                    name: rm.moduleName || `Module ${rm.moduleId}`,
+                    isActive: true
+                };
+
+                // Find assigned permissions for this role-module combination
+                const assignedPerms = roleModulePermissions
+                    .filter((rmp: any) => rmp.roleModuleId === rm.id || rmp.moduleId === rm.moduleId)
+                    .map((rmp: any) => rmp.permissionId)
+                    .filter((id: any) => id !== undefined && id !== null);
+
+                return {
+                    moduleId: rm.moduleId,
+                    moduleName: moduleDetails.name,
+                    moduleCode: moduleDetails.code,
+                    permissions: allPermissions,
+                    assignedPermissionIds: assignedPerms
+                };
+            });
+
+            // Get role details from the first role module or fetch separately
+            let roleName = 'Unknown Role';
+            let roleCode = 'UNKNOWN';
+
+            if (roleModules.length > 0) {
+                roleName = roleModules[0].roleName || roleName;
+                roleCode = roleModules[0].roleCode || roleCode;
+            }
 
             return {
                 roleId: roleId,
-                roleName: roleModules[0]?.roleName || '',
-                roleCode: roleModules[0]?.roleCode || '',
+                roleName,
+                roleCode,
                 modulePermissions
             };
         } catch (error: any) {
+            console.error('Error fetching role permissions:', error);
             throw new Error(error.response?.data?.message || 'Failed to fetch role permissions');
         }
     },

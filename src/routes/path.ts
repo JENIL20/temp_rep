@@ -24,6 +24,7 @@ export const paths = {
     courseEdit: "/courses/edit/:id",
     courseVideos: "/courses/:id/videos",
     courseAddVideo: "/courses/:id/add-video",
+    courseEditVideo: "/courses/:id/videos/:videoId/edit",
     courseDocuments: "/courses/:id/documents",
 
     // User Course Routes

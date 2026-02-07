@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { courseApi } from "../api/courseApi";
 import { PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +19,12 @@ const Courses = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter State
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
+  const [sortBy, setSortBy] = useState<"newest" | "price-low" | "price-high" | "rating">("newest");
 
   // UI State
   const [loading, setLoading] = useState(true);
@@ -58,7 +64,11 @@ const Courses = () => {
         const response = await courseApi.list({
           searchTerm,
           pageNumber,
-          pageSize
+          pageSize,
+          categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+          difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
+          status: selectedStatus === "all" ? undefined : selectedStatus,
+          sortBy
         });
 
         console.log("Courses API Response for page:", pageNumber, response);
@@ -77,23 +87,52 @@ const Courses = () => {
     };
 
     fetchCourses();
-  }, [searchTerm, pageNumber, pageSize]);
+  }, [searchTerm, pageNumber, pageSize, selectedCategory, selectedDifficulty, selectedStatus, sortBy]);
 
-  const handlePageChange = (newPage: number) => {
+  // Handlers - Memoized to prevent re-renders triggering effects in children
+  const handlePageChange = useCallback((newPage: number) => {
     console.log("🔄 Page change requested:", newPage);
     setPageNumber(newPage);
-  };
+  }, []);
 
-  const handleSearch = (term: string) => {
+  const handleSearch = useCallback((term: string) => {
     console.log("🔍 Search requested:", term);
     setSearchTerm(term);
     setPageNumber(1);
-  };
+  }, []);
+
+  const handleCategoryChange = useCallback((category: number | "all") => {
+    setSelectedCategory(category);
+    setPageNumber(1);
+  }, []);
+
+  const handleDifficultyChange = useCallback((difficulty: string | "all") => {
+    setSelectedDifficulty(difficulty);
+    setPageNumber(1);
+  }, []);
+
+  const handleStatusChange = useCallback((status: "all" | "active" | "inactive") => {
+    setSelectedStatus(status);
+    setPageNumber(1);
+  }, []);
+
+  const handleSortChange = useCallback((sort: "newest" | "price-low" | "price-high" | "rating") => {
+    setSortBy(sort);
+    setPageNumber(1);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setSelectedCategory("all");
+    setSelectedDifficulty("all");
+    setSelectedStatus("all");
+    setPageNumber(1);
+  }, []);
 
   // Debug logging
   useEffect(() => {
-    console.log("📊 Current state:", { pageNumber, pageSize, searchTerm });
-  }, [pageNumber, pageSize, searchTerm]);
+    console.log("📊 Current state:", { pageNumber, pageSize, searchTerm, selectedCategory });
+  }, [pageNumber, pageSize, searchTerm, selectedCategory]);
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
@@ -138,6 +177,17 @@ const Courses = () => {
         onSearch={handleSearch}
         gridConfig={gridConfig}
         onGridChange={handleGridChange}
+
+        // Filter Props
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        selectedDifficulty={selectedDifficulty}
+        onDifficultyChange={handleDifficultyChange}
+        selectedStatus={selectedStatus}
+        onStatusChange={handleStatusChange}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
+        onClearFilters={handleClearFilters}
       />
     </div>
   );

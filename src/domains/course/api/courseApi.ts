@@ -320,19 +320,64 @@ export const courseVideoApi = {
 export const courseApi = {
     // List all courses (Paginated)
     list: async (params?: CourseListRequest): Promise<PaginatedCourseResponse> => {
-        const { searchTerm = '', pageNumber = 1, pageSize = 10 } = params || {};
+        const {
+            searchTerm = '',
+            pageNumber = 1,
+            pageSize = 10,
+            categoryId,
+            difficulty,
+            status,
+            sortBy
+        } = params || {};
 
 
         if (IS_OFFLINE_MODE) {
 
             console.log("DEV MODE: Returning paginated dummy courses", params);
             let filtered = [...DUMMY_COURSES];
+
+            // Filter by Search Term
             if (searchTerm) {
                 const query = searchTerm.toLowerCase();
                 filtered = filtered.filter(c =>
                     c.title.toLowerCase().includes(query) ||
                     c.description.toLowerCase().includes(query)
                 );
+            }
+
+            // Filter by Category
+            if (categoryId) {
+                filtered = filtered.filter(c => c.categoryId === categoryId);
+            }
+
+            // Filter by Difficulty
+            if (difficulty) {
+                filtered = filtered.filter(c => c.difficulty.toLowerCase() === difficulty.toLowerCase());
+            }
+
+            // Filter by Status
+            if (status && status !== 'all') {
+                const isActive = status === 'active';
+                filtered = filtered.filter(c => c.isActive === isActive);
+            }
+
+            // Sort
+            if (sortBy) {
+                switch (sortBy) {
+                    case 'price-low':
+                        filtered.sort((a, b) => a.price - b.price);
+                        break;
+                    case 'price-high':
+                        filtered.sort((a, b) => b.price - a.price);
+                        break;
+                    case 'rating':
+                        filtered.sort((a, b) => b.rating - a.rating);
+                        break;
+                    case 'newest':
+                    default:
+                        filtered.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
+                        break;
+                }
             }
 
             const totalCount = filtered.length;
@@ -353,8 +398,7 @@ export const courseApi = {
                 params: {
                     SearchTerm: searchTerm,
                     PageNumber: pageNumber,
-                    PageSize: pageSize,
-
+                    PageSize: pageSize
                 }
             });
 
@@ -467,6 +511,26 @@ export const courseApi = {
         formData: FormData,
         onProgress?: (progress: number) => void
     ) => {
+        if (IS_OFFLINE_MODE) {
+            // Simulate upload progress
+            const steps = 10;
+            for (let i = 1; i <= steps; i++) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                if (onProgress) onProgress(i * 10);
+            }
+            return {
+                id: Math.floor(Math.random() * 1000),
+                courseId: courseId,
+                title: formData.get('title'),
+                description: formData.get('description'),
+                duration: Number(formData.get('duration')),
+                orderIndex: Number(formData.get('orderIndex')),
+                isPreview: formData.get('isPreview') === 'true',
+                videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                thumbnailUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg'
+            };
+        }
+
         try {
             validateId(courseId, 'courseId');
 
@@ -598,13 +662,22 @@ export const courseApi = {
 
     // Get categories
     getCategories: async () => {
-        return [
-            { id: 1, categoryName: "Web Development" },
-            { id: 2, categoryName: "Mobile Development" },
-            { id: 3, categoryName: "Data Science" },
-            { id: 4, categoryName: "Design" },
-            { id: 5, categoryName: "Business" },
-        ];
+        if (IS_OFFLINE_MODE) {
+            return [
+                { id: 1, categoryName: "Web Development" },
+                { id: 2, categoryName: "Mobile Development" },
+                { id: 3, categoryName: "Data Science" },
+                { id: 4, categoryName: "Design" },
+                { id: 5, categoryName: "Business" },
+            ];
+        }
+
+        try {
+            const response = await api.get(API.CATEGORY.LIST);
+            return response.data;
+        } catch (error) {
+            throw handleApiError(error, 'Get categories');
+        }
     },
 };
 

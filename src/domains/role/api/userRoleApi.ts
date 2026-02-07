@@ -61,10 +61,33 @@ export const userRoleApi = {
         }
 
         try {
-            const response = await api.get<Role[]>(API.USER_PERMISSIONS.USER_PERMISSIONS(userId));
+            const response = await api.get<Role[]>(API.USER_PERMISSIONS.USER_ROLES(userId));
             return response.data;
         } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to fetch user roles');
+        }
+    },
+
+    /**
+     * Get user details by ID
+     */
+    getUserDetails: async (userId: number) => {
+        if (IS_OFFLINE_MODE) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return {
+                id: userId,
+                userName: `user_${userId}`,
+                email: `user${userId}@example.com`,
+                firstName: 'John',
+                lastName: 'Doe'
+            };
+        }
+
+        try {
+            const response = await api.get(API.USER.GET_BY_ID(userId));
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch user details');
         }
     },
 

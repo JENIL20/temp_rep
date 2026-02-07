@@ -48,6 +48,10 @@ export interface CourseListRequest {
     searchTerm?: string;
     pageNumber?: number;
     pageSize?: number;
+    categoryId?: number;
+    difficulty?: string;
+    status?: string;
+    sortBy?: string;
 }
 
 export interface PaginatedCourseResponse {

@@ -1,38 +1,30 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { roleApi } from '../api/roleApi';
-import { permissionApi } from '../api/permissionApi';
-import { moduleApi } from '../api/moduleApi';
 import { userRoleApi } from '../api/userRoleApi';
-import { Role, Permission, Module, AssignPermissionRequest } from '../types/role.types';
+import { Role } from '../types/role.types';
 import {
     Shield,
     Plus,
     Edit2,
     Trash2,
     X,
-    Check,
     Lock,
-    Settings,
-    Layout,
-    ChevronRight,
     Search,
     RefreshCw,
     ShieldAlert,
     Users as UsersIcon,
-    UserPlus,
-    UserMinus,
     ArrowRight,
     UserCircle,
     Mail,
-    ChevronLeft
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const RolesManagement: React.FC = () => {
     // Data State
     const [roles, setRoles] = useState<Role[]>([]);
-    const [modules, setModules] = useState<Module[]>([]);
-    const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
     const [users, setUsers] = useState<any[]>([]);
 
     // UI State
@@ -51,18 +43,13 @@ const RolesManagement: React.FC = () => {
 
     // Modal State
     const [showRoleModal, setShowRoleModal] = useState(false);
-    const [showPermissionModal, setShowPermissionModal] = useState(false);
-    const [showMemberModal, setShowMemberModal] = useState(false);
-
     const [editingRole, setEditingRole] = useState<Role | null>(null);
-    const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<Role | null>(null);
-    const [selectedModuleForPerms, setSelectedModuleForPerms] = useState<Module | null>(null);
-    const [selectedUserForRoles, setSelectedUserForRoles] = useState<any | null>(null);
-
-    // Form State
     const [roleForm, setRoleForm] = useState({ code: '', name: '' });
-    const [modulePermsForm, setModulePermsForm] = useState<number[]>([]);
-    const [userRolesForm, setUserRolesForm] = useState<number[]>([]);
+
+    const navigate = useNavigate();
+
+
+
 
     useEffect(() => {
         fetchInitialData();
@@ -71,19 +58,13 @@ const RolesManagement: React.FC = () => {
     const fetchInitialData = async () => {
         try {
             setLoading(true);
-            const [rolesData, modulesData, permsData, usersData] = await Promise.all([
+            const [rolesData, usersData] = await Promise.all([
                 roleApi.list(),
-                moduleApi.listAll(),
-                permissionApi.list(),
                 userRoleApi.listUsers()
             ]);
             console.log("Fetched rolesData:", rolesData);
-            console.log("Fetched modulesData:", modulesData);
-            console.log("Fetched permsData:", permsData);
             console.log("Fetched usersData:", usersData);
             setRoles(Array.isArray(rolesData) ? rolesData : []);
-            setModules(Array.isArray(modulesData) ? modulesData : []);
-            setAllPermissions(Array.isArray(permsData) ? permsData : []);
             setUsers(usersData?.items || []);
         } catch (err: any) {
             toast.error(err.message || "Failed to load roles and permissions");
@@ -96,7 +77,7 @@ const RolesManagement: React.FC = () => {
         e.preventDefault();
         try {
             if (editingRole) {
-                await roleApi.update(editingRole.roleId, { name: roleForm.name });
+                await roleApi.update(editingRole.id, { name: roleForm.name });
                 toast.success("Role updated successfully");
             } else {
                 await roleApi.create(roleForm);
@@ -123,74 +104,19 @@ const RolesManagement: React.FC = () => {
     };
 
     const openPermissionManager = (role: Role) => {
-        setSelectedRoleForPerms(role);
-        setShowPermissionModal(true);
-        setSelectedModuleForPerms(null);
-        setModulePermsForm([]);
-
-    };
-
-    const handleModuleSelect = async (module: Module) => {
-        setSelectedModuleForPerms(module);
-        setModulePermsForm([]);
-    };
-
-    const togglePermissionInForm = (permId: number) => {
-        setModulePermsForm(prev =>
-            prev.includes(permId) ? prev.filter(id => id !== permId) : [...prev, permId]
-        );
-    };
-
-    const handleAssignPermissions = async () => {
-        if (!selectedRoleForPerms || !selectedModuleForPerms) return;
-        try {
-            const request: AssignPermissionRequest = {
-                roleId: selectedRoleForPerms.id,
-                moduleId: selectedModuleForPerms.id,
-                permissionIds: modulePermsForm
-            };
-            await moduleApi.assignPermissions(request);
-            toast.success("Permissions assigned successfully");
-            setShowPermissionModal(false);
-        } catch (err: any) {
-            toast.error(err.message);
-        }
+        navigate(`/admin/roles/${role.id}/permissions`);
     };
 
     const openMemberManager = async (user: any) => {
-        setSelectedUserForRoles(user);
-        try {
-            const userRoles = await userRoleApi.getUserRoles(user.id);
-            setUserRolesForm(userRoles.map(r => r.id));
-            setShowMemberModal(true);
-        } catch (err: any) {
-            toast.error(err.message);
-        }
+        navigate(`/admin/users/${user.id}/permissions`);
     };
 
-    const handleToggleUserRole = async (roleId: number) => {
-        if (!selectedUserForRoles) return;
-        const isAssigned = userRolesForm.includes(roleId);
 
-        try {
-            if (isAssigned) {
-                await userRoleApi.remove(selectedUserForRoles.id, roleId);
-                setUserRolesForm(prev => prev.filter(id => id !== roleId));
-                toast.info("Role removed from user");
-            } else {
-                await userRoleApi.assign({ userId: selectedUserForRoles.id, roleId });
-                setUserRolesForm(prev => [...prev, roleId]);
-                toast.success("Role assigned to user");
-            }
-        } catch (err: any) {
-            toast.error(err.message);
-        }
-    };
 
     // Filter and Pagination Logic for Roles
     const filteredRoles = roles.filter(r =>
-        r.roleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.roleCode.toLowerCase().includes(searchTerm.toLowerCase())
+        r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.code.toLowerCase().includes(searchTerm.toLowerCase())
     );
     const totalRolesPages = Math.ceil(filteredRoles.length / rolesPageSize);
     const paginatedRoles = filteredRoles.slice(
@@ -435,7 +361,7 @@ const RolesManagement: React.FC = () => {
                                                 {/* Code */}
                                                 <div className="col-span-2">
                                                     <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
-                                                        {role.roleCode}
+                                                        {role.code}
                                                     </span>
                                                 </div>
 
@@ -446,7 +372,7 @@ const RolesManagement: React.FC = () => {
                                                             <Shield className="w-5 h-5" />
                                                         </div>
                                                         <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors">
-                                                            {role.roleName}
+                                                            {role.name}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -470,7 +396,7 @@ const RolesManagement: React.FC = () => {
                                                     <button
                                                         onClick={() => {
                                                             setEditingRole(role);
-                                                            setRoleForm({ code: role.roleCode, name: role.name });
+                                                            setRoleForm({ code: role.code, name: role.name });
                                                             setShowRoleModal(true);
                                                         }}
                                                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
@@ -478,7 +404,7 @@ const RolesManagement: React.FC = () => {
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteRole(role.roleId)}
+                                                        onClick={() => handleDeleteRole(role.id)}
                                                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -625,134 +551,8 @@ const RolesManagement: React.FC = () => {
                 )
             }
 
-            {/* Permission Manager Modal */}
-            {
-                showPermissionModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in" onClick={() => setShowPermissionModal(false)}></div>
-                        <div className="relative bg-[#F8FAFC] w-full max-w-5xl h-[85vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-500">
-                            <div className="bg-white px-8 py-6 border-b border-slate-100 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-primary-navy rounded-2xl flex items-center justify-center text-white shadow-lg"><Lock className="w-6 h-6" /></div>
-                                    <div>
-                                        <h2 className="text-xl font-black text-slate-900">Access Privileges</h2>
-                                        <p className="text-slate-400 text-sm font-medium">Configuring: <span className="text-slate-800 font-bold underline decoration-primary-navy/30 underline-offset-4">{selectedRoleForPerms?.name}</span></p>
-                                    </div>
-                                </div>
-                                <button onClick={() => setShowPermissionModal(false)} className="w-10 h-10 bg-slate-100 hover:bg-slate-200 flex items-center justify-center rounded-full transition-colors"><X className="w-5 h-5" /></button>
-                            </div>
-                            <div className="flex-grow flex overflow-hidden">
-                                <div className="w-1/3 border-r border-slate-100 bg-white overflow-y-auto custom-scrollbar">
-                                    <div className="p-6">
-                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">Operational Modules</h3>
-                                        <div className="space-y-2">
-                                            {modules.map(module => (
-                                                <button key={module.id} onClick={() => handleModuleSelect(module)} className={`w-full text-left p-4 rounded-2xl transition-all flex items-center justify-between group ${selectedModuleForPerms?.id === module.id ? 'bg-primary-navy text-white shadow-xl shadow-primary-navy/20' : 'hover:bg-slate-50 text-slate-600'}`}>
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedModuleForPerms?.id === module.id ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}><Layout className="w-5 h-5" /></div>
-                                                        <div><p className="font-bold leading-tight">{module.name}</p><p className={`text-[10px] font-bold uppercase tracking-tighter ${selectedModuleForPerms?.id === module.id ? 'text-white/60' : 'text-slate-400'}`}>{module.code}</p></div>
-                                                    </div>
-                                                    <ChevronRight className={`w-5 h-5 transition-transform ${selectedModuleForPerms?.id === module.id ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100 translate-x-0'}`} />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex-grow overflow-y-auto custom-scrollbar p-8">
 
-                                    {selectedModuleForPerms ? (
-                                        <div className="max-w-2xl mx-auto">
-                                            <div className="flex items-center gap-3 mb-8"><div className="w-2 h-8 bg-primary-navy rounded-full"></div><h3 className="text-2xl font-black text-slate-800">Assign <span className="text-primary-navy">Permissions</span></h3></div>
-                                            <div className="grid grid-cols-1 gap-3">
-                                                {allPermissions.map(perm => {
-                                                    const isChecked = modulePermsForm.includes(perm.id);
-                                                    return (
-                                                        <label key={perm.id} className={`relative flex items-center justify-between p-5 rounded-3xl border-2 transition-all cursor-pointer group ${isChecked ? 'bg-white border-primary-navy shadow-lg shadow-primary-navy/5' : 'bg-slate-50 border-transparent hover:border-slate-200'}`}>
-                                                            <div className="flex items-center gap-4">
-                                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isChecked ? 'bg-primary-navy text-white rotate-6' : 'bg-white text-slate-400 border border-slate-100'}`}><Lock className="w-5 h-5" /></div>
-                                                                <div><p className={`font-bold transition-all ${isChecked ? 'text-slate-900' : 'text-slate-500'}`}>{perm.name}</p><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{perm.code}</p></div>
-                                                            </div>
-                                                            <div className="relative"><input type="checkbox" className="sr-only" checked={isChecked} onChange={() => togglePermissionInForm(perm.id)} />
-                                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${isChecked ? 'bg-emerald-500 text-white scale-110' : 'bg-slate-200 group-hover:bg-slate-300'}`}>{isChecked && <Check className="w-5 h-5 animate-in zoom-in duration-300" />}</div>
-                                                            </div>
-                                                        </label>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="h-full flex flex-col items-center justify-center text-center"><div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 animate-bounce duration-1000"><Settings className="w-12 h-12 text-slate-300" /></div><h3 className="text-xl font-black text-slate-900">Module Blueprint Selection</h3><p className="text-slate-400 max-w-xs mt-2 font-medium">Please select a functional module from the left panel to begin mapping granular security tokens.</p></div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="bg-white p-8 border-t border-slate-100 flex items-center justify-end gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
-                                <button onClick={() => setShowPermissionModal(false)} className="px-8 py-4 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancel</button>
-                                <button disabled={!selectedModuleForPerms} onClick={handleAssignPermissions} className="px-10 py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-2xl shadow-slate-900/20 active:scale-95 transition-all disabled:opacity-30">Save changes</button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            {/* Member Management Modal */}
-            {
-                showMemberModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowMemberModal(false)}></div>
-                        <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-                            <div className="p-8">
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner"><UserCircle className="w-8 h-8" /></div>
-                                        <div>
-                                            <h2 className="text-2xl font-black text-slate-900">Profile Authorization</h2>
-                                            <p className="text-slate-400 font-medium">Updating: <span className="font-bold text-slate-800">{selectedUserForRoles?.userName}</span></p>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setShowMemberModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X className="w-6 h-6" /></button>
-                                </div>
-
-                                <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Available Security Profiles</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {roles.map(role => {
-                                            const isAssigned = userRolesForm.includes(role.roleId);
-                                            return (
-                                                <button
-                                                    key={role.id}
-                                                    onClick={() => handleToggleUserRole(role.roleId)}
-                                                    className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all group ${isAssigned ? 'bg-primary-navy border-primary-navy text-white shadow-lg shadow-primary-navy/20' : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'}`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Shield className={`w-5 h-5 ${isAssigned ? 'text-white' : 'text-slate-400'}`} />
-                                                        <div className="text-left">
-                                                            <p className="font-bold text-sm leading-tight">{role.roleName}</p>
-                                                            <p className={`text-[10px] font-bold uppercase tracking-widest ${isAssigned ? 'text-white/60' : 'text-slate-400'}`}>{role.roleCode}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isAssigned ? 'bg-white/20 text-white' : 'bg-white text-slate-300 border border-slate-100 shadow-sm'}`}>
-                                                        {isAssigned ? <UserMinus className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                <div className="mt-8 pt-8 border-t border-slate-100">
-                                    <button
-                                        onClick={() => setShowMemberModal(false)}
-                                        className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl shadow-slate-900/20 active:scale-95 transition-all"
-                                    >
-                                        Finish & Apply
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
+            {/* Styles */}
             <style>{`
                 .transition-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
                 .custom-scrollbar::-webkit-scrollbar { width: 6px; }

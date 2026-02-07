@@ -112,6 +112,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     permissions: [],
   },
   {
+    path: paths.web.courseEditVideo,
+    name: "Edit Course Video",
+    element: AddCourseVideo,
+    permissions: [],
+  },
+  {
     path: paths.web.courseDocuments,
     name: "Course Documents",
     element: CourseDocuments,

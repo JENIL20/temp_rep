@@ -605,11 +605,11 @@ import {
   FileText,
   Play,
   Clock,
-  Save,
+  Video,
   X
 } from "lucide-react";
 
-import { courseVideoApi, courseApi } from '../api/courseApi';
+import { courseVideoApi } from '../api/courseApi';
 import { toast } from "react-toastify";
 
 /* ================= TYPES ================= */
@@ -621,6 +621,7 @@ interface VideoFormData {
   orderIndex: number;
   isPreview: boolean;
   thumbnailUrl?: string;
+  videoUrl?: string;
   videoFile?: File | null;
 }
 
@@ -631,20 +632,10 @@ const CourseVideos = () => {
   const { id } = useParams();
   const courseId = id ? Number(id) : null;
 
+  /* ================= STATE ================= */
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [videos, setVideos] = useState<VideoFormData[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-  const [formData, setFormData] = useState<VideoFormData>({
-    title: "",
-    description: "",
-    duration: 0,
-    orderIndex: 1,
-    isPreview: false,
-    videoFile: null
-  });
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
 
   /* ================= FETCH ================= */
 
@@ -655,7 +646,6 @@ const CourseVideos = () => {
   const fetchVideos = async () => {
     try {
       const res = await courseVideoApi.listByCourse(courseId!);
-
       setVideos(
         res.map((v: any, index: number) => ({
           id: v.id,
@@ -664,7 +654,8 @@ const CourseVideos = () => {
           duration: v.duration || 0,
           orderIndex: v.orderIndex ?? index + 1,
           isPreview: v.isPreview ?? false,
-          thumbnailUrl: v.thumbnailUrl
+          thumbnailUrl: v.thumbnailUrl,
+          videoUrl: v.videoUrl
         }))
       );
     } catch (e) {
@@ -674,61 +665,14 @@ const CourseVideos = () => {
     }
   };
 
-  /* ================= FORM HANDLERS ================= */
+  /* ================= HANDLERS ================= */
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "number" ? Number(value) : value
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("video/")) {
-      toast.error("Invalid video file");
-      return;
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      videoFile: file
-    }));
-  };
-
-  /* ================= ADD / EDIT ================= */
-
-  const handleAddOrUpdate = () => {
-    if (!formData.title || !formData.videoFile) {
-      toast.error("Title and video file required");
-      return;
-    }
-
-    if (editingIndex !== null) {
-      const copy = [...videos];
-      copy[editingIndex] = formData;
-      setVideos(copy);
-      toast.success("Video updated");
+  const handleEdit = (video: VideoFormData) => {
+    if (video.id) {
+      navigate(`/courses/${courseId}/videos/${video.id}/edit`);
     } else {
-      setVideos([
-        ...videos,
-        { ...formData, orderIndex: videos.length + 1 }
-      ]);
-      toast.success("Video added");
+      toast.error("Cannot edit unsaved video");
     }
-
-    resetForm();
-  };
-
-  const handleEdit = (index: number) => {
-    setFormData(videos[index]);
-    setEditingIndex(index);
-    setShowForm(true);
   };
 
   const handleDelete = async (index: number) => {
@@ -746,49 +690,16 @@ const CourseVideos = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      duration: 0,
-      orderIndex: videos.length + 1,
-      isPreview: false,
-      videoFile: null
-    });
-    setEditingIndex(null);
-    setShowForm(false);
-  };
-
-  /* ================= SAVE (UPLOAD LIKE AddCourseVideo) ================= */
-
-  const handleSaveAll = async () => {
-    if (!courseId) return;
-
-    setSaving(true);
-    try {
-      for (const video of videos) {
-        if (video.id) continue; // already saved
-
-        const fd = new FormData();
-        fd.append("file", video.videoFile!);
-        fd.append("title", video.title);
-        fd.append("description", video.description || "");
-        fd.append("duration", String(video.duration || 0));
-        fd.append("orderIndex", String(video.orderIndex));
-        fd.append("isPreview", String(video.isPreview));
-
-        await courseApi.uploadVideo(courseId, fd);
-      }
-
-      toast.success("Videos uploaded successfully");
-      fetchVideos();
-    } catch (e) {
-      console.error(e);
-      toast.error("Upload failed");
-    } finally {
-      setSaving(false);
+  const handlePlay = (videoUrl?: string) => {
+    if (videoUrl) {
+      setPlayingVideo(videoUrl);
+    } else {
+      toast.error("No video URL available");
     }
-  };
+  }
+
+  /* ================= RENDER ================= */
+
 
   /* ================= RENDER ================= */
 
@@ -805,11 +716,11 @@ const CourseVideos = () => {
       {/* HEADER */}
       <div className="bg-primary-navy text-white px-6 py-6">
         <button
-          onClick={() => navigate("/courses")}
-          className="flex items-center gap-2 mb-3"
+          onClick={() => navigate(`/courses/${courseId}`)}
+          className="flex items-center gap-2 mb-3 hover:text-white/80 transition-colors"
         >
           <ArrowLeft size={18} />
-          Back to Courses
+          Back to Course Details
         </button>
         <h1 className="text-3xl font-bold">Course Videos</h1>
       </div>
@@ -821,8 +732,8 @@ const CourseVideos = () => {
             {videos.length} Videos
           </h2>
           <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-primary-navy text-white px-4 py-2 rounded-lg"
+            onClick={() => navigate(`/courses/${courseId}/add-video`)}
+            className="flex items-center gap-2 bg-primary-navy text-white px-4 py-2 rounded-lg hover:bg-primary-navy-light transition-colors shadow-lg shadow-primary-navy/20"
           >
             <Plus size={18} />
             Add Video
@@ -830,268 +741,135 @@ const CourseVideos = () => {
         </div>
 
         {/* LIST */}
-        {/* ================= VIDEO LIST ================= */}
-{videos.length === 0 ? (
-  <div className="text-center py-20 bg-white rounded-2xl border border-dashed">
-    <Play size={56} className="mx-auto text-gray-400 mb-4" />
-    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-      No videos yet
-    </h3>
-    <p className="text-gray-500 mb-6">
-      Start building your course by adding the first video
-    </p>
-    <button
-      onClick={() => setShowForm(true)}
-      className="inline-flex items-center gap-2 px-6 py-3 bg-primary-navy text-white rounded-xl hover:bg-primary-navy-light transition"
-    >
-      <Plus size={18} />
-      Add First Video
-    </button>
-  </div>
-) : (
-  <div className="space-y-4">
-    {videos.map((video, index) => (
-      <div
-        key={index}
-        className="group bg-white border border-gray-200 rounded-2xl p-4 flex gap-4 hover:shadow-lg transition"
-      >
-        {/* ORDER + THUMBNAIL */}
-        <div className="relative w-32 h-20 rounded-xl overflow-hidden bg-gradient-to-br from-primary-navy to-primary-navy-light flex items-center justify-center text-white">
-          {video.thumbnailUrl ? (
-            <img
-              src={video.thumbnailUrl}
-              className="w-full h-full object-cover"
-              alt={video.title}
-            />
-          ) : (
-            <Play size={32} />
-          )}
-
-          <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-            #{video.orderIndex}
-          </span>
-        </div>
-
-        {/* INFO */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-1 truncate">
-                {video.title}
-              </h4>
-              {video.description && (
-                <p className="text-sm text-gray-500 line-clamp-2">
-                  {video.description}
-                </p>
-              )}
-
-              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {Math.floor(video.duration / 60)}:
-                  {(video.duration % 60).toString().padStart(2, "0")}
-                </span>
-
-                <span
-                  className={`px-2 py-0.5 rounded-full font-medium ${
-                    video.isPreview
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {video.isPreview ? "Preview" : "Locked"}
-                </span>
-
-                {video.id && (
-                  <span className="text-green-600 font-medium">
-                    Saved
-                  </span>
-                )}
-              </div>
+        {videos.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Video size={40} className="text-gray-400" />
             </div>
-
-            {/* ACTIONS */}
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-              <button
-                onClick={() => handleEdit(index)}
-                className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"
-                title="Edit"
-              >
-                <FileText size={18} />
-              </button>
-              <button
-                onClick={() => handleDelete(index)}
-                className="p-2 rounded-lg hover:bg-red-50 text-red-600"
-                title="Delete"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-)}
-
-
-        {/* SAVE */}
-        {videos.length > 0 && (
-          <div className="flex justify-end mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No videos yet
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+              Start building your course content by adding your first video lesson.
+            </p>
             <button
-              onClick={handleSaveAll}
-              disabled={saving}
-              className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg"
+              onClick={() => navigate(`/courses/${courseId}/add-video`)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-navy text-white rounded-xl hover:bg-primary-navy-light transition shadow-lg shadow-primary-navy/20 font-medium"
             >
-              <Save size={18} />
-              {saving ? "Saving..." : "Save All Videos"}
+              <Plus size={18} />
+              Add First Video
             </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {videos.map((video, index) => (
+              <div
+                key={video.id || index}
+                className="group bg-white border border-gray-200 rounded-2xl p-4 flex gap-4 hover:shadow-lg transition-all duration-300"
+              >
+                {/* ORDER + THUMBNAIL */}
+                <div className="relative w-40 h-24 rounded-xl overflow-hidden bg-slate-900 flex-shrink-0 group-hover:ring-2 ring-primary-navy/20 transition-all">
+                  {video.thumbnailUrl ? (
+                    <img
+                      src={video.thumbnailUrl}
+                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                      alt={video.title}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                      <Video size={32} className="text-slate-600" />
+                    </div>
+                  )}
+
+                  {/* Play Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                    <button
+                      onClick={() => handlePlay(video.videoUrl)}
+                      className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center text-primary-navy hover:scale-110 hover:bg-white transition-all shadow-lg"
+                      title="Play Video"
+                    >
+                      <Play size={20} className="ml-1" />
+                    </button>
+                  </div>
+
+                  <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+                    #{video.orderIndex}
+                  </span>
+
+                  <span className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1">
+                    <Clock size={10} />
+                    {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, "0")}
+                  </span>
+                </div>
+
+                {/* INFO */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-1 truncate text-lg group-hover:text-primary-navy transition-colors">
+                      {video.title}
+                    </h4>
+                    {video.description && (
+                      <p className="text-sm text-gray-500 line-clamp-2 max-w-2xl">
+                        {video.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mt-2">
+                    <span
+                      className={`px-2.5 py-1 rounded-full font-semibold border ${video.isPreview
+                        ? "bg-blue-50 text-blue-700 border-blue-100"
+                        : "bg-slate-50 text-slate-600 border-slate-200"
+                        }`}
+                    >
+                      {video.isPreview ? "Free Preview" : "Locked Content"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* ACTIONS */}
+                <div className="flex flex-col justify-center gap-2 pl-4 border-l border-gray-100">
+                  <button
+                    onClick={() => handleEdit(video)}
+                    className="p-2.5 rounded-xl hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors"
+                    title="Edit Video"
+                  >
+                    <FileText size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="p-2.5 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors"
+                    title="Delete Video"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* MODAL */}
-      {showForm && (
-  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
-      
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary-navy to-primary-navy-light text-white px-6 py-4 flex justify-between items-center">
-        <h3 className="text-xl font-bold">
-          {editingIndex !== null ? "Edit Video" : "Add New Video"}
-        </h3>
-        <button
-          onClick={resetForm}
-          className="p-2 hover:bg-white/10 rounded-full"
-        >
-          <X size={22} />
-        </button>
-      </div>
+      {/* VIDEO PLAYER MODAL */}
+      {playingVideo && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <button
+            onClick={() => setPlayingVideo(null)}
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all"
+          >
+            <X size={32} />
+          </button>
 
-      {/* Body */}
-      <div className="p-6 space-y-6">
-
-        {/* Video Upload */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">
-            Video File <span className="text-red-500">*</span>
-          </label>
-
-          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 cursor-pointer hover:border-primary-navy transition">
-            <input
-              type="file"
-              accept="video/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {formData.videoFile ? (
-              <>
-                <video
-                  src={URL.createObjectURL(formData.videoFile)}
-                  className="w-full h-40 object-cover rounded-xl mb-3"
-                />
-                <p className="text-sm font-semibold">
-                  {formData.videoFile.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {(formData.videoFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="w-14 h-14 rounded-full bg-primary-navy/10 flex items-center justify-center mb-3">
-                  <Play className="text-primary-navy" size={28} />
-                </div>
-                <p className="font-semibold">Click to upload video</p>
-                <p className="text-xs text-gray-500">
-                  MP4, WebM, MOV (max 500MB)
-                </p>
-              </>
-            )}
-          </label>
-        </div>
-
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">
-            Video Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="e.g. Introduction to React"
-            className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-navy"
-          />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">
-            Description
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={3}
-            className="w-full px-4 py-3 border rounded-xl resize-none focus:ring-2 focus:ring-primary-navy"
-            placeholder="What will students learn in this video?"
-          />
-        </div>
-
-        {/* Duration + Preview */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Duration (seconds)
-            </label>
-            <input
-              type="number"
-              name="duration"
-              value={formData.duration}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border rounded-xl"
+          <div className="w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <video
+              src={playingVideo}
+              controls
+              autoPlay
+              className="w-full h-full"
             />
           </div>
-
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isPreview}
-                onChange={(e) =>
-                  setFormData(p => ({ ...p, isPreview: e.target.checked }))
-                }
-                className="w-5 h-5"
-              />
-              <span className="text-sm font-semibold">
-                Preview Video
-              </span>
-            </label>
-          </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
-        <button
-          onClick={resetForm}
-          className="px-6 py-3 rounded-xl border text-gray-700 hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleAddOrUpdate}
-          className="px-6 py-3 rounded-xl bg-primary-navy text-white font-semibold hover:bg-primary-navy-light"
-        >
-          {editingIndex !== null ? "Update Video" : "Add Video"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
     </div>
   );

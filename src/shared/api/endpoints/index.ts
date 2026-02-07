@@ -26,23 +26,32 @@ export const API = {
     PERMISSIONS: '/api/permissions/list',
 
     // Roles
-    ROLES: '/api/rolemodules/list',
-    ROLE_CREATE: '/api/roles/create',
-    ROLE_UPDATE: (id: number | string) => `/api/roles/update/${id}`,
-        ROLE_DELETE: (id: number | string) => `/api/roles/delete/${id}`,
-
+    ROLES: '/api/Roles/list',
+    ROLE_CREATE: '/api/Roles/create',
+    ROLE_UPDATE: (id: number | string) => `/api/Roles/update/${id}`,
+    ROLE_DELETE: (id: number | string) => `/api/Roles/delete/${id}`,
     ROLE_BY_ID: (id: number | string) => `/api/user-permissions/roles/${id}`,
 
     // Role Modules (Mapping)
-    ROLE_MODULES_ALL: '/api/modules/list',
-    ROLE_MODULES: '/api/modules/list',
-    ROLE_MODULES_BY_ROLE: (roleId: number | string) => `/api/rolemodules/role/${roleId}`,
-    ROLE_MODULE_BY_ID: (id: number | string) => `/api/rolemodules/${id}`,
+    ROLE_MODULES_ALL: '/api/RoleModules/list',
+    ROLE_MODULES: '/api/RoleModules/list',
+    ROLE_MODULES_BY_ROLE: (roleId: number | string) => `/api/RoleModules/role/${roleId}`,
+    ROLE_MODULE_BY_ID: (id: number | string) => `/api/RoleModules/${id}`,
+    ROLE_MODULE_CREATE: '/api/RoleModules/create',
+    ROLE_MODULE_DELETE: (id: number | string) => `/api/RoleModules/delete/${id}`,
+
+    // Role Module Permissions
+    ROLE_MODULE_PERMISSIONS_LIST: '/api/role-module-permissions/list',
+    ROLE_MODULE_PERMISSIONS_BY_ID: (id: number | string) => `/api/role-module-permissions/${id}`,
+    ROLE_MODULE_PERMISSIONS_BY_ROLE_MODULE: (roleId: number | string, moduleId: number | string) =>
+      `/api/user-permissions/role-module/${roleId}/${moduleId}/permissions`,
 
     // User Permissions Assignments
     ASSIGN_ROLE: '/api/user-permissions/assign-role',
     ASSIGN_PERMISSIONS: '/api/user-permissions/assign-permissions',
     USER_PERMISSIONS: (userId: number | string) => `/api/user-permissions/user/${userId}`,
+    USER_ROLES: (userId: number | string) => `/api/user-permissions/user/${userId}/roles`,
+    USER_ROLES_LIST: '/api/user-permissions/user-roles/list',
     CHECK_PERMISSION: (userId: number | string, moduleCode: string, permissionCode: string) =>
       `/api/user-permissions/user/${userId}/check/${moduleCode}/${permissionCode}`,
     REMOVE_USER_ROLE: (userId: number | string, roleId: number | string) =>
@@ -108,6 +117,7 @@ export const API = {
   // User endpoints
   USER: {
     LIST: '/api/User/userlist',
+    GET_BY_ID: (id: number | string) => `/api/User/${id}`,
   },
 
   // User Course endpoints

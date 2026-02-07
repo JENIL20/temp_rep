@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { rolePermissionApi } from '../api/rolePermissionApi';
-import { roleApi } from '../api/roleApi';
+
 import { ModulePermission, Role } from '../types/role.types';
 import {
     Shield,
-    Check,
-    X,
+
     Save,
     ArrowLeft,
     Lock,
     Loader2,
     CheckCircle2,
-    XCircle
+    XCircle,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -26,6 +27,10 @@ const RolePermissionPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [selectedPermissions, setSelectedPermissions] = useState<Record<number, number[]>>({});
+
+    // Pagination state for modules
+    const [modulesPage, setModulesPage] = useState(1);
+    const [modulesPageSize, setModulesPageSize] = useState(10);
 
     useEffect(() => {
         if (roleId) {
@@ -106,6 +111,111 @@ const RolePermissionPage: React.FC = () => {
 
     const activeModule = modulePermissions.find(mp => mp.moduleId === activeModuleId);
 
+    // Pagination logic for modules
+    const totalModulesPages = Math.ceil(modulePermissions.length / modulesPageSize);
+    const paginatedModules = modulePermissions.slice(
+        (modulesPage - 1) * modulesPageSize,
+        modulesPage * modulesPageSize
+    );
+
+    // Pagination Component
+    const Pagination = ({ currentPage, totalPages, onPageChange, pageSize, onPageSizeChange }: any) => {
+        const pages = [];
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+        if (endPage - startPage < maxVisible - 1) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+
+        if (totalPages <= 1) return null;
+
+        return (
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-600 font-medium">Items per page:</span>
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            onPageSizeChange(Number(e.target.value));
+                            onPageChange(1);
+                        }}
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none"
+                    >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="p-2 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+
+                    {startPage > 1 && (
+                        <>
+                            <button
+                                onClick={() => onPageChange(1)}
+                                className="px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
+                            >
+                                1
+                            </button>
+                            {startPage > 2 && <span className="text-slate-400">...</span>}
+                        </>
+                    )}
+
+                    {pages.map(page => (
+                        <button
+                            key={page}
+                            onClick={() => onPageChange(page)}
+                            className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${currentPage === page
+                                ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/20'
+                                : 'text-slate-600 hover:bg-white'
+                                }`}
+                        >
+                            {page}
+                        </button>
+                    ))}
+
+                    {endPage < totalPages && (
+                        <>
+                            {endPage < totalPages - 1 && <span className="text-slate-400">...</span>}
+                            <button
+                                onClick={() => onPageChange(totalPages)}
+                                className="px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
+                            >
+                                {totalPages}
+                            </button>
+                        </>
+                    )}
+
+                    <button
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="p-2 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="text-sm text-slate-600 font-medium">
+                    Page {currentPage} of {totalPages}
+                </div>
+            </div>
+        );
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
@@ -155,22 +265,35 @@ const RolePermissionPage: React.FC = () => {
                     {/* Module Tabs */}
                     <div className="bg-slate-50 border-b border-slate-200 p-6">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                            Modules
+                            Modules ({modulePermissions.length})
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                            {modulePermissions.map((module) => (
+                            {paginatedModules.map((module) => (
                                 <button
                                     key={module.moduleId}
                                     onClick={() => setActiveModuleId(module.moduleId)}
                                     className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${activeModuleId === module.moduleId
-                                            ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/20'
-                                            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                        ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/20'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                                         }`}
                                 >
                                     {module.moduleName}
                                 </button>
                             ))}
                         </div>
+
+                        {/* Module Pagination */}
+                        {modulePermissions.length > modulesPageSize && (
+                            <div className="mt-4">
+                                <Pagination
+                                    currentPage={modulesPage}
+                                    totalPages={totalModulesPages}
+                                    onPageChange={setModulesPage}
+                                    pageSize={modulesPageSize}
+                                    onPageSizeChange={setModulesPageSize}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Permissions Grid */}
@@ -192,14 +315,14 @@ const RolePermissionPage: React.FC = () => {
                                             key={permission.id}
                                             onClick={() => togglePermission(activeModule.moduleId, permission.id)}
                                             className={`relative flex items-center justify-between p-5 rounded-2xl border-2 transition-all group ${isSelected
-                                                    ? 'bg-gradient-to-br from-emerald-50 to-emerald-50/50 border-emerald-500 shadow-lg shadow-emerald-500/10'
-                                                    : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:shadow-md'
+                                                ? 'bg-gradient-to-br from-emerald-50 to-emerald-50/50 border-emerald-500 shadow-lg shadow-emerald-500/10'
+                                                : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:shadow-md'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isSelected
-                                                        ? 'bg-emerald-500 text-white rotate-6'
-                                                        : 'bg-white text-slate-400 border border-slate-200 group-hover:border-slate-300'
+                                                    ? 'bg-emerald-500 text-white rotate-6'
+                                                    : 'bg-white text-slate-400 border border-slate-200 group-hover:border-slate-300'
                                                     }`}>
                                                     <Lock className="w-5 h-5" />
                                                 </div>
@@ -215,8 +338,8 @@ const RolePermissionPage: React.FC = () => {
                                             </div>
 
                                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${isSelected
-                                                    ? 'bg-emerald-500 text-white scale-110'
-                                                    : 'bg-slate-200 group-hover:bg-slate-300'
+                                                ? 'bg-emerald-500 text-white scale-110'
+                                                : 'bg-slate-200 group-hover:bg-slate-300'
                                                 }`}>
                                                 {isSelected ? (
                                                     <CheckCircle2 className="w-5 h-5" />
@@ -239,6 +362,22 @@ const RolePermissionPage: React.FC = () => {
                         </div>
                     )}
 
+                    {!activeModule && modulePermissions.length > 0 && (
+                        <div className="py-20 flex flex-col items-center">
+                            <Shield className="w-12 h-12 text-slate-200 mb-4" />
+                            <h3 className="text-lg font-bold text-slate-900">Select a Module</h3>
+                            <p className="text-slate-400">Choose a module from the tabs above to configure permissions.</p>
+                        </div>
+                    )}
+
+                    {modulePermissions.length === 0 && (
+                        <div className="py-20 flex flex-col items-center">
+                            <Shield className="w-12 h-12 text-slate-200 mb-4" />
+                            <h3 className="text-lg font-bold text-slate-900">No Modules Assigned</h3>
+                            <p className="text-slate-400">This role has no modules assigned yet.</p>
+                        </div>
+                    )}
+
                     {/* Footer Actions */}
                     <div className="bg-slate-50 border-t border-slate-200 p-6 flex items-center justify-between">
                         <div className="text-sm text-slate-500">
@@ -250,7 +389,7 @@ const RolePermissionPage: React.FC = () => {
 
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => navigate('/roles')}
+                                onClick={() => navigate('/admin/roles')}
                                 className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all"
                             >
                                 Cancel

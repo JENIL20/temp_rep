@@ -14,8 +14,7 @@ const handleApiError = (error: any, context: string): never => {
 };
 
 
-// Development Mode Flag
-const IS_DEV = !(import.meta.env.MODE === 'development');
+
 
 
 import { Category, CategoryListRequest, PaginatedCategoryResponse } from '../types/category.types';
@@ -77,7 +76,13 @@ export const categoryApi = {
 
         try {
             // Pass query params to API
-            const response = await api.get(API.CATEGORY.LIST, { params });
+            const response = await api.get(API.CATEGORY.LIST, {
+                params: {
+                    PageNumber: params?.pageNumber,
+                    PageSize: params?.pageSize,
+                    SearchTerm: params?.searchTerm
+                }
+            });
             // Handle possible non-paginated legacy response by wrapping it
             if (Array.isArray(response.data)) {
                 return {
