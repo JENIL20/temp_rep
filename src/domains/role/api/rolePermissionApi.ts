@@ -66,44 +66,56 @@ export const rolePermissionApi = {
             const roleModulesResponse = await api.get(API.USER_PERMISSIONS.ROLE_MODULES_BY_ROLE(roleId));
             const roleModules = Array.isArray(roleModulesResponse.data) ? roleModulesResponse.data : [];
 
-            // Fetch all available permissions
-            const allPermissions = await permissionApi.list();
 
-            // Fetch all modules
-            const allModules = await moduleApi.listAll();
+            // Fetch all available permissions and modules in parallel
+            const [allPermissions, allModules] = await Promise.all([
+                permissionApi.list(),
+                moduleApi.listAll()
+            ]);
 
-            // Get role module permissions to find which permissions are assigned
-            const roleModulePermissionsResponse = await api.get(API.USER_PERMISSIONS.ROLE_MODULE_PERMISSIONS_LIST, {
-                params: { RoleId: roleId }
-            });
-            const roleModulePermissions = Array.isArray(roleModulePermissionsResponse.data?.items)
-                ? roleModulePermissionsResponse.data.items
-                : (Array.isArray(roleModulePermissionsResponse.data) ? roleModulePermissionsResponse.data : []);
+            // Build module permissions structure using the dedicated per-module endpoint
+            // so that assigned permission IDs are always accurate after every save.
+            const modulePermissions: ModulePermission[] = await Promise.all(
+                roleModules.map(async (rm: any) => {
+                    // Find the module details
+                    const moduleDetails = allModules.find((m: any) => m.id === rm.moduleId) || {
+                        id: rm.moduleId,
+                        code: rm.moduleCode || `MOD_${rm.moduleId}`,
+                        name: rm.moduleName || `Module ${rm.moduleId}`,
+                        isActive: true
+                    };
 
-            // Build module permissions structure
-            const modulePermissions: ModulePermission[] = roleModules.map((rm: any) => {
-                // Find the module details
-                const moduleDetails = allModules.find(m => m.id === rm.moduleId) || {
-                    id: rm.moduleId,
-                    code: rm.moduleCode || `MOD_${rm.moduleId}`,
-                    name: rm.moduleName || `Module ${rm.moduleId}`,
-                    isActive: true
-                };
+                    // Use the dedicated endpoint GET /api/user-permissions/role-module/{roleId}/{moduleId}/permissions
+                    // This is accurate on every fetch (not affected by pagination or stale list results).
+                    let assignedPerms: number[] = [];
+                    try {
+                        const permsResponse = await api.get(
+                            API.USER_PERMISSIONS.ROLE_MODULE_PERMISSIONS_BY_ROLE_MODULE(roleId, rm.moduleId)
+                        );
+                        const permsData = permsResponse.data;
+                        if (Array.isArray(permsData)) {
+                            assignedPerms = permsData
+                                .map((p: any) => p.permissionId ?? p.id)
+                                .filter((id: any) => id !== undefined && id !== null);
+                        } else if (Array.isArray(permsData?.items)) {
+                            assignedPerms = permsData.items
+                                .map((p: any) => p.permissionId ?? p.id)
+                                .filter((id: any) => id !== undefined && id !== null);
+                        }
+                    } catch {
+                        // If the per-module endpoint fails fall back to empty — don't crash the whole page
+                        assignedPerms = [];
+                    }
 
-                // Find assigned permissions for this role-module combination
-                const assignedPerms = roleModulePermissions
-                    .filter((rmp: any) => rmp.roleModuleId === rm.id || rmp.moduleId === rm.moduleId)
-                    .map((rmp: any) => rmp.permissionId)
-                    .filter((id: any) => id !== undefined && id !== null);
-
-                return {
-                    moduleId: rm.moduleId,
-                    moduleName: moduleDetails.name,
-                    moduleCode: moduleDetails.code,
-                    permissions: allPermissions,
-                    assignedPermissionIds: assignedPerms
-                };
-            });
+                    return {
+                        moduleId: rm.moduleId,
+                        moduleName: moduleDetails.name,
+                        moduleCode: moduleDetails.code,
+                        permissions: allPermissions,
+                        assignedPermissionIds: assignedPerms
+                    };
+                })
+            );
 
             // Get role details from the first role module or fetch separately
             let roleName = 'Unknown Role';

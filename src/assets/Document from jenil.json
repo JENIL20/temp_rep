@@ -143,6 +143,17 @@
             }
           },
           {
+<<<<<<< HEAD
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "PageNumber",
             "in": "query",
             "schema": {
@@ -404,6 +415,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "UserId",
             "in": "query",
             "schema": {
@@ -436,10 +457,18 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -466,6 +495,7 @@
         }
       }
     },
+<<<<<<< HEAD
     "/api/Course/main-image/{id}": {
       "get": {
         "tags": [
@@ -512,6 +542,8 @@
         }
       }
     },
+=======
+>>>>>>> 2557765 (23 feb)
     "/api/Course/list": {
       "get": {
         "tags": [
@@ -519,6 +551,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "IsActive",
             "in": "query",
             "schema": {
@@ -526,10 +568,18 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -650,6 +700,13 @@
                   },
                   "Tags": {
                     "type": "string"
+<<<<<<< HEAD
+=======
+                  },
+                  "TenantId": {
+                    "type": "integer",
+                    "format": "int32"
+>>>>>>> 2557765 (23 feb)
                   }
                 }
               },
@@ -686,6 +743,12 @@
                 },
                 "Tags": {
                   "style": "form"
+<<<<<<< HEAD
+=======
+                },
+                "TenantId": {
+                  "style": "form"
+>>>>>>> 2557765 (23 feb)
                 }
               }
             }
@@ -951,6 +1014,32 @@
         }
       }
     },
+<<<<<<< HEAD
+=======
+    "/api/CourseDocument/course/{courseId}": {
+      "get": {
+        "tags": [
+          "CourseDocument"
+        ],
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+>>>>>>> 2557765 (23 feb)
     "/api/CourseVideo/list/{courseId}": {
       "get": {
         "tags": [
@@ -1049,6 +1138,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "CourseId",
             "in": "query",
             "schema": {
@@ -1057,10 +1156,18 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -1110,6 +1217,7 @@
         }
       }
     },
+<<<<<<< HEAD
     "/api/CourseVideo/test/{videoId}": {
       "get": {
         "tags": [
@@ -1133,6 +1241,8 @@
         }
       }
     },
+=======
+>>>>>>> 2557765 (23 feb)
     "/api/CourseVideo/update-progress": {
       "post": {
         "tags": [
@@ -1228,6 +1338,7 @@
         "tags": [
           "Crypto"
         ],
+<<<<<<< HEAD
         "parameters": [
           {
             "name": "folderName",
@@ -1238,6 +1349,8 @@
             }
           }
         ],
+=======
+>>>>>>> 2557765 (23 feb)
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -1269,16 +1382,25 @@
         }
       }
     },
+<<<<<<< HEAD
     "/api/Crypto/download/{fileName}": {
+=======
+    "/api/Crypto/get": {
+>>>>>>> 2557765 (23 feb)
       "get": {
         "tags": [
           "Crypto"
         ],
         "parameters": [
           {
+<<<<<<< HEAD
             "name": "fileName",
             "in": "path",
             "required": true,
+=======
+            "name": "path",
+            "in": "query",
+>>>>>>> 2557765 (23 feb)
             "schema": {
               "type": "string"
             }
@@ -1291,6 +1413,7 @@
         }
       }
     },
+<<<<<<< HEAD
     "/api/Crypto/stream/{fileName}": {
       "get": {
         "tags": [
@@ -1304,6 +1427,75 @@
             "schema": {
               "type": "string"
             }
+=======
+    "/api/Groups/create": {
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Groups/list": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+>>>>>>> 2557765 (23 feb)
           }
         ],
         "responses": {
@@ -1313,6 +1505,174 @@
         }
       }
     },
+<<<<<<< HEAD
+=======
+    "/api/Groups/{groupId}": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Groups/Delete/{groupId}": {
+      "delete": {
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Groups/update/{groupId}": {
+      "put": {
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGroupRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGroupRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Groups/group-courses/{groupId}": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Groups/bulk-update-courses": {
+      "put": {
+        "tags": [
+          "Groups"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateCoursesRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateCoursesRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateCoursesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+>>>>>>> 2557765 (23 feb)
     "/api/module-permissions/list": {
       "get": {
         "tags": [
@@ -1607,9 +1967,12 @@
                     "type": "string",
                     "format": "binary"
                   },
+<<<<<<< HEAD
                   "UserName": {
                     "type": "string"
                   },
+=======
+>>>>>>> 2557765 (23 feb)
                   "FirstName": {
                     "type": "string"
                   },
@@ -1640,9 +2003,12 @@
                 "Logo": {
                   "style": "form"
                 },
+<<<<<<< HEAD
                 "UserName": {
                   "style": "form"
                 },
+=======
+>>>>>>> 2557765 (23 feb)
                 "FirstName": {
                   "style": "form"
                 },
@@ -1678,17 +2044,29 @@
           "content": {
             "application/json": {
               "schema": {
+<<<<<<< HEAD
                 "$ref": "#/components/schemas/OrgLoginRequest"
+=======
+                "$ref": "#/components/schemas/LoginRequest"
+>>>>>>> 2557765 (23 feb)
               }
             },
             "text/json": {
               "schema": {
+<<<<<<< HEAD
                 "$ref": "#/components/schemas/OrgLoginRequest"
+=======
+                "$ref": "#/components/schemas/LoginRequest"
+>>>>>>> 2557765 (23 feb)
               }
             },
             "application/*+json": {
               "schema": {
+<<<<<<< HEAD
                 "$ref": "#/components/schemas/OrgLoginRequest"
+=======
+                "$ref": "#/components/schemas/LoginRequest"
+>>>>>>> 2557765 (23 feb)
               }
             }
           }
@@ -1724,9 +2102,12 @@
                     "type": "string",
                     "format": "binary"
                   },
+<<<<<<< HEAD
                   "UserName": {
                     "type": "string"
                   },
+=======
+>>>>>>> 2557765 (23 feb)
                   "FirstName": {
                     "type": "string"
                   },
@@ -1757,9 +2138,12 @@
                 "Logo": {
                   "style": "form"
                 },
+<<<<<<< HEAD
                 "UserName": {
                   "style": "form"
                 },
+=======
+>>>>>>> 2557765 (23 feb)
                 "FirstName": {
                   "style": "form"
                 },
@@ -1791,6 +2175,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "SearchTerm",
             "in": "query",
             "schema": {
@@ -1812,6 +2206,7 @@
               "type": "integer",
               "format": "int32"
             }
+<<<<<<< HEAD
           },
           {
             "name": "IsActive",
@@ -1819,6 +2214,8 @@
             "schema": {
               "type": "boolean"
             }
+=======
+>>>>>>> 2557765 (23 feb)
           }
         ],
         "responses": {
@@ -1886,6 +2283,27 @@
                   },
                   "IsActive": {
                     "type": "boolean"
+<<<<<<< HEAD
+=======
+                  },
+                  "FirstName": {
+                    "type": "string"
+                  },
+                  "LastName": {
+                    "type": "string"
+                  },
+                  "Email": {
+                    "type": "string"
+                  },
+                  "Mobile": {
+                    "type": "string"
+                  },
+                  "Password": {
+                    "type": "string"
+                  },
+                  "ConfirmPassword": {
+                    "type": "string"
+>>>>>>> 2557765 (23 feb)
                   }
                 }
               },
@@ -1904,6 +2322,27 @@
                 },
                 "IsActive": {
                   "style": "form"
+<<<<<<< HEAD
+=======
+                },
+                "FirstName": {
+                  "style": "form"
+                },
+                "LastName": {
+                  "style": "form"
+                },
+                "Email": {
+                  "style": "form"
+                },
+                "Mobile": {
+                  "style": "form"
+                },
+                "Password": {
+                  "style": "form"
+                },
+                "ConfirmPassword": {
+                  "style": "form"
+>>>>>>> 2557765 (23 feb)
                 }
               }
             }
@@ -1963,6 +2402,27 @@
                   },
                   "IsActive": {
                     "type": "boolean"
+<<<<<<< HEAD
+=======
+                  },
+                  "FirstName": {
+                    "type": "string"
+                  },
+                  "LastName": {
+                    "type": "string"
+                  },
+                  "Email": {
+                    "type": "string"
+                  },
+                  "Mobile": {
+                    "type": "string"
+                  },
+                  "Password": {
+                    "type": "string"
+                  },
+                  "ConfirmPassword": {
+                    "type": "string"
+>>>>>>> 2557765 (23 feb)
                   }
                 }
               },
@@ -1981,6 +2441,27 @@
                 },
                 "IsActive": {
                   "style": "form"
+<<<<<<< HEAD
+=======
+                },
+                "FirstName": {
+                  "style": "form"
+                },
+                "LastName": {
+                  "style": "form"
+                },
+                "Email": {
+                  "style": "form"
+                },
+                "Mobile": {
+                  "style": "form"
+                },
+                "Password": {
+                  "style": "form"
+                },
+                "ConfirmPassword": {
+                  "style": "form"
+>>>>>>> 2557765 (23 feb)
                 }
               }
             }
@@ -2076,6 +2557,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "UserId",
             "in": "query",
             "schema": {
@@ -2124,10 +2615,26 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "GroupId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -2383,6 +2890,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "IsActive",
             "in": "query",
             "schema": {
@@ -2390,10 +2907,18 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -2530,6 +3055,17 @@
             }
           },
           {
+<<<<<<< HEAD
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "PageNumber",
             "in": "query",
             "schema": {
@@ -2807,6 +3343,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "UserId",
             "in": "query",
             "schema": {
@@ -2839,10 +3385,18 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -3136,6 +3690,16 @@
         ],
         "parameters": [
           {
+<<<<<<< HEAD
+=======
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+>>>>>>> 2557765 (23 feb)
             "name": "UserId",
             "in": "query",
             "schema": {
@@ -3159,10 +3723,18 @@
             }
           },
           {
+<<<<<<< HEAD
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string"
+=======
+            "name": "TenantId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+>>>>>>> 2557765 (23 feb)
             }
           },
           {
@@ -3246,12 +3818,40 @@
         },
         "additionalProperties": false
       },
+<<<<<<< HEAD
+=======
+      "BulkUpdateCoursesRequest": {
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupCourseUpdateItem"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+>>>>>>> 2557765 (23 feb)
       "CategoryRequest": {
         "type": "object",
         "properties": {
           "categoryName": {
             "type": "string",
             "nullable": true
+<<<<<<< HEAD
+=======
+          },
+          "tenantId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+>>>>>>> 2557765 (23 feb)
           }
         },
         "additionalProperties": false
@@ -3272,7 +3872,26 @@
             "format": "double",
             "nullable": true
           },
+<<<<<<< HEAD
           "organizationId": {
+=======
+          "tenantId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateGroupRequest": {
+        "type": "object",
+        "properties": {
+          "groupName": {
+            "type": "string",
+            "nullable": true
+          },
+          "tenantId": {
+>>>>>>> 2557765 (23 feb)
             "type": "integer",
             "format": "int32",
             "nullable": true
@@ -3304,6 +3923,14 @@
           "name": {
             "type": "string",
             "nullable": true
+<<<<<<< HEAD
+=======
+          },
+          "tenantId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+>>>>>>> 2557765 (23 feb)
           }
         },
         "additionalProperties": false
@@ -3332,6 +3959,7 @@
         },
         "additionalProperties": false
       },
+<<<<<<< HEAD
       "LoginRequest": {
         "type": "object",
         "properties": {
@@ -3342,11 +3970,26 @@
           "password": {
             "type": "string",
             "nullable": true
+=======
+      "GroupCourseUpdateItem": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEnable": {
+            "type": "boolean"
+>>>>>>> 2557765 (23 feb)
           }
         },
         "additionalProperties": false
       },
+<<<<<<< HEAD
       "OrgLoginRequest": {
+=======
+      "LoginRequest": {
+>>>>>>> 2557765 (23 feb)
         "type": "object",
         "properties": {
           "email": {
@@ -3363,10 +4006,13 @@
       "RegisterRequest": {
         "type": "object",
         "properties": {
+<<<<<<< HEAD
           "userName": {
             "type": "string",
             "nullable": true
           },
+=======
+>>>>>>> 2557765 (23 feb)
           "firstName": {
             "type": "string",
             "nullable": true
@@ -3386,6 +4032,18 @@
           "password": {
             "type": "string",
             "nullable": true
+<<<<<<< HEAD
+=======
+          },
+          "tenantId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "organizationCode": {
+            "type": "string",
+            "nullable": true
+>>>>>>> 2557765 (23 feb)
           }
         },
         "additionalProperties": false
@@ -3418,6 +4076,23 @@
         },
         "additionalProperties": false
       },
+<<<<<<< HEAD
+=======
+      "UpdateGroupRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "groupName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+>>>>>>> 2557765 (23 feb)
       "UpdateModuleDto": {
         "type": "object",
         "properties": {
@@ -3462,10 +4137,13 @@
       "UpdateUserRequest": {
         "type": "object",
         "properties": {
+<<<<<<< HEAD
           "userName": {
             "type": "string",
             "nullable": true
           },
+=======
+>>>>>>> 2557765 (23 feb)
           "firstName": {
             "type": "string",
             "nullable": true
@@ -3485,6 +4163,19 @@
           "password": {
             "type": "string",
             "nullable": true
+<<<<<<< HEAD
+=======
+          },
+          "tenantId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "groupId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+>>>>>>> 2557765 (23 feb)
           }
         },
         "additionalProperties": false

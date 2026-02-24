@@ -53,7 +53,7 @@ const UserPermissionPage: React.FC = () => {
 
             // Fetch user's assigned roles
             const userRoles = await userRoleApi.getUserRoles(Number(userId));
-            setAssignedRoleIds(userRoles.map((r: Role) => r.id));
+            setAssignedRoleIds(userRoles.map((r: Role) => r.id).filter((id): id is number => id != null));
 
             // Fetch real user details
             const userDetails = await userRoleApi.getUserDetails(Number(userId));

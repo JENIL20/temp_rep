@@ -56,13 +56,30 @@ export const userRoleApi = {
     getUserRoles: async (userId: number): Promise<Role[]> => {
         if (IS_OFFLINE_MODE) {
             await new Promise(resolve => setTimeout(resolve, 300));
-            // Just return dummy roles for any user for now
             return DUMMY_USER_ROLES;
         }
 
         try {
-            const response = await api.get<Role[]>(API.USER_PERMISSIONS.USER_ROLES(userId));
-            return response.data;
+
+            const response = await api.get(API.USER_PERMISSIONS.USER_ROLES(userId));
+            const data = response.data;
+
+            // API may return a plain Role[] array OR a paginated { items: Role[] } object.
+            // Normalise both shapes so assignedRoleIds is always populated correctly.
+            let roles: any[] = [];
+            if (Array.isArray(data)) {
+                roles = data;
+            } else if (Array.isArray(data?.items)) {
+                roles = data.items;
+            }
+
+            // Map defensively: some endpoints return `roleId` instead of `id`
+            return roles.map((r: any) => ({
+                id: r.id ?? r.roleId,
+                code: r.code ?? r.roleCode ?? '',
+                name: r.name ?? r.roleName ?? '',
+                isActive: r.isActive ?? true
+            })) as Role[];
         } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to fetch user roles');
         }

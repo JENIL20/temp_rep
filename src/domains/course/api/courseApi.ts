@@ -453,8 +453,9 @@ export const courseApi = {
     // Create a new course
     create: async (data: any) => {
         if (IS_OFFLINE_MODE) {
+            const isFormData = data instanceof FormData;
             return {
-                ...data,
+                ...(isFormData ? Object.fromEntries(data.entries()) : data),
                 id: Math.floor(Math.random() * 1000) + 100,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -462,8 +463,12 @@ export const courseApi = {
         }
 
         try {
-            if (!data.title) throw new Error('Course title is required');
-            const response = await api.post(API.COURSE.CREATE, data);
+            const isFormData = data instanceof FormData;
+            const title = isFormData ? data.get('Title') : data.title;
+            if (!title) throw new Error('Course title is required');
+            const response = await api.post(API.COURSE.CREATE, data, isFormData ? {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            } : undefined);
             return response.data;
         } catch (error) {
             throw handleApiError(error, 'Create course');
@@ -473,8 +478,9 @@ export const courseApi = {
     // Update a course
     update: async (id: number, data: any) => {
         if (IS_OFFLINE_MODE) {
+            const isFormData = data instanceof FormData;
             return {
-                ...data,
+                ...(isFormData ? Object.fromEntries(data.entries()) : data),
                 id: id,
                 updatedAt: new Date().toISOString()
             };
@@ -482,7 +488,10 @@ export const courseApi = {
 
         try {
             validateId(id);
-            const response = await api.put(API.COURSE.UPDATE(id), data);
+            const isFormData = data instanceof FormData;
+            const response = await api.put(API.COURSE.UPDATE(id), data, isFormData ? {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            } : undefined);
             return response.data;
         } catch (error) {
             throw handleApiError(error, 'Update course');
