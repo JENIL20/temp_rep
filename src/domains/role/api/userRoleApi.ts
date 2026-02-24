@@ -60,7 +60,6 @@ export const userRoleApi = {
         }
 
         try {
-
             const response = await api.get(API.USER_PERMISSIONS.USER_ROLES(userId));
             const data = response.data;
 

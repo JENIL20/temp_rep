@@ -66,7 +66,6 @@ export const rolePermissionApi = {
             const roleModulesResponse = await api.get(API.USER_PERMISSIONS.ROLE_MODULES_BY_ROLE(roleId));
             const roleModules = Array.isArray(roleModulesResponse.data) ? roleModulesResponse.data : [];
 
-
             // Fetch all available permissions and modules in parallel
             const [allPermissions, allModules] = await Promise.all([
                 permissionApi.list(),

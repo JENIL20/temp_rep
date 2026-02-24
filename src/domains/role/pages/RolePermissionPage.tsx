@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { rolePermissionApi } from '../api/rolePermissionApi';
-
 import { ModulePermission, Role } from '../types/role.types';
 import {
     Shield,
@@ -11,7 +10,6 @@ import {
     Loader2,
     CheckCircle2,
     XCircle,
-
     ChevronDown,
     ChevronUp,
     CheckSquare,
@@ -29,10 +27,8 @@ const RolePermissionPage: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [selectedPermissions, setSelectedPermissions] = useState<Record<number, number[]>>({});
 
-
     // Track which module sections are collapsed (all expanded by default)
     const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
-
 
     useEffect(() => {
         if (roleId) {
@@ -115,111 +111,6 @@ const RolePermissionPage: React.FC = () => {
     const totalSelected = Object.values(selectedPermissions).flat().length;
     const totalPermissions = modulePermissions.reduce((acc, mp) => acc + mp.permissions.length, 0);
 
-    // Pagination logic for modules
-    const totalModulesPages = Math.ceil(modulePermissions.length / modulesPageSize);
-    const paginatedModules = modulePermissions.slice(
-        (modulesPage - 1) * modulesPageSize,
-        modulesPage * modulesPageSize
-    );
-
-    // Pagination Component
-    const Pagination = ({ currentPage, totalPages, onPageChange, pageSize, onPageSizeChange }: any) => {
-        const pages = [];
-        const maxVisible = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-        if (endPage - startPage < maxVisible - 1) {
-            startPage = Math.max(1, endPage - maxVisible + 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-
-        if (totalPages <= 1) return null;
-
-        return (
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
-                <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-600 font-medium">Items per page:</span>
-                    <select
-                        value={pageSize}
-                        onChange={(e) => {
-                            onPageSizeChange(Number(e.target.value));
-                            onPageChange(1);
-                        }}
-                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none"
-                    >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                    </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => onPageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="p-2 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                    </button>
-
-                    {startPage > 1 && (
-                        <>
-                            <button
-                                onClick={() => onPageChange(1)}
-                                className="px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
-                            >
-                                1
-                            </button>
-                            {startPage > 2 && <span className="text-slate-400">...</span>}
-                        </>
-                    )}
-
-                    {pages.map(page => (
-                        <button
-                            key={page}
-                            onClick={() => onPageChange(page)}
-                            className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${currentPage === page
-                                ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/20'
-                                : 'text-slate-600 hover:bg-white'
-                                }`}
-                        >
-                            {page}
-                        </button>
-                    ))}
-
-                    {endPage < totalPages && (
-                        <>
-                            {endPage < totalPages - 1 && <span className="text-slate-400">...</span>}
-                            <button
-                                onClick={() => onPageChange(totalPages)}
-                                className="px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
-                            >
-                                {totalPages}
-                            </button>
-                        </>
-                    )}
-
-                    <button
-                        onClick={() => onPageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="p-2 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                        <ChevronRight className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <div className="text-sm text-slate-600 font-medium">
-                    Page {currentPage} of {totalPages}
-                </div>
-            </div>
-        );
-    };
-
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
@@ -265,7 +156,6 @@ const RolePermissionPage: React.FC = () => {
                     </div>
                 </div>
 
-
                 {/* ── Sticky summary bar ────────────────────────────── */}
                 <div className="sticky top-4 z-10 mb-6">
                     <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-lg px-6 py-4 flex items-center justify-between">
@@ -282,15 +172,12 @@ const RolePermissionPage: React.FC = () => {
                                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Categories</p>
                                 <p className="text-2xl font-extrabold text-slate-700">{modulePermissions.length}</p>
                             </div>
-
                         </div>
 
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/admin/roles')}
-
                                 className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all text-sm"
-
                             >
                                 Cancel
                             </button>
