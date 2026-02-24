@@ -462,7 +462,7 @@ const RolesManagement: React.FC = () => {
                                                 {/* Username */}
                                                 <div className="col-span-3">
                                                     <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors">
-                                                        {user.userName}
+                                                        {user.firstName +' '+user.lastName}
                                                     </span>
                                                 </div>
 

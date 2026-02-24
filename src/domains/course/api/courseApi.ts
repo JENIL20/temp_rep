@@ -320,64 +320,19 @@ export const courseVideoApi = {
 export const courseApi = {
     // List all courses (Paginated)
     list: async (params?: CourseListRequest): Promise<PaginatedCourseResponse> => {
-        const {
-            searchTerm = '',
-            pageNumber = 1,
-            pageSize = 10,
-            categoryId,
-            difficulty,
-            status,
-            sortBy
-        } = params || {};
+        const { searchTerm = '', pageNumber = 1, pageSize = 10 } = params || {};
 
 
         if (IS_OFFLINE_MODE) {
 
             console.log("DEV MODE: Returning paginated dummy courses", params);
             let filtered = [...DUMMY_COURSES];
-
-            // Filter by Search Term
             if (searchTerm) {
                 const query = searchTerm.toLowerCase();
                 filtered = filtered.filter(c =>
                     c.title.toLowerCase().includes(query) ||
                     c.description.toLowerCase().includes(query)
                 );
-            }
-
-            // Filter by Category
-            if (categoryId) {
-                filtered = filtered.filter(c => c.categoryId === categoryId);
-            }
-
-            // Filter by Difficulty
-            if (difficulty) {
-                filtered = filtered.filter(c => c.difficulty.toLowerCase() === difficulty.toLowerCase());
-            }
-
-            // Filter by Status
-            if (status && status !== 'all') {
-                const isActive = status === 'active';
-                filtered = filtered.filter(c => c.isActive === isActive);
-            }
-
-            // Sort
-            if (sortBy) {
-                switch (sortBy) {
-                    case 'price-low':
-                        filtered.sort((a, b) => a.price - b.price);
-                        break;
-                    case 'price-high':
-                        filtered.sort((a, b) => b.price - a.price);
-                        break;
-                    case 'rating':
-                        filtered.sort((a, b) => b.rating - a.rating);
-                        break;
-                    case 'newest':
-                    default:
-                        filtered.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
-                        break;
-                }
             }
 
             const totalCount = filtered.length;
@@ -398,7 +353,8 @@ export const courseApi = {
                 params: {
                     SearchTerm: searchTerm,
                     PageNumber: pageNumber,
-                    PageSize: pageSize
+                    PageSize: pageSize,
+
                 }
             });
 
@@ -453,9 +409,8 @@ export const courseApi = {
     // Create a new course
     create: async (data: any) => {
         if (IS_OFFLINE_MODE) {
-            const isFormData = data instanceof FormData;
             return {
-                ...(isFormData ? Object.fromEntries(data.entries()) : data),
+                ...data,
                 id: Math.floor(Math.random() * 1000) + 100,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -463,13 +418,39 @@ export const courseApi = {
         }
 
         try {
-            const isFormData = data instanceof FormData;
-            const title = isFormData ? data.get('Title') : data.title;
-            if (!title) throw new Error('Course title is required');
-            const response = await api.post(API.COURSE.CREATE, data, isFormData ? {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            } : undefined);
-            return response.data;
+            if (!data.title) throw new Error('Course title is required');
+            if (!data.categoryId || data.categoryId <= 0) {
+                throw new Error('Valid category selection is required');
+            }
+            
+            // If there's an imageFile, use FormData
+            if (data.imageFile) {
+                const formData = new FormData();
+                formData.append('title', data.title);
+                formData.append('description', data.description || '');
+                formData.append('categoryId', String(Math.floor(data.categoryId)));
+                formData.append('instructor', data.instructor);
+                formData.append('imageFile', data.imageFile);
+                formData.append('difficulty', data.difficulty);
+                formData.append('durationHours', data.durationHours.toString());
+                formData.append('price', data.price.toString());
+                formData.append('lectures', (data.lectures || 0).toString());
+                if (data.materials) formData.append('materials', data.materials);
+                if (data.tags) formData.append('tags', data.tags);
+                formData.append('isActive', data.isActive.toString());
+                if (data.tenantId) formData.append('tenantId', data.tenantId.toString());
+
+                const response = await api.post(API.COURSE.CREATE, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }
+                });
+                return response.data;
+            } else {
+                // Send as JSON if no file
+                const response = await api.post(API.COURSE.CREATE, data);
+                return response.data;
+            }
         } catch (error) {
             throw handleApiError(error, 'Create course');
         }
@@ -478,9 +459,8 @@ export const courseApi = {
     // Update a course
     update: async (id: number, data: any) => {
         if (IS_OFFLINE_MODE) {
-            const isFormData = data instanceof FormData;
             return {
-                ...(isFormData ? Object.fromEntries(data.entries()) : data),
+                ...data,
                 id: id,
                 updatedAt: new Date().toISOString()
             };
@@ -488,10 +468,7 @@ export const courseApi = {
 
         try {
             validateId(id);
-            const isFormData = data instanceof FormData;
-            const response = await api.put(API.COURSE.UPDATE(id), data, isFormData ? {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            } : undefined);
+            const response = await api.put(API.COURSE.UPDATE(id), data);
             return response.data;
         } catch (error) {
             throw handleApiError(error, 'Update course');
@@ -520,26 +497,6 @@ export const courseApi = {
         formData: FormData,
         onProgress?: (progress: number) => void
     ) => {
-        if (IS_OFFLINE_MODE) {
-            // Simulate upload progress
-            const steps = 10;
-            for (let i = 1; i <= steps; i++) {
-                await new Promise(resolve => setTimeout(resolve, 200));
-                if (onProgress) onProgress(i * 10);
-            }
-            return {
-                id: Math.floor(Math.random() * 1000),
-                courseId: courseId,
-                title: formData.get('title'),
-                description: formData.get('description'),
-                duration: Number(formData.get('duration')),
-                orderIndex: Number(formData.get('orderIndex')),
-                isPreview: formData.get('isPreview') === 'true',
-                videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                thumbnailUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg'
-            };
-        }
-
         try {
             validateId(courseId, 'courseId');
 
@@ -671,22 +628,13 @@ export const courseApi = {
 
     // Get categories
     getCategories: async () => {
-        if (IS_OFFLINE_MODE) {
-            return [
-                { id: 1, categoryName: "Web Development" },
-                { id: 2, categoryName: "Mobile Development" },
-                { id: 3, categoryName: "Data Science" },
-                { id: 4, categoryName: "Design" },
-                { id: 5, categoryName: "Business" },
-            ];
-        }
-
-        try {
-            const response = await api.get(API.CATEGORY.LIST);
-            return response.data;
-        } catch (error) {
-            throw handleApiError(error, 'Get categories');
-        }
+        return [
+            { id: 1, categoryName: "Web Development" },
+            { id: 2, categoryName: "Mobile Development" },
+            { id: 3, categoryName: "Data Science" },
+            { id: 4, categoryName: "Design" },
+            { id: 5, categoryName: "Business" },
+        ];
     },
 };
 

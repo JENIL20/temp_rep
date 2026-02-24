@@ -4,11 +4,8 @@ import { courseApi } from "../api/courseApi";
 import {
     ArrowLeft,
     Save,
-    BookOpen,
     Clock,
-    DollarSign,
     Award,
-    Upload,
     Check,
     ChevronRight
 } from "lucide-react";
@@ -22,7 +19,10 @@ interface CourseFormData {
     durationHours: number;
     price: number;
     categoryId: number;
-    thumbnailUrl: string;
+    imageFile?: File;
+    lectures: number;
+    materials?: string;
+    tags?: string;
     isActive: boolean;
 }
 
@@ -42,16 +42,18 @@ const CreateCourse = () => {
         difficulty: "beginner",
         durationHours: 0,
         price: 0,
-        categoryId: 1,
-        thumbnailUrl: "",
+        categoryId: 0,
+        lectures: 0,
+        materials: "",
+        tags: "",
         isActive: true,
     });
 
-    const [categories, setCategories] = useState<{ id: number; categoryName: string }[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
 
     useEffect(() => {
         if (isEditMode && id) {
-            categoryApi.list();
+            fetchCourseData();
         }
         fetchCategories();
     }, [id]);
@@ -64,8 +66,10 @@ const CreateCourse = () => {
             const courseRes = await courseApi.getById(courseId);
             setCourseData({
                 ...courseRes,
-                categoryId: courseRes.categoryId || 1,
-                thumbnailUrl: courseRes.thumbnailUrl || ""
+                categoryId: courseRes.categoryId || 0,
+                lectures: courseRes.lectures || 0,
+                materials: courseRes.materials || "",
+                tags: courseRes.tags || "",
             });
         } catch (error) {
             console.error("Failed to fetch course data:", error);
@@ -76,9 +80,12 @@ const CreateCourse = () => {
 
     const fetchCategories = async () => {
         try {
-            const categories = await categoryApi.list();
-            console.log("fetched categories =", categories);
-            setCategories(categories?.items);
+            const categoriesRes = await categoryApi.list();
+            console.log("Raw categories response:", categoriesRes);
+            const categoryList = categoriesRes?.items || [];
+            console.log("Parsed category list:", categoryList);
+            console.log("First category:", categoryList[0]);
+            setCategories(categoryList);
         } catch (error) {
             console.error("Failed to fetch categories:", error);
         }
@@ -86,10 +93,30 @@ const CreateCourse = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        setCourseData({
-            ...courseData,
-            [name]: type === 'number' ? parseFloat(value) || 0 : value,
-        });
+        
+        if (type === 'file') {
+            const fileInput = e.target as HTMLInputElement;
+            const file = fileInput.files?.[0];
+            setCourseData({
+                ...courseData,
+                imageFile: file,
+            });
+        } else {
+            // Special handling for categoryId - always convert to number
+            if (name === 'categoryId') {
+                const numValue = parseInt(value, 10) || 0;
+                console.log("Category selected:", value, "Converted to:", numValue);
+                setCourseData({
+                    ...courseData,
+                    [name]: numValue,
+                });
+            } else {
+                setCourseData({
+                    ...courseData,
+                    [name]: type === 'number' ? parseFloat(value) || 0 : value,
+                });
+            }
+        }
     };
 
     const validateStep1 = () => {
@@ -105,6 +132,10 @@ const CreateCourse = () => {
             alert("Please enter an instructor name");
             return false;
         }
+        if (!courseData.categoryId || courseData.categoryId === 0) {
+            alert("Please select a category");
+            return false;
+        }
         return true;
     };
 
@@ -113,7 +144,7 @@ const CreateCourse = () => {
             alert("Please enter a valid duration");
             return false;
         }
-        if (courseData.price < 0) {
+        if (courseData.price <= 0) {
             alert("Please enter a valid price");
             return false;
         }
@@ -134,17 +165,23 @@ const CreateCourse = () => {
             let courseId = id ? parseInt(id) : null;
 
             if (isEditMode && courseId) {
+                console.log("Updating course:", courseId, "with data:", courseData);
                 await courseApi.update(courseId, courseData);
                 alert("Course updated successfully!");
                 navigate(`/courses/${courseId}/videos`);
             } else {
-                console.log("Creating course with data =", courseData);
-                // return
+                console.log("Creating course with data:", courseData);
                 const res = await courseApi.create(courseData);
-                console.log("Create course response =", res);
-                courseId = res[0]?.courseId || res?.courseId;
-                alert("Course created successfully! Now add videos to your course.");
-                navigate(`/courses/${courseId}/videos`);
+                console.log("Create course response:", res);
+                courseId = res[0]?.courseId || res?.courseId || res?.id;
+                if (courseId) {
+                    alert("Course created successfully!");
+                    navigate(`/courses/${courseId}/videos`);
+                } else {
+                    console.warn("No course ID in response:", res);
+                    alert("Course created successfully!");
+                    navigate("/courses");
+                }
             }
         } catch (error) {
             console.error("Failed to save course:", error);
@@ -227,7 +264,6 @@ const CreateCourse = () => {
                             <div className="space-y-6 animate-fadeIn">
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
-                                    <p className="text-gray-600">Let's start with the essential details about your course</p>
                                 </div>
 
                                 <div className="space-y-6">
@@ -240,7 +276,7 @@ const CreateCourse = () => {
                                             name="title"
                                             value={courseData.title}
                                             onChange={handleInputChange}
-                                            placeholder="e.g., Complete Web Development Bootcamp"
+                                            placeholder="Course Title"
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
                                         />
                                     </div>
@@ -254,7 +290,7 @@ const CreateCourse = () => {
                                             value={courseData.description}
                                             onChange={handleInputChange}
                                             rows={6}
-                                            placeholder="Provide a detailed description of what students will learn in this course..."
+                                            placeholder="Enter course description"
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent resize-none transition-all"
                                         />
                                     </div>
@@ -269,7 +305,7 @@ const CreateCourse = () => {
                                                 name="instructor"
                                                 value={courseData.instructor}
                                                 onChange={handleInputChange}
-                                                placeholder="e.g., Dr. Sarah Johnson"
+                                                placeholder="Instructor Name"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
                                             />
                                         </div>
@@ -279,35 +315,59 @@ const CreateCourse = () => {
                                                 Category <span className="text-red-500">*</span>
                                             </label>
                                             <select
-                                                name="categoryId"
-                                                value={courseData.categoryId}
-                                                onChange={handleInputChange}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
+                                                value={String(courseData.categoryId || "")}
+                                                onChange={(e) => {
+                                                    const value = parseInt(e.target.value, 10) || 0;
+                                                    console.log("Category changed - value:", e.target.value, "->", value);
+                                                    setCourseData(prev => ({
+                                                        ...prev,
+                                                        categoryId: value
+                                                    }));
+                                                }}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "12px",
+                                                    border: "1px solid #d1d5db",
+                                                    borderRadius: "8px",
+                                                    fontSize: "16px",
+                                                    cursor: "pointer"
+                                                }}
                                             >
-                                                {categories.map(cat => (
-                                                    <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
-                                                ))}
+                                                <option value="">-- Select a Category --</option>
+                                                {categories && categories.length > 0 && categories.map((cat) => {
+                                                    const catId = cat.id || cat.categoryId;
+                                                    console.log("Rendering category:", { categoryName: cat.categoryName, id: cat.id, categoryId: cat.categoryId, final: catId });
+                                                    return (
+                                                        <option key={catId} value={String(catId)}>
+                                                            {cat.categoryName}
+                                                        </option>
+                                                    );
+                                                })}
                                             </select>
                                         </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                            Thumbnail URL
+                                            Course Thumbnail Image
                                         </label>
                                         <div className="flex gap-2">
-                                            <input
-                                                type="url"
-                                                name="thumbnailUrl"
-                                                value={courseData.thumbnailUrl}
-                                                onChange={handleInputChange}
-                                                placeholder="https://example.com/image.jpg"
-                                                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
-                                            />
-                                            <button className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                                                <Upload size={20} />
-                                            </button>
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="file"
+                                                    name="imageFile"
+                                                    onChange={handleInputChange}
+                                                    accept="image/*"
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
+                                                />
+                                                {courseData.imageFile && (
+                                                    <p className="text-xs text-green-600 mt-1">
+                                                        ✓ {courseData.imageFile.name}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -318,7 +378,6 @@ const CreateCourse = () => {
                             <div className="space-y-6 animate-fadeIn">
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Details</h2>
-                                    <p className="text-gray-600">Configure pricing, duration, and difficulty level</p>
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">
@@ -356,17 +415,29 @@ const CreateCourse = () => {
                                             onChange={handleInputChange}
                                             min="0"
                                             step="0.5"
-                                            placeholder="e.g., 10"
+                                            placeholder="Hours"
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
                                         />
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <DollarSign size={16} />
-                                                Price (₹) <span className="text-red-500">*</span>
-                                            </div>
+                                            Number of Lectures
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="lectures"
+                                            value={courseData.lectures}
+                                            onChange={handleInputChange}
+                                            min="0"
+                                            placeholder="Lectures"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Price (₹) <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="number"
@@ -374,7 +445,8 @@ const CreateCourse = () => {
                                             value={courseData.price}
                                             onChange={handleInputChange}
                                             min="0"
-                                            placeholder="e.g., 2999"
+                                            step="100"
+                                            placeholder="Price"
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
                                         />
                                     </div>
@@ -387,29 +459,70 @@ const CreateCourse = () => {
                                                 onChange={(e) => setCourseData({ ...courseData, isActive: e.target.checked })}
                                                 className="w-5 h-5 text-primary-navy rounded focus:ring-2 focus:ring-primary-navy"
                                             />
-                                            <div>
-                                                <span className="text-sm font-semibold text-gray-700 block">Active Course</span>
-                                                <span className="text-xs text-gray-500">Make this course visible to students</span>
-                                            </div>
+                                            <span className="text-sm font-semibold text-gray-700">Active Course</span>
                                         </label>
                                     </div>
                                 </div>
 
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                                    <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                                        <BookOpen size={20} />
-                                        Course Summary
-                                    </h3>
-                                    <div className="grid md:grid-cols-3 gap-4 text-sm text-blue-800">
-                                        <div>
-                                            <span className="font-medium">Duration:</span> {courseData.durationHours} hours
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Course Materials (Optional)
+                                        </label>
+                                        <textarea
+                                            name="materials"
+                                            value={courseData.materials}
+                                            onChange={handleInputChange}
+                                            rows={3}
+                                            placeholder="Course materials"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent resize-none transition-all"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Tags (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="tags"
+                                            value={courseData.tags}
+                                            onChange={handleInputChange}
+                                            placeholder="Tags (comma separated)"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-navy focus:border-transparent transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h3 className="font-semibold text-blue-900 mb-3">Summary</h3>
+                                    <div className="grid md:grid-cols-2 gap-3 text-sm text-blue-800">
+                                        <div className="flex justify-between">
+                                            <span className="font-medium">Duration:</span>
+                                            <span>{courseData.durationHours} hours</span>
                                         </div>
-                                        <div>
-                                            <span className="font-medium">Price:</span> ₹{courseData.price}
+                                        <div className="flex justify-between">
+                                            <span className="font-medium">Price:</span>
+                                            <span>₹{courseData.price}</span>
                                         </div>
-                                        <div>
-                                            <span className="font-medium">Level:</span> {courseData.difficulty}
+                                        <div className="flex justify-between">
+                                            <span className="font-medium">Level:</span>
+                                            <span className="capitalize">{courseData.difficulty}</span>
                                         </div>
+                                        <div className="flex justify-between">
+                                            <span className="font-medium">Lectures:</span>
+                                            <span>{courseData.lectures || 0}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="font-medium">Status:</span>
+                                            <span>{courseData.isActive ? '✓ Active' : '✗ Inactive'}</span>
+                                        </div>
+                                        {courseData.materials && (
+                                            <div className="flex justify-between">
+                                                <span className="font-medium">Materials:</span>
+                                                <span>✓ Added</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -420,7 +533,6 @@ const CreateCourse = () => {
                             <div className="space-y-6 animate-fadeIn">
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Confirm</h2>
-                                    <p className="text-gray-600">Please review your course details before saving</p>
                                 </div>
 
                                 <div className="bg-gradient-to-br from-primary-navy to-primary-navy-dark text-white rounded-xl p-8">
@@ -433,7 +545,7 @@ const CreateCourse = () => {
                                     </div>
                                     <p className="text-white/90 text-lg mb-6">{courseData.description || 'Course description will appear here'}</p>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                                         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                                             <p className="text-white/70 text-sm mb-1">Instructor</p>
                                             <p className="font-semibold">{courseData.instructor || 'N/A'}</p>
@@ -451,17 +563,53 @@ const CreateCourse = () => {
                                             <p className="font-semibold capitalize">{courseData.difficulty}</p>
                                         </div>
                                     </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                                            <p className="text-white/70 text-sm mb-1">Category</p>
+                                            <p className="font-semibold">{categories.find(c => c.id === courseData.categoryId)?.categoryName || 'N/A'}</p>
+                                        </div>
+                                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                                            <p className="text-white/70 text-sm mb-1">Lectures</p>
+                                            <p className="font-semibold">{courseData.lectures || 0}</p>
+                                        </div>
+                                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                                            <p className="text-white/70 text-sm mb-1">Thumbnail</p>
+                                            <p className="font-semibold">{courseData.imageFile ? '✓ Uploaded' : 'Not selected'}</p>
+                                        </div>
+                                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                                            <p className="text-white/70 text-sm mb-1">Status</p>
+                                            <p className="font-semibold">{courseData.isActive ? '✓ Active' : '✗ Inactive'}</p>
+                                        </div>
+                                    </div>
+
+                                    {(courseData.materials || courseData.tags) && (
+                                        <div className="mt-6 pt-6 border-t border-white/20">
+                                            <h4 className="font-semibold mb-3">Additional Info</h4>
+                                            {courseData.materials && (
+                                                <div className="mb-3">
+                                                    <p className="text-white/70 text-sm mb-1">Materials:</p>
+                                                    <p className="text-sm">{courseData.materials}</p>
+                                                </div>
+                                            )}
+                                            {courseData.tags && (
+                                                <div>
+                                                    <p className="text-white/70 text-sm mb-1">Tags:</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {courseData.tags.split(',').map((tag, idx) => (
+                                                            <span key={idx} className="bg-white/20 px-2 py-1 rounded text-xs">
+                                                                {tag.trim()}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-                                    <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                                        <ChevronRight size={20} />
-                                        Next Steps
-                                    </h4>
-                                    <p className="text-amber-800 text-sm">
-                                        After saving this course, you'll be redirected to add videos and course content.
-                                        You can manage videos separately in the course videos section.
-                                    </p>
+                                <div className="amber-50 border border-amber-200 rounded-lg p-4">
+                                    <h4 className="font-semibold text-amber-900 text-sm">Ready to proceed?</h4>
                                 </div>
                             </div>
                         )}
