@@ -40,6 +40,11 @@ export const API = {
     ROLE_MODULE_CREATE: '/api/RoleModules/create',
     ROLE_MODULE_DELETE: (id: number | string) => `/api/RoleModules/delete/${id}`,
 
+// Module listing
+    MODULE_PERMISSIONS_LIST: '/api/role-module-permissions/list',
+    MODULE_PERMISSIONS_LIST_BY_ID: (id: number | string) => `/api/role-module-permissions/${id}`,
+
+
     // Role Module Permissions
     ROLE_MODULE_PERMISSIONS_LIST: '/api/role-module-permissions/list',
     ROLE_MODULE_PERMISSIONS_BY_ID: (id: number | string) => `/api/role-module-permissions/${id}`,

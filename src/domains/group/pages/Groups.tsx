@@ -59,7 +59,7 @@ const Groups = () => {
                 pageNumber: pageState.pageNumber,
                 pageSize: pageState.pageSize
             });
-            setGroups(data.items || []);
+            setGroups(data || []);
             setPageState(prev => ({
                 ...prev,
                 totalCount: data.totalCount,

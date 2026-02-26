@@ -65,7 +65,8 @@ const Organizations = () => {
                 pageNumber: pageState.pageNumber,
                 pageSize: pageState.pageSize
             });
-            setOrganizations(data.items || []);
+            console.log('Fetched organizations:', data);
+            setOrganizations(data || []);
             setPageState(prev => ({
                 ...prev,
                 totalCount: data.totalCount,
