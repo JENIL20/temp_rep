@@ -8,14 +8,23 @@ import {
     ArrowLeft,
     Lock,
     Loader2,
-    CheckCircle2,
-    XCircle,
-    ChevronDown,
-    ChevronUp,
     CheckSquare,
     Square,
+    ChevronRight as ChevronRightIcon,
+    Check,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+
+const MODULE_ACCENTS = [
+    { gradient: 'from-blue-500 to-blue-600', light: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', bar: 'bg-blue-500' },
+    { gradient: 'from-violet-500 to-violet-600', light: 'bg-violet-50', badge: 'bg-violet-100 text-violet-700', dot: 'bg-violet-500', bar: 'bg-violet-500' },
+    { gradient: 'from-emerald-500 to-emerald-600', light: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', bar: 'bg-emerald-500' },
+    { gradient: 'from-amber-500 to-amber-600', light: 'bg-amber-50', badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500', bar: 'bg-amber-500' },
+    { gradient: 'from-rose-500 to-rose-600', light: 'bg-rose-50', badge: 'bg-rose-100 text-rose-700', dot: 'bg-rose-500', bar: 'bg-rose-500' },
+    { gradient: 'from-cyan-500 to-cyan-600', light: 'bg-cyan-50', badge: 'bg-cyan-100 text-cyan-700', dot: 'bg-cyan-500', bar: 'bg-cyan-500' },
+    { gradient: 'from-indigo-500 to-indigo-600', light: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', dot: 'bg-indigo-500', bar: 'bg-indigo-500' },
+    { gradient: 'from-pink-500 to-pink-600', light: 'bg-pink-50', badge: 'bg-pink-100 text-pink-700', dot: 'bg-pink-500', bar: 'bg-pink-500' },
+];
 
 const RolePermissionPage: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>();
@@ -26,14 +35,10 @@ const RolePermissionPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [selectedPermissions, setSelectedPermissions] = useState<Record<number, number[]>>({});
-
-    // Track which module sections are collapsed (all expanded by default)
     const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
-        if (roleId) {
-            fetchRolePermissions();
-        }
+        if (roleId) fetchRolePermissions();
     }, [roleId]);
 
     const fetchRolePermissions = async () => {
@@ -50,7 +55,7 @@ const RolePermissionPage: React.FC = () => {
 
             setModulePermissions(data.modulePermissions);
 
-            // Initialize selected permissions
+            // Initialize selected permissions from API response
             const initialSelected: Record<number, number[]> = {};
             data.modulePermissions.forEach(mp => {
                 initialSelected[mp.moduleId] = [...mp.assignedPermissionIds];
@@ -59,9 +64,7 @@ const RolePermissionPage: React.FC = () => {
 
             // All sections expanded by default
             const initialCollapsed: Record<number, boolean> = {};
-            data.modulePermissions.forEach(mp => {
-                initialCollapsed[mp.moduleId] = false;
-            });
+            data.modulePermissions.forEach(mp => { initialCollapsed[mp.moduleId] = false; });
             setCollapsed(initialCollapsed);
         } catch (error: any) {
             toast.error(error.message || 'Failed to load role permissions');
@@ -113,7 +116,7 @@ const RolePermissionPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+            <div className="flex flex-col items-center justify-center h-full min-h-[60vh]">
                 <div className="relative">
                     <div className="w-16 h-16 border-4 border-primary-navy/20 border-t-primary-navy rounded-full animate-spin" />
                     <Shield className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-primary-navy" />
@@ -124,67 +127,219 @@ const RolePermissionPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 p-4 lg:p-8">
-            <div className="max-w-5xl mx-auto">
+        <div className="h-full w-full bg-[#F8FAFC] flex flex-col">
 
-                {/* ── Header ────────────────────────────────────────── */}
-                <div className="mb-8">
+            {/* ── Top Header Bar ──────────────────────────────────── */}
+            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/admin/roles')}
-                        className="flex items-center gap-2 text-slate-600 hover:text-primary-navy mb-4 transition-colors group"
+                        className="flex items-center gap-2 text-slate-500 hover:text-primary-navy transition-colors group text-sm font-semibold"
                     >
-                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                        <span className="font-semibold">Back to Roles</span>
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Back to Roles
                     </button>
 
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="w-16 h-16 bg-gradient-to-br from-primary-navy to-primary-navy/80 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-navy/20">
-                            <Shield className="w-8 h-8 text-white" />
+                    <div className="h-6 w-px bg-slate-200" />
+
+                    <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 bg-gradient-to-br from-primary-navy to-primary-navy/70 rounded-xl flex items-center justify-center shadow-md shadow-primary-navy/20`}>
+                            <Shield className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
-                                {role?.name}
-                            </h1>
-                            <p className="text-slate-500 mt-1 flex items-center gap-2">
-                                <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
-                                    {role?.code}
-                                </span>
-                                <span>•</span>
-                                <span>Configure permissions by category</span>
-                            </p>
+                            <h1 className="text-lg font-extrabold text-slate-900 leading-tight">{role?.name}</h1>
+                            <p className="text-xs text-slate-400 font-semibold tracking-widest uppercase">{role?.code}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* ── Sticky summary bar ────────────────────────────── */}
-                <div className="sticky top-4 z-10 mb-6">
-                    <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-lg px-6 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                            <div>
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Selected</p>
-                                <p className="text-2xl font-extrabold text-primary-navy">
-                                    {totalSelected}
-                                    <span className="text-slate-300 font-normal text-lg"> / {totalPermissions}</span>
-                                </p>
-                            </div>
-                            <div className="h-10 w-px bg-slate-200" />
-                            <div>
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Categories</p>
-                                <p className="text-2xl font-extrabold text-slate-700">{modulePermissions.length}</p>
+                {/* Stats + Actions */}
+                <div className="flex items-center gap-4">
+                    <div className="hidden sm:flex items-center gap-4">
+                        <div className="text-right">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Selected</p>
+                            <p className="text-xl font-extrabold text-primary-navy leading-none">
+                                {totalSelected}
+                                <span className="text-slate-300 font-normal text-sm"> / {totalPermissions}</span>
+                            </p>
+                        </div>
+                        <div className="h-10 w-px bg-slate-200" />
+                        <div className="text-right">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Modules</p>
+                            <p className="text-xl font-extrabold text-slate-700 leading-none">{modulePermissions.length}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => navigate('/admin/roles')}
+                            className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all text-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveChanges}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                            {saving ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4" />
+                                    Save Changes
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Content ─────────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+
+                {/* Empty state */}
+                {modulePermissions.length === 0 && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 py-24 flex flex-col items-center">
+                        <Shield className="w-14 h-14 text-slate-200 mb-4" />
+                        <h3 className="text-xl font-bold text-slate-900">No Modules Assigned</h3>
+                        <p className="text-slate-400 mt-1 text-sm">This role has no modules assigned yet.</p>
+                    </div>
+                )}
+
+                {/* Module Table */}
+                {modulePermissions.length > 0 && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+
+                        {/* Table header */}
+                        <div className="bg-slate-50 border-b border-slate-200 px-6 py-3">
+                            <div className="grid grid-cols-12 gap-4 items-center">
+                                <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Module</div>
+                                <div className="col-span-7 text-xs font-black text-slate-400 uppercase tracking-wider">Permissions</div>
+                                <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Quick Actions</div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => navigate('/admin/roles')}
-                                className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all text-sm"
-                            >
-                                Cancel
-                            </button>
+                        {/* Table rows */}
+                        <div className="divide-y divide-slate-100">
+                            {modulePermissions.map((module, index) => {
+                                const selected = selectedPermissions[module.moduleId] || [];
+                                const allSelected = module.permissions.length > 0 && selected.length === module.permissions.length;
+                                const isCollapsed = collapsed[module.moduleId] ?? false;
+                                const accent = MODULE_ACCENTS[index % MODULE_ACCENTS.length];
+                                const pct = module.permissions.length
+                                    ? Math.round((selected.length / module.permissions.length) * 100)
+                                    : 0;
+
+                                return (
+                                    <div key={module.moduleId} className="group">
+                                        {/* Module row */}
+                                        <div className="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50/60 transition-colors">
+
+                                            {/* Module info */}
+                                            <div className="col-span-3 flex items-center gap-3">
+                                                <div className={`w-10 h-10 bg-gradient-to-br ${accent.gradient} rounded-xl flex items-center justify-center shadow-sm flex-shrink-0`}>
+                                                    <Lock className="w-5 h-5 text-white" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-extrabold text-slate-900 text-sm leading-tight truncate">{module.moduleName}</p>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{module.moduleCode}</p>
+                                                    {/* Progress bar */}
+                                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full ${accent.bar} rounded-full transition-all duration-300`}
+                                                                style={{ width: `${pct}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-slate-400">{pct}%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Permissions inline chips */}
+                                            <div className="col-span-7">
+                                                {module.permissions.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {module.permissions.map(permission => {
+                                                            const isSelected = selected.includes(permission.id);
+                                                            return (
+                                                                <button
+                                                                    key={permission.id}
+                                                                    onClick={() => togglePermission(module.moduleId, permission.id)}
+                                                                    title={permission.code}
+                                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all select-none
+                                                                        ${isSelected
+                                                                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/20'
+                                                                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-white hover:text-slate-700'
+                                                                        }`}
+                                                                >
+                                                                    {isSelected
+                                                                        ? <Check className="w-3 h-3" />
+                                                                        : <span className="w-3 h-3 border border-slate-300 rounded-sm inline-block" />
+                                                                    }
+                                                                    {permission.name}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-slate-400 italic">No permissions defined for this module.</span>
+                                                )}
+
+                                                {/* Collapsed indicator */}
+                                                {isCollapsed && module.permissions.length > 0 && (
+                                                    <button
+                                                        onClick={() => toggleCollapse(module.moduleId)}
+                                                        className="mt-2 text-xs text-slate-400 hover:text-primary-navy font-semibold flex items-center gap-1"
+                                                    >
+                                                        <ChevronRightIcon className="w-3 h-3" />
+                                                        Show {module.permissions.length} permissions
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Quick actions */}
+                                            <div className="col-span-2 flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => selectAll(module.moduleId, module.permissions.map(p => p.id))}
+                                                    disabled={allSelected || module.permissions.length === 0}
+                                                    title="Select all"
+                                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 rounded-lg text-xs font-bold text-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <CheckSquare className="w-3.5 h-3.5" />
+                                                    All
+                                                </button>
+                                                <button
+                                                    onClick={() => clearAll(module.moduleId)}
+                                                    disabled={selected.length === 0}
+                                                    title="Clear all"
+                                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-lg text-xs font-bold text-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                >
+                                                    <Square className="w-3.5 h-3.5" />
+                                                    None
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Footer summary */}
+                        <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
+                            <p className="text-sm text-slate-500 font-medium">
+                                <span className="font-extrabold text-slate-800">{totalSelected}</span> of{' '}
+                                <span className="font-extrabold text-slate-800">{totalPermissions}</span> permissions selected across{' '}
+                                <span className="font-extrabold text-slate-800">{modulePermissions.length}</span> modules
+                            </p>
                             <button
                                 onClick={handleSaveChanges}
                                 disabled={saving}
-                                className="flex items-center gap-2 px-7 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                                 {saving ? (
                                     <>
@@ -200,183 +355,7 @@ const RolePermissionPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
-
-                {/* ── Empty state ───────────────────────────────────── */}
-                {modulePermissions.length === 0 && (
-                    <div className="bg-white rounded-3xl shadow-xl border border-slate-200 py-24 flex flex-col items-center">
-                        <Shield className="w-14 h-14 text-slate-200 mb-4" />
-                        <h3 className="text-xl font-bold text-slate-900">No Modules Assigned</h3>
-                        <p className="text-slate-400 mt-1">This role has no modules assigned yet.</p>
-                    </div>
                 )}
-
-                {/* ── Category sections ─────────────────────────────── */}
-                <div className="space-y-4">
-                    {modulePermissions.map((module, index) => {
-                        const selected = selectedPermissions[module.moduleId] || [];
-                        const allSelected = module.permissions.length > 0 && selected.length === module.permissions.length;
-                        const someSelected = selected.length > 0 && !allSelected;
-                        const isCollapsed = collapsed[module.moduleId] ?? false;
-
-                        // Assign a distinct accent colour per category index
-                        const accents = [
-                            { bg: 'from-blue-500 to-blue-600', light: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700', ring: 'ring-blue-400', dot: 'bg-blue-500' },
-                            { bg: 'from-violet-500 to-violet-600', light: 'bg-violet-50', border: 'border-violet-200', badge: 'bg-violet-100 text-violet-700', ring: 'ring-violet-400', dot: 'bg-violet-500' },
-                            { bg: 'from-emerald-500 to-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700', ring: 'ring-emerald-400', dot: 'bg-emerald-500' },
-                            { bg: 'from-amber-500 to-amber-600', light: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700', ring: 'ring-amber-400', dot: 'bg-amber-500' },
-                            { bg: 'from-rose-500 to-rose-600', light: 'bg-rose-50', border: 'border-rose-200', badge: 'bg-rose-100 text-rose-700', ring: 'ring-rose-400', dot: 'bg-rose-500' },
-                            { bg: 'from-cyan-500 to-cyan-600', light: 'bg-cyan-50', border: 'border-cyan-200', badge: 'bg-cyan-100 text-cyan-700', ring: 'ring-cyan-400', dot: 'bg-cyan-500' },
-                        ];
-                        const accent = accents[index % accents.length];
-
-                        return (
-                            <div
-                                key={module.moduleId}
-                                className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all"
-                            >
-                                {/* ── Category header ── */}
-                                <button
-                                    onClick={() => toggleCollapse(module.moduleId)}
-                                    className="w-full flex items-center justify-between px-6 py-5 hover:bg-slate-50 transition-colors"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        {/* Coloured icon */}
-                                        <div className={`w-12 h-12 bg-gradient-to-br ${accent.bg} rounded-xl flex items-center justify-center shadow-md flex-shrink-0`}>
-                                            <Lock className="w-6 h-6 text-white" />
-                                        </div>
-
-                                        <div className="text-left">
-                                            <h2 className="text-lg font-extrabold text-slate-900">
-                                                {module.moduleName}
-                                            </h2>
-                                            <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest mt-0.5">
-                                                {module.moduleCode}
-                                            </p>
-                                        </div>
-
-                                        {/* Selected badge */}
-                                        <span className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black ${accent.badge}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${accent.dot}`} />
-                                            {selected.length} / {module.permissions.length} selected
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        {/* Progress pill */}
-                                        <div className="hidden md:flex items-center gap-2">
-                                            <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full bg-gradient-to-r ${accent.bg} rounded-full transition-all`}
-                                                    style={{ width: module.permissions.length ? `${(selected.length / module.permissions.length) * 100}%` : '0%' }}
-                                                />
-                                            </div>
-                                            <span className="text-xs font-bold text-slate-400">
-                                                {module.permissions.length ? Math.round((selected.length / module.permissions.length) * 100) : 0}%
-                                            </span>
-                                        </div>
-
-                                        {isCollapsed
-                                            ? <ChevronDown className="w-5 h-5 text-slate-400" />
-                                            : <ChevronUp className="w-5 h-5 text-slate-400" />
-                                        }
-                                    </div>
-                                </button>
-
-                                {/* ── Permissions body ── */}
-                                {!isCollapsed && (
-                                    <div className={`border-t border-slate-100 ${accent.light} px-6 py-5`}>
-
-                                        {/* Select-all / Clear row */}
-                                        {module.permissions.length > 0 && (
-                                            <div className="flex items-center justify-between mb-4">
-                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                                                    Permissions
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => selectAll(module.moduleId, module.permissions.map(p => p.id))}
-                                                        disabled={allSelected}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                                    >
-                                                        <CheckSquare className="w-3.5 h-3.5" />
-                                                        Select All
-                                                    </button>
-                                                    <button
-                                                        onClick={() => clearAll(module.moduleId)}
-                                                        disabled={selected.length === 0}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                                    >
-                                                        <Square className="w-3.5 h-3.5" />
-                                                        Clear All
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Permission cards */}
-                                        {module.permissions.length > 0 ? (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                {module.permissions.map(permission => {
-                                                    const isSelected = selected.includes(permission.id);
-                                                    return (
-                                                        <button
-                                                            key={permission.id}
-                                                            onClick={() => togglePermission(module.moduleId, permission.id)}
-                                                            className={`relative flex items-center justify-between p-4 rounded-xl border-2 transition-all group text-left
-                                                                ${isSelected
-                                                                    ? 'bg-white border-emerald-400 shadow-md shadow-emerald-500/10'
-                                                                    : 'bg-white/70 border-slate-200 hover:border-slate-300 hover:bg-white hover:shadow-sm'
-                                                                }`}
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all
-                                                                    ${isSelected
-                                                                        ? 'bg-emerald-500 text-white rotate-3 shadow-sm'
-                                                                        : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
-                                                                    }`}>
-                                                                    <Lock className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className={`font-bold text-sm transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
-                                                                        {permission.name}
-                                                                    </p>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                                        {permission.code}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Tick / X */}
-                                                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all
-                                                                ${isSelected
-                                                                    ? 'bg-emerald-500 text-white scale-110'
-                                                                    : 'bg-slate-100 text-slate-300 group-hover:bg-slate-200'
-                                                                }`}>
-                                                                {isSelected
-                                                                    ? <CheckCircle2 className="w-4 h-4" />
-                                                                    : <XCircle className="w-4 h-4" />
-                                                                }
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="py-10 flex flex-col items-center">
-                                                <Lock className="w-10 h-10 text-slate-200 mb-3" />
-                                                <p className="text-sm font-bold text-slate-500">No permissions available for this module.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* ── Bottom spacer so sticky bar doesn't overlap last card ── */}
-                <div className="h-8" />
             </div>
         </div>
     );

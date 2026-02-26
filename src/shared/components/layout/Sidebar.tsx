@@ -2,12 +2,12 @@ import {
   LayoutDashboard,
   User,
   BookOpen,
+  Building2,
+  Users,
   GraduationCap,
   Layers,
   Award,
   ShieldCheck,
-  Briefcase,
-  Settings,
   LogOut
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -45,6 +45,8 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { to: "/certificates", label: "Certificates", icon: Award },
     { to: "/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
     { to: "/admin/users", label: "Users Management", icon: User },
+    { to: "/admin/organizations", label: "Organizations", icon: Building2 },
+    { to: "/admin/groups", label: "Study Groups", icon: Users },
     // { to: "/projects", label: "Projects", icon: Briefcase },
     // { to: "/settings", label: "Settings", icon: Settings },
   ];

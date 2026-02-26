@@ -40,5 +40,10 @@ export const paths = {
     userPermissions: "/admin/users/:userId/permissions",
     permissionsManagement: "/admin/permissions",
     usersManagement: "/admin/users",
+    // Organization Routes
+    organizations: "/admin/organizations",
+
+    // Group Routes
+    groups: "/admin/groups",
   },
 };

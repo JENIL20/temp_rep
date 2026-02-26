@@ -128,6 +128,29 @@ export const API = {
     SUBSCRIBED_LIST: '/api/UserCourse/Subscribed-List',
     CHECK_SUBSCRIPTION: (courseId: number | string) => `/api/UserCourse/check/${courseId}`,
   },
+
+  // Organization (Tenant) endpoints
+  ORGANIZATION: {
+    LIST: '/api/Organization',
+    GET_BY_ID: (id: number | string) => `/api/Organization/${id}`,
+    CREATE: '/api/Organization',
+    UPDATE: (id: number | string) => `/api/Organization/${id}`,
+    DELETE: (id: number | string) => `/api/Organization/${id}`,
+    REGISTER: '/api/Organization/register',
+    LOGIN: '/api/Organization/login',
+    PROFILE: '/api/Organization/profile',
+  },
+
+  // Groups endpoints
+  GROUPS: {
+    LIST: '/api/Groups/list',
+    GET_BY_ID: (id: number | string) => `/api/Groups/${id}`,
+    CREATE: '/api/Groups/create',
+    UPDATE: (id: number | string) => `/api/Groups/update/${id}`,
+    DELETE: (id: number | string) => `/api/Groups/Delete/${id}`,
+    GROUP_COURSES: (groupId: number | string) => `/api/Groups/group-courses/${groupId}`,
+    BULK_UPDATE_COURSES: '/api/Groups/bulk-update-courses',
+  },
 } as const;
 
 // Legacy export for backward compatibility

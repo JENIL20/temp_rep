@@ -2,15 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import {
     Users,
     Search,
-    MoreHorizontal,
     Shield,
     UserPlus,
-    UserMinus,
     ChevronLeft,
     ChevronRight,
     X,
     Mail,
-    Phone
+    Phone,
+    Check,
+    Save,
+    Loader2,
+    MoreHorizontal,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import userApi from '../api/userApi';
@@ -38,7 +40,10 @@ const UserList = () => {
     // UI State
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [userRolesForm, setUserRolesForm] = useState<number[]>([]);
+    const [originalRoles, setOriginalRoles] = useState<number[]>([]);
+    const [pendingRoles, setPendingRoles] = useState<number[]>([]);
+    const [loadingUserRoles, setLoadingUserRoles] = useState(false);
+    const [savingRoles, setSavingRoles] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
 
     const fetchData = useCallback(async () => {
@@ -84,37 +89,58 @@ const UserList = () => {
 
     const openRoleManager = async (user: User) => {
         setSelectedUser(user);
+        setLoadingUserRoles(true);
+        setShowRoleModal(true);
+        setActiveDropdown(null);
         try {
             const userRoles = await userRoleApi.getUserRoles(user.id);
-            setUserRolesForm(userRoles.map(r => r.id));
-            setShowRoleModal(true);
-            setActiveDropdown(null);
+            const ids = userRoles.map(r => r.id);
+            setOriginalRoles(ids);
+            setPendingRoles(ids);
         } catch (err: any) {
-            toast.error(err.message);
+            toast.error(err.message || 'Failed to load user roles');
+        } finally {
+            setLoadingUserRoles(false);
         }
     };
 
-    const handleToggleUserRole = async (roleId: number) => {
+    const toggleRolePending = (roleId: number) => {
+        setPendingRoles(prev =>
+            prev.includes(roleId) ? prev.filter(id => id !== roleId) : [...prev, roleId]
+        );
+    };
+
+    const handleSaveRoles = async () => {
         if (!selectedUser) return;
-
-        const isAssigned = userRolesForm.includes(roleId);
-
+        setSavingRoles(true);
         try {
-            if (isAssigned) {
-                await userRoleApi.remove(selectedUser.id, roleId);
-                setUserRolesForm(prev => prev.filter(id => id !== roleId));
-                toast.success("Role removed");
-            } else {
-                await userRoleApi.assign({ userId: selectedUser.id, roleId });
-                setUserRolesForm(prev => [...prev, roleId]);
-                toast.success("Role assigned");
-            }
-            // Refresh users to update their role badges in the list
+            const toAdd = pendingRoles.filter(id => !originalRoles.includes(id));
+            const toRemove = originalRoles.filter(id => !pendingRoles.includes(id));
+            await Promise.all([
+                ...toAdd.map(roleId => userRoleApi.assign({ userId: selectedUser.id, roleId })),
+                ...toRemove.map(roleId => userRoleApi.remove(selectedUser.id, roleId)),
+            ]);
+            setOriginalRoles(pendingRoles);
+            toast.success('Role assignments saved successfully!');
+            setShowRoleModal(false);
             fetchData();
         } catch (err: any) {
-            toast.error(err.message);
+            toast.error(err.message || 'Failed to save roles');
+        } finally {
+            setSavingRoles(false);
         }
     };
+
+    const handleCloseModal = () => {
+        setShowRoleModal(false);
+        setSelectedUser(null);
+        setOriginalRoles([]);
+        setPendingRoles([]);
+    };
+
+    const hasPendingChanges =
+        pendingRoles.length !== originalRoles.length ||
+        !pendingRoles.every(id => originalRoles.includes(id));
 
     return (
         <div className="min-h-screen bg-gray-50/50 pb-20">
@@ -314,77 +340,121 @@ const UserList = () => {
             </div>
 
             {/* Role Management Modal */}
-            {showRoleModal && (
+            {showRoleModal && selectedUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setShowRoleModal(false)} />
-                    <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
-                        <div className="px-6 py-5 border-bottom border-gray-100 flex items-center justify-between bg-gray-50/50">
-                            <h3 className="text-lg font-bold text-gray-900">Manage Roles</h3>
-                            <button onClick={() => setShowRoleModal(false)} className="text-gray-400 hover:text-gray-500 transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCloseModal} />
+                    <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
 
-                        <div className="p-6">
-                            <div className="flex items-center gap-3 mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-bold">
-                                    {selectedUser?.firstName[0]}{selectedUser?.lastName[0]}
+                        {/* Modal Header */}
+                        <div className="bg-gradient-to-r from-primary-navy to-primary-navy/80 px-6 py-5 text-white">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center text-sm font-extrabold">
+                                        {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black leading-tight">Role Assignment</h3>
+                                        <p className="text-white/70 text-sm">{selectedUser.firstName} {selectedUser.lastName}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-semibold text-gray-900">{selectedUser?.firstName} {selectedUser?.lastName}</h4>
-                                    <p className="text-sm text-gray-600">@{selectedUser?.userName}</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Roles</p>
-                                {roles.map(role => {
-                                    const isAssigned = userRolesForm.includes(role.roleId);
-                                    return (
-                                        <button
-                                            key={role.id}
-                                            onClick={() => handleToggleUserRole(role.roleId)}
-                                            className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${isAssigned
-                                                ? 'bg-primary-navy/5 border-primary-navy shadow-sm'
-                                                : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${isAssigned ? 'bg-primary-navy text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                                    <Shield size={16} />
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className={`font-semibold ${isAssigned ? 'text-primary-navy' : 'text-gray-900'}`}>{role.roleName}</p>
-                                                    <p className="text-xs text-gray-500">{role.roleCode}</p>
-                                                </div>
-                                            </div>
-
-                                            {isAssigned ? (
-                                                <div className="text-primary-navy">
-                                                    <UserMinus size={18} />
-                                                </div>
-                                            ) : (
-                                                <div className="text-gray-400 group-hover:text-primary-navy">
-                                                    <UserPlus size={18} />
-                                                </div>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="mt-8 flex justify-end">
-                                <button
-                                    onClick={() => setShowRoleModal(false)}
-                                    className="px-6 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm"
-                                >
-                                    Done
+                                <button onClick={handleCloseModal} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors">
+                                    <X size={18} />
                                 </button>
                             </div>
+
+                            {/* Stats + unsaved badge */}
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
+                                <p className="text-sm text-white/80">
+                                    <span className="font-extrabold text-white">{pendingRoles.length}</span> of{' '}
+                                    <span className="font-extrabold text-white">{roles.length}</span> roles assigned
+                                </p>
+                                {hasPendingChanges && (
+                                    <span className="flex items-center gap-1.5 text-xs font-bold bg-amber-400/20 text-amber-200 px-2.5 py-1 rounded-lg">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                        Unsaved changes
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Role list */}
+                        <div className="p-5">
+                            {loadingUserRoles ? (
+                                <div className="flex flex-col items-center justify-center py-14">
+                                    <div className="w-9 h-9 border-4 border-primary-navy/20 border-t-primary-navy rounded-full animate-spin mb-3" />
+                                    <p className="text-sm text-slate-400 font-semibold">Loading assigned roles…</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Available Roles — click to toggle</p>
+                                    <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                        {roles.map(role => {
+                                            const isAssigned = pendingRoles.includes(role.id);
+                                            return (
+                                                <button
+                                                    key={role.id}
+                                                    onClick={() => toggleRolePending(role.id)}
+                                                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-2 transition-all text-left
+                                                        ${isAssigned
+                                                            ? 'bg-primary-navy/5 border-primary-navy'
+                                                            : 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-white'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all
+                                                            ${isAssigned ? 'bg-primary-navy text-white shadow-sm' : 'bg-white text-slate-400 border border-slate-200'}`}>
+                                                            <Shield size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <p className={`font-bold text-sm ${isAssigned ? 'text-primary-navy' : 'text-slate-700'}`}>
+                                                                {role.name}
+                                                            </p>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{role.code}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all
+                                                        ${isAssigned ? 'bg-primary-navy border-primary-navy text-white' : 'bg-white border-slate-300'}`}>
+                                                        {isAssigned && <Check size={13} />}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                        {roles.length === 0 && (
+                                            <p className="text-center text-sm text-slate-400 py-8">No roles available.</p>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex gap-3 px-5 pb-5">
+                            <button
+                                onClick={handleCloseModal}
+                                className="flex-1 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all border border-slate-200 text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveRoles}
+                                disabled={savingRoles || loadingUserRoles || !hasPendingChanges}
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            >
+                                {savingRoles ? (
+                                    <><Loader2 size={15} className="animate-spin" /> Saving...</>
+                                ) : (
+                                    <><Save size={15} /> Save Changes</>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 20px; }
+            `}</style>
         </div>
     );
 };
