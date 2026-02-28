@@ -29,6 +29,7 @@ export const authApi = {
             return {
                 token: 'dummy-jwt-token-' + Date.now(),
                 expiration: new Date(Date.now() + 86400000).toISOString(),
+                tenantId: 101, // Dummy tenantId
                 user: {
                     id: 1,
                     userName: 'admin',
@@ -36,7 +37,8 @@ export const authApi = {
                     lastName: 'User',
                     email: credentials.email || 'admin@example.com',
                     roles: ['Admin', 'Instructor'],
-                    mobile: '1234567890'
+                    mobile: '1234567890',
+                    tenantId: 101 // Also in user object
                 }
             } as AuthResponse;
         }

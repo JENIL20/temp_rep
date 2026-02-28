@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 import { organizationApi } from '../api/organizationApi';
 import { Organization } from '../types/organization.types';
 import { LoadingSpinner } from '../../../shared/components/common';
+import { confirmToast } from '@/shared/utils/confirmToast';
 
 const Organizations = () => {
     // Data State
@@ -72,8 +73,9 @@ const Organizations = () => {
                 totalCount: data.totalCount,
                 totalPages: data.totalPages
             }));
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load organizations');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to load organizations';
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -153,13 +155,21 @@ const Organizations = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('Are you sure you want to delete this organization?')) return;
+        const ok = await confirmToast({
+            title: "Delete organization?",
+            message: "This action cannot be undone.",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            toastOptions: { type: "warning" },
+        });
+        if (!ok) return;
         try {
             await organizationApi.delete(id);
             toast.success('Organization deleted successfully');
             fetchData();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to delete organization');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to delete organization';
+            toast.error(message);
         } finally {
             setActiveDropdown(null);
         }
@@ -205,8 +215,9 @@ const Organizations = () => {
 
             setShowModal(false);
             fetchData();
-        } catch (error: any) {
-            toast.error(error.message || 'Error saving organization');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Error saving organization';
+            toast.error(message);
         } finally {
             setSaving(false);
         }
@@ -227,14 +238,14 @@ const Organizations = () => {
         <div className="min-h-screen bg-gray-50 pb-20">
             {/* Header Area */}
             <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white">
-                                <Building2 size={24} />
+                            <div className="w-11 h-11 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white">
+                                <Building2 size={22} />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Organizations</h1>
+                                <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Organizations</h1>
                                 <p className="text-sm text-gray-500 font-medium mt-1">Manage tenants, academies, and business entities.</p>
                             </div>
                         </div>
@@ -247,12 +258,12 @@ const Organizations = () => {
                                     placeholder="Search organizations..."
                                     value={searchTerm}
                                     onChange={handleSearch}
-                                    className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                                    className="w-full sm:w-64 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
                                 />
                             </div>
                             <button
                                 onClick={openCreateModal}
-                                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20"
                             >
                                 <Plus size={18} />
                                 <span>Create New</span>
@@ -289,19 +300,19 @@ const Organizations = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100">
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Organization</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Code / Admin</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Contact</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Status</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Organization</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Code / Admin</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Contact</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {organizations.map((org) => (
                                         <tr key={org.id} className="hover:bg-gray-50/50 transition-colors group">
-                                            <td className="px-6 py-4">
+                                            <td className="px-5 py-3">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                                                    <div className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
                                                         {org.logo ? (
                                                             <img src={org.logo} alt={org.orgName} className="w-full h-full object-cover" />
                                                         ) : (
@@ -318,7 +329,7 @@ const Organizations = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-5 py-3">
                                                 <div className="space-y-1.5">
                                                     <span className="inline-block px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-600 rounded text-xs font-bold uppercase tracking-wide">
                                                         {org.orgCode}
@@ -330,7 +341,7 @@ const Organizations = () => {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-5 py-3">
                                                 <div className="text-sm text-gray-600 space-y-1">
                                                     <div className="flex items-center gap-2">
                                                         <Mail className="w-3.5 h-3.5 text-gray-400" />
@@ -344,14 +355,14 @@ const Organizations = () => {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-5 py-3">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${org.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-600 border-gray-200'
                                                     }`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${org.isActive ? 'bg-emerald-500' : 'bg-gray-400'}`} />
                                                     {org.isActive ? 'Active' : 'Inactive'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right relative" onClick={(e) => e.stopPropagation()}>
+                                            <td className="px-5 py-3 text-right relative" onClick={(e) => e.stopPropagation()}>
                                                 <div className="flex items-center justify-end gap-2 relative">
                                                     <button
                                                         onClick={() => setActiveDropdown(activeDropdown === org.id ? null : org.id)}
@@ -387,7 +398,7 @@ const Organizations = () => {
                         </div>
                         {/* Pagination Area */}
                         {pageState.totalPages > 1 && (
-                            <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+                            <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center justify-between">
                                 <p className="text-sm font-medium text-gray-500">
                                     Displaying <span className="text-gray-900 font-bold">{organizations.length}</span> of <span className="text-gray-900 font-bold">{pageState.totalCount}</span>
                                 </p>

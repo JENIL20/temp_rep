@@ -35,6 +35,7 @@ const RolePermissionPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [selectedPermissions, setSelectedPermissions] = useState<Record<number, number[]>>({});
+    const [originalPermissions, setOriginalPermissions] = useState<Record<number, number[]>>({});
     const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
@@ -61,13 +62,16 @@ const RolePermissionPage: React.FC = () => {
                 initialSelected[mp.moduleId] = [...mp.assignedPermissionIds];
             });
             setSelectedPermissions(initialSelected);
+            setOriginalPermissions(JSON.parse(JSON.stringify(initialSelected)));
 
             // All sections expanded by default
             const initialCollapsed: Record<number, boolean> = {};
-            data.modulePermissions.forEach(mp => { initialCollapsed[mp.moduleId] = false; });
+            // Default to compact view so more modules fit on screen.
+            data.modulePermissions.forEach(mp => { initialCollapsed[mp.moduleId] = true; });
             setCollapsed(initialCollapsed);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load role permissions');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to load role permissions';
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -98,14 +102,29 @@ const RolePermissionPage: React.FC = () => {
     const handleSaveChanges = async () => {
         try {
             setSaving(true);
-            const promises = Object.entries(selectedPermissions).map(([moduleId, permissionIds]) =>
-                rolePermissionApi.updateModulePermissions(Number(roleId), Number(moduleId), permissionIds)
-            );
-            await Promise.all(promises);
-            toast.success('Role permissions updated successfully!');
+
+            // Calculate which modules have changed
+            const modifiedModules = Object.entries(selectedPermissions).filter(([moduleId, permissionIds]) => {
+                const original = originalPermissions[Number(moduleId)] || [];
+                if (original.length !== permissionIds.length) return true;
+                return !permissionIds.every(id => original.includes(id));
+            });
+
+            if (modifiedModules.length === 0) {
+                toast.info('No changes to save');
+                return;
+            }
+
+            // Save sequentially to avoid race conditions/server stress
+            for (const [moduleId, permissionIds] of modifiedModules) {
+                await rolePermissionApi.updateModulePermissions(Number(roleId), Number(moduleId), permissionIds);
+            }
+
+            toast.success(`Successfully updated permissions for ${modifiedModules.length} module(s)!`);
             await fetchRolePermissions();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to save permissions');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to save permissions';
+            toast.error(message);
         } finally {
             setSaving(false);
         }
@@ -130,7 +149,7 @@ const RolePermissionPage: React.FC = () => {
         <div className="h-full w-full bg-[#F8FAFC] flex flex-col">
 
             {/* ── Top Header Bar ──────────────────────────────────── */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/admin/roles')}
@@ -143,7 +162,7 @@ const RolePermissionPage: React.FC = () => {
                     <div className="h-6 w-px bg-slate-200" />
 
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 bg-gradient-to-br from-primary-navy to-primary-navy/70 rounded-xl flex items-center justify-center shadow-md shadow-primary-navy/20`}>
+                        <div className={`w-9 h-9 bg-gradient-to-br from-primary-navy to-primary-navy/70 rounded-xl flex items-center justify-center shadow-md shadow-primary-navy/20`}>
                             <Shield className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -180,7 +199,7 @@ const RolePermissionPage: React.FC = () => {
                         <button
                             onClick={handleSaveChanges}
                             disabled={saving}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            className="flex items-center gap-2 px-5 py-2 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                             {saving ? (
                                 <>
@@ -199,7 +218,7 @@ const RolePermissionPage: React.FC = () => {
             </div>
 
             {/* ── Content ─────────────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+            <div className="flex-1 overflow-y-auto p-3 lg:p-4">
 
                 {/* Empty state */}
                 {modulePermissions.length === 0 && (
@@ -215,7 +234,7 @@ const RolePermissionPage: React.FC = () => {
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
                         {/* Table header */}
-                        <div className="bg-slate-50 border-b border-slate-200 px-6 py-3">
+                        <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5">
                             <div className="grid grid-cols-12 gap-4 items-center">
                                 <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Module</div>
                                 <div className="col-span-7 text-xs font-black text-slate-400 uppercase tracking-wider">Permissions</div>
@@ -237,12 +256,12 @@ const RolePermissionPage: React.FC = () => {
                                 return (
                                     <div key={module.moduleId} className="group">
                                         {/* Module row */}
-                                        <div className="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-slate-50/60 transition-colors">
+                                        <div className="grid grid-cols-12 gap-4 items-center px-5 py-3 hover:bg-slate-50/60 transition-colors">
 
                                             {/* Module info */}
                                             <div className="col-span-3 flex items-center gap-3">
-                                                <div className={`w-10 h-10 bg-gradient-to-br ${accent.gradient} rounded-xl flex items-center justify-center shadow-sm flex-shrink-0`}>
-                                                    <Lock className="w-5 h-5 text-white" />
+                                                <div className={`w-9 h-9 bg-gradient-to-br ${accent.gradient} rounded-xl flex items-center justify-center shadow-sm flex-shrink-0`}>
+                                                    <Lock className="w-4 h-4 text-white" />
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-extrabold text-slate-900 text-sm leading-tight truncate">{module.moduleName}</p>
@@ -263,7 +282,7 @@ const RolePermissionPage: React.FC = () => {
                                             {/* Permissions inline chips */}
                                             <div className="col-span-7">
                                                 {module.permissions.length > 0 ? (
-                                                    <div className="flex flex-wrap gap-2">
+                                                    <div className={isCollapsed ? "flex gap-2 overflow-x-auto pb-1 pr-1" : "flex flex-wrap gap-2"}>
                                                         {module.permissions.map(permission => {
                                                             const isSelected = selected.includes(permission.id);
                                                             return (
@@ -271,7 +290,7 @@ const RolePermissionPage: React.FC = () => {
                                                                     key={permission.id}
                                                                     onClick={() => togglePermission(module.moduleId, permission.id)}
                                                                     title={permission.code}
-                                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all select-none
+                                                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all select-none whitespace-nowrap
                                                                         ${isSelected
                                                                             ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/20'
                                                                             : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-white hover:text-slate-700'
@@ -291,13 +310,13 @@ const RolePermissionPage: React.FC = () => {
                                                 )}
 
                                                 {/* Collapsed indicator */}
-                                                {isCollapsed && module.permissions.length > 0 && (
+                                                {module.permissions.length > 0 && (
                                                     <button
                                                         onClick={() => toggleCollapse(module.moduleId)}
-                                                        className="mt-2 text-xs text-slate-400 hover:text-primary-navy font-semibold flex items-center gap-1"
+                                                        className="mt-1.5 text-xs text-slate-400 hover:text-primary-navy font-semibold inline-flex items-center gap-1"
                                                     >
-                                                        <ChevronRightIcon className="w-3 h-3" />
-                                                        Show {module.permissions.length} permissions
+                                                        <ChevronRightIcon className={`w-3 h-3 transition-transform ${isCollapsed ? '' : 'rotate-90'}`} />
+                                                        {isCollapsed ? 'Expand' : 'Collapse'}
                                                     </button>
                                                 )}
                                             </div>
@@ -308,7 +327,7 @@ const RolePermissionPage: React.FC = () => {
                                                     onClick={() => selectAll(module.moduleId, module.permissions.map(p => p.id))}
                                                     disabled={allSelected || module.permissions.length === 0}
                                                     title="Select all"
-                                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 rounded-lg text-xs font-bold text-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 rounded-lg text-xs font-bold text-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                                 >
                                                     <CheckSquare className="w-3.5 h-3.5" />
                                                     All
@@ -317,7 +336,7 @@ const RolePermissionPage: React.FC = () => {
                                                     onClick={() => clearAll(module.moduleId)}
                                                     disabled={selected.length === 0}
                                                     title="Clear all"
-                                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-lg text-xs font-bold text-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    className="flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-red-50 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-lg text-xs font-bold text-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                                 >
                                                     <Square className="w-3.5 h-3.5" />
                                                     None
@@ -330,8 +349,8 @@ const RolePermissionPage: React.FC = () => {
                         </div>
 
                         {/* Footer summary */}
-                        <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
-                            <p className="text-sm text-slate-500 font-medium">
+                        <div className="bg-slate-50 border-t border-slate-200 px-5 py-3 flex items-center justify-between">
+                            <p className="text-sm text-slate-500 font-medium hidden sm:block">
                                 <span className="font-extrabold text-slate-800">{totalSelected}</span> of{' '}
                                 <span className="font-extrabold text-slate-800">{totalPermissions}</span> permissions selected across{' '}
                                 <span className="font-extrabold text-slate-800">{modulePermissions.length}</span> modules
@@ -339,7 +358,7 @@ const RolePermissionPage: React.FC = () => {
                             <button
                                 onClick={handleSaveChanges}
                                 disabled={saving}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                className="flex items-center gap-2 px-5 py-2 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                                 {saving ? (
                                     <>

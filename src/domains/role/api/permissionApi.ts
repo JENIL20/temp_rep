@@ -23,8 +23,9 @@ export const permissionApi = {
         }
 
         try {
-            const response = await api.get<Permission[]>(API.USER_PERMISSIONS.PERMISSIONS);
-            return response.data;
+            const res: any = await api.get<Permission[]>(API.USER_PERMISSIONS.PERMISSIONS);
+            const data = Array.isArray(res) ? res : res?.data || res?.items || [];
+            return data;
         } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to fetch permissions');
         }

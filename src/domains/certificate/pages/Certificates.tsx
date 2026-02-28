@@ -11,6 +11,7 @@ import {
     Shield,
     FileText,
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const Certificates: React.FC = () => {
     const [certificates, setCertificates] = useState<Certificate[]>([]);
@@ -98,13 +99,13 @@ const Certificates: React.FC = () => {
             window.URL.revokeObjectURL(url);
         } catch (err) {
             console.error('Error downloading certificate:', err);
-            alert('Failed to download certificate. Please try again.');
+            toast.error('Failed to download certificate. Please try again.');
         }
     };
 
     const handleValidate = async () => {
         if (!searchCode.trim()) {
-            alert('Please enter a certificate code');
+            toast.error('Please enter a certificate code');
             return;
         }
 

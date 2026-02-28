@@ -24,6 +24,9 @@ export const API = {
 
     // Permissions
     PERMISSIONS: '/api/permissions/list',
+    // Module-specific permissions (which permissions belong to a module)
+    MODULE_PERMISSIONS_LIST: '/api/module-permissions/list',
+    MODULE_PERMISSIONS_BY_MODULE: (moduleId: number | string) => `/api/module-permissions/list?ModuleId=${moduleId}`,
 
     // Roles
     ROLES: '/api/Roles/list',
@@ -40,16 +43,14 @@ export const API = {
     ROLE_MODULE_CREATE: '/api/RoleModules/create',
     ROLE_MODULE_DELETE: (id: number | string) => `/api/RoleModules/delete/${id}`,
 
-// Module listing
-    MODULE_PERMISSIONS_LIST: '/api/role-module-permissions/list',
-    MODULE_PERMISSIONS_LIST_BY_ID: (id: number | string) => `/api/role-module-permissions/${id}`,
-
-
     // Role Module Permissions
     ROLE_MODULE_PERMISSIONS_LIST: '/api/role-module-permissions/list',
     ROLE_MODULE_PERMISSIONS_BY_ID: (id: number | string) => `/api/role-module-permissions/${id}`,
     ROLE_MODULE_PERMISSIONS_BY_ROLE_MODULE: (roleId: number | string, moduleId: number | string) =>
       `/api/user-permissions/role-module/${roleId}/${moduleId}/permissions`,
+    // Assigned permissions for a specific role+module (query params)
+    ROLE_MODULE_PERMISSIONS_BY_ROLE_AND_MODULE: (roleId: number | string, moduleId: number | string) =>
+      `/api/role-module-permissions/list?RoleId=${roleId}&ModuleId=${moduleId}`,
 
     // User Permissions Assignments
     ASSIGN_ROLE: '/api/user-permissions/assign-role',

@@ -10,6 +10,7 @@ import {
     Trash2,
     X,
     Lock,
+    Layers,
     Search,
     RefreshCw,
     ShieldAlert,
@@ -21,16 +22,25 @@ import {
     ChevronRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { confirmToast } from '@/shared/utils/confirmToast';
+
+type MemberUser = {
+    id: number;
+    userName?: string;
+    email?: string;
+    firstName: string;
+    lastName: string;
+};
 
 const RolesManagement: React.FC = () => {
     // Data State
     const [roles, setRoles] = useState<Role[]>([]);
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<MemberUser[]>([]);
 
     // UI State
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState<'roles' | 'members'>('roles');
+    const [activeTab, setActiveTab] = useState<'roles' | 'members' | 'roleModules'>('roles');
 
 
     // Pagination State for Roles
@@ -66,8 +76,9 @@ const RolesManagement: React.FC = () => {
             console.log("Fetched usersData:", usersData);
             setRoles(Array.isArray(rolesData) ? rolesData : []);
             setUsers(usersData?.items || []);
-        } catch (err: any) {
-            toast.error(err.message || "Failed to load roles and permissions");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to load roles and permissions";
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -87,19 +98,28 @@ const RolesManagement: React.FC = () => {
             setShowRoleModal(false);
             setEditingRole(null);
             setRoleForm({ code: '', name: '' });
-        } catch (err: any) {
-            toast.error(err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to save role";
+            toast.error(message);
         }
     };
 
     const handleDeleteRole = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this role?")) return;
+        const ok = await confirmToast({
+            title: "Delete role?",
+            message: "This action cannot be undone.",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            toastOptions: { type: "warning" },
+        });
+        if (!ok) return;
         try {
             await roleApi.delete(id);
             toast.success("Role deleted");
             fetchInitialData();
-        } catch (err: any) {
-            toast.error(err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to delete role";
+            toast.error(message);
         }
     };
 
@@ -107,7 +127,11 @@ const RolesManagement: React.FC = () => {
         navigate(`/admin/roles/${role.id}/permissions`);
     };
 
-    const openMemberManager = async (user: any) => {
+    const openModuleManager = (role: Role) => {
+        navigate(`/admin/roles/${role.id}/modules`);
+    };
+
+    const openMemberManager = (user: MemberUser) => {
         navigate(`/admin/users/${user.id}/permissions`);
     };
 
@@ -136,11 +160,19 @@ const RolesManagement: React.FC = () => {
     );
 
     // Pagination Component
-    const Pagination = ({ currentPage, totalPages, onPageChange, pageSize, onPageSizeChange }: any) => {
+    type PaginationProps = {
+        currentPage: number;
+        totalPages: number;
+        onPageChange: (page: number) => void;
+        pageSize: number;
+        onPageSizeChange: (size: number) => void;
+    };
+
+    const Pagination = ({ currentPage, totalPages, onPageChange, pageSize, onPageSizeChange }: PaginationProps) => {
         const pages = [];
         const maxVisible = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        const endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
         if (endPage - startPage < maxVisible - 1) {
             startPage = Math.max(1, endPage - maxVisible + 1);
@@ -151,16 +183,16 @@ const RolesManagement: React.FC = () => {
         }
 
         return (
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
+            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-t border-slate-200">
                 <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-600 font-medium">Rows per page:</span>
+                    <span className="text-xs text-slate-600 font-medium">Rows per page:</span>
                     <select
                         value={pageSize}
                         onChange={(e) => {
                             onPageSizeChange(Number(e.target.value));
                             onPageChange(1);
                         }}
-                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none"
+                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none"
                     >
                         <option value={5}>5</option>
                         <option value={10}>10</option>
@@ -173,16 +205,16 @@ const RolesManagement: React.FC = () => {
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="p-2 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1.5 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-4 h-4" />
                     </button>
 
                     {startPage > 1 && (
                         <>
                             <button
                                 onClick={() => onPageChange(1)}
-                                className="px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
+                                className="px-2.5 py-1 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
                             >
                                 1
                             </button>
@@ -194,7 +226,7 @@ const RolesManagement: React.FC = () => {
                         <button
                             key={page}
                             onClick={() => onPageChange(page)}
-                            className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${currentPage === page
+                            className={`px-2.5 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === page
                                 ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/20'
                                 : 'text-slate-600 hover:bg-white'
                                 }`}
@@ -208,7 +240,7 @@ const RolesManagement: React.FC = () => {
                             {endPage < totalPages - 1 && <span className="text-slate-400">...</span>}
                             <button
                                 onClick={() => onPageChange(totalPages)}
-                                className="px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
+                                className="px-2.5 py-1 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
                             >
                                 {totalPages}
                             </button>
@@ -218,13 +250,13 @@ const RolesManagement: React.FC = () => {
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="p-2 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1.5 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
 
-                <div className="text-sm text-slate-600 font-medium">
+                <div className="text-sm text-slate-600 font-medium hidden sm:block">
                     Page {currentPage} of {totalPages}
                 </div>
             </div>
@@ -245,24 +277,24 @@ const RolesManagement: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] p-4 lg:p-8">
+        <div className="min-h-screen bg-[#F8FAFC] p-3 lg:p-5">
             {/* Header Section */}
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                             Access Control <span className="text-primary-navy">Matrix</span>
                         </h1>
-                        <p className="text-slate-500 mt-1">Manage infrastructure roles, modules, and granular permissions.</p>
+                        <p className="text-slate-500 mt-0.5 text-sm">Manage infrastructure roles, modules, and granular permissions.</p>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={fetchInitialData}
-                            className="p-2.5 text-slate-600 hover:bg-slate-200 rounded-xl transition-all active:scale-95"
+                            className="p-2 text-slate-600 hover:bg-slate-200 rounded-xl transition-all active:scale-95"
                             title="Refresh Data"
                         >
-                            <RefreshCw className="w-5 h-5" />
+                            <RefreshCw className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => {
@@ -270,38 +302,45 @@ const RolesManagement: React.FC = () => {
                                 setRoleForm({ code: '', name: '' });
                                 setShowRoleModal(true);
                             }}
-                            className="flex items-center gap-2 bg-primary-navy hover:bg-primary-navy-dark text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 font-semibold"
+                            className="flex items-center gap-2 bg-primary-navy hover:bg-primary-navy-dark text-white px-4 py-2 rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 font-semibold text-sm"
                         >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4" />
                             New Role
                         </button>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-2 p-1.5 bg-slate-100 w-fit rounded-2xl mb-8 border border-slate-200">
+                <div className="flex gap-2 p-1 bg-slate-100 w-fit rounded-2xl mb-5 border border-slate-200">
                     <button
-
                         onClick={() => {
                             setActiveTab('roles');
                             setSearchTerm('');
                             setRolesPage(1);
                         }}
-
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'roles' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'roles' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <Shield className="w-4 h-4" />
                         Security Profiles
                     </button>
                     <button
-
+                        onClick={() => {
+                            setActiveTab('roleModules');
+                            setSearchTerm('');
+                            setRolesPage(1);
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'roleModules' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        <Layers className="w-4 h-4" />
+                        Role Modules
+                    </button>
+                    <button
                         onClick={() => {
                             setActiveTab('members');
                             setSearchTerm('');
                             setUsersPage(1);
                         }}
-
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'members' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'members' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <UsersIcon className="w-4 h-4" />
                         Member Assignments
@@ -313,23 +352,23 @@ const RolesManagement: React.FC = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary-navy transition-colors" />
                     <input
                         type="text"
-                        placeholder={`Search ${activeTab === 'roles' ? 'roles' : 'users'}...`}
+                        placeholder={`Search ${activeTab === 'roles' || activeTab === 'roleModules' ? 'roles' : 'users'}...`}
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
-                            if (activeTab === 'roles') setRolesPage(1);
+                            if (activeTab !== 'members') setRolesPage(1);
                             else setUsersPage(1);
                         }}
-                        className="w-full bg-white pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all"
+                        className="w-full bg-white pl-12 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all text-sm"
                     />
                 </div>
 
                 {/* Content Area */}
                 {
-                    activeTab === 'roles' ? (
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    activeTab === 'roles' || activeTab === 'roleModules' ? (
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             {/* Table Header */}
-                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                            <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
                                 <div className="grid grid-cols-12 gap-4 items-center">
                                     <div className="col-span-1 text-xs font-black text-slate-400 uppercase tracking-wider">Status</div>
                                     <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider">Code</div>
@@ -343,7 +382,7 @@ const RolesManagement: React.FC = () => {
                             <div className="divide-y divide-slate-100">
                                 {paginatedRoles.length > 0 ? (
                                     paginatedRoles.map((role) => (
-                                        <div key={role.id} className="px-6 py-4 hover:bg-slate-50/50 transition-colors group">
+                                        <div key={role.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors group">
                                             <div className="grid grid-cols-12 gap-4 items-center">
                                                 {/* Status */}
                                                 <div className="col-span-1">
@@ -360,7 +399,7 @@ const RolesManagement: React.FC = () => {
 
                                                 {/* Code */}
                                                 <div className="col-span-2">
-                                                    <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                                    <span className="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
                                                         {role.code}
                                                     </span>
                                                 </div>
@@ -368,10 +407,10 @@ const RolesManagement: React.FC = () => {
                                                 {/* Role Name */}
                                                 <div className="col-span-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${role.code === 'admin' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
-                                                            <Shield className="w-5 h-5" />
+                                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${role.code === 'admin' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                            <Shield className="w-4 h-4" />
                                                         </div>
-                                                        <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors">
+                                                        <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors text-sm">
                                                             {role.name}
                                                         </span>
                                                     </div>
@@ -386,26 +425,36 @@ const RolesManagement: React.FC = () => {
 
                                                 {/* Actions */}
                                                 <div className="col-span-3 flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => openPermissionManager(role)}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-primary-navy text-slate-600 hover:text-white rounded-xl transition-all font-semibold text-sm"
-                                                    >
-                                                        <Lock className="w-4 h-4" />
-                                                        Permissions
-                                                    </button>
+                                                    {activeTab === 'roleModules' ? (
+                                                        <button
+                                                            onClick={() => openModuleManager(role)}
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-primary-navy text-slate-600 hover:text-white rounded-xl transition-all font-semibold text-xs"
+                                                        >
+                                                            <Layers className="w-4 h-4" />
+                                                            Assign Modules
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => openPermissionManager(role)}
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-primary-navy text-slate-600 hover:text-white rounded-xl transition-all font-semibold text-xs"
+                                                        >
+                                                            <Lock className="w-4 h-4" />
+                                                            Permissions
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => {
                                                             setEditingRole(role);
                                                             setRoleForm({ code: role.code, name: role.name });
                                                             setShowRoleModal(true);
                                                         }}
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteRole(role.id)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
@@ -434,9 +483,9 @@ const RolesManagement: React.FC = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             {/* Table Header */}
-                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                            <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
                                 <div className="grid grid-cols-12 gap-4 items-center">
                                     <div className="col-span-1 text-xs font-black text-slate-400 uppercase tracking-wider">Avatar</div>
                                     <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Username</div>
@@ -450,27 +499,27 @@ const RolesManagement: React.FC = () => {
                             <div className="divide-y divide-slate-100">
                                 {paginatedUsers.length > 0 ? (
                                     paginatedUsers.map(user => (
-                                        <div key={user.id} className="px-6 py-4 hover:bg-slate-50/50 transition-colors group">
+                                        <div key={user.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors group">
                                             <div className="grid grid-cols-12 gap-4 items-center">
                                                 {/* Avatar */}
                                                 <div className="col-span-1">
-                                                    <div className="w-10 h-10 bg-gradient-to-tr from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-slate-400">
-                                                        <UserCircle className="w-6 h-6" />
+                                                    <div className="w-9 h-9 bg-gradient-to-tr from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-slate-400">
+                                                        <UserCircle className="w-5 h-5" />
                                                     </div>
                                                 </div>
 
                                                 {/* Username */}
                                                 <div className="col-span-3">
-                                                    <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors">
-                                                        {user.firstName +' '+user.lastName}
+                                                    <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors text-sm">
+                                                        {user.firstName + ' ' + user.lastName}
                                                     </span>
                                                 </div>
 
                                                 {/* Email */}
                                                 <div className="col-span-4">
                                                     <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                        <Mail className="w-4 h-4" />
-                                                        {user.email}
+                                                        <Mail className="w-3.5 h-3.5" />
+                                                        <span className="truncate">{user.email}</span>
                                                     </div>
                                                 </div>
 
@@ -485,7 +534,7 @@ const RolesManagement: React.FC = () => {
                                                 <div className="col-span-2 flex items-center justify-end">
                                                     <button
                                                         onClick={() => openMemberManager(user)}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-primary-navy text-slate-600 hover:text-white border border-slate-200 hover:border-primary-navy font-bold rounded-xl shadow-sm transition-all duration-300"
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-primary-navy text-slate-600 hover:text-white border border-slate-200 hover:border-primary-navy font-bold rounded-xl shadow-sm transition-all duration-300 text-xs"
                                                     >
                                                         Assign Roles <ArrowRight className="w-4 h-4" />
                                                     </button>
@@ -523,26 +572,26 @@ const RolesManagement: React.FC = () => {
                 showRoleModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowRoleModal(false)}></div>
-                        <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300">
-                            <div className="p-8">
-                                <div className="flex items-center justify-between mb-8">
-                                    <h2 className="text-2xl font-black text-slate-900">{editingRole ? 'Edit Profile' : 'New Security Profile'}</h2>
+                        <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300">
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-black text-slate-900">{editingRole ? 'Edit Profile' : 'New Security Profile'}</h2>
                                     <button onClick={() => setShowRoleModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X className="w-6 h-6" /></button>
                                 </div>
                                 <form onSubmit={handleCreateOrUpdateRole} className="space-y-6">
                                     {!editingRole && (
                                         <div className="space-y-2">
                                             <label className="text-sm font-bold text-slate-700 ml-1">System Identifier (Code)</label>
-                                            <input type="text" required value={roleForm.code} onChange={e => setRoleForm({ ...roleForm, code: e.target.value.toLowerCase() })} className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all" placeholder="e.g. cloud_admin" />
+                                            <input type="text" required value={roleForm.code} onChange={e => setRoleForm({ ...roleForm, code: e.target.value.toLowerCase() })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all text-sm" placeholder="e.g. cloud_admin" />
                                         </div>
                                     )}
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700 ml-1">Display Title</label>
-                                        <input type="text" required value={roleForm.name} onChange={e => setRoleForm({ ...roleForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all" placeholder="e.g. Cloud Administrator" />
+                                        <input type="text" required value={roleForm.name} onChange={e => setRoleForm({ ...roleForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all text-sm" placeholder="e.g. Cloud Administrator" />
                                     </div>
                                     <div className="pt-4 flex gap-3">
-                                        <button type="button" onClick={() => setShowRoleModal(false)} className="flex-1 py-4 text-slate-600 font-bold hover:bg-slate-50 rounded-2xl transition-all">Dismiss</button>
-                                        <button type="submit" className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl shadow-slate-900/20 active:scale-95 transition-all">Save Changes</button>
+                                        <button type="button" onClick={() => setShowRoleModal(false)} className="flex-1 py-2.5 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-all text-sm border border-slate-200">Dismiss</button>
+                                        <button type="submit" className="flex-1 py-2.5 bg-slate-900 text-white font-bold rounded-xl shadow-xl shadow-slate-900/20 active:scale-95 transition-all text-sm">Save Changes</button>
                                     </div>
                                 </form>
                             </div>

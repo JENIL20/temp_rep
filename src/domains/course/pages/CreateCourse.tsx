@@ -10,6 +10,7 @@ import {
     ChevronRight
 } from "lucide-react";
 import { categoryApi } from "@/domains/category/api/categoryApi";
+import { toast } from "react-toastify";
 
 interface CourseFormData {
     title: string;
@@ -121,19 +122,19 @@ const CreateCourse = () => {
 
     const validateStep1 = () => {
         if (!courseData.title.trim()) {
-            alert("Please enter a course title");
+            toast.error("Please enter a course title");
             return false;
         }
         if (!courseData.description.trim()) {
-            alert("Please enter a course description");
+            toast.error("Please enter a course description");
             return false;
         }
         if (!courseData.instructor.trim()) {
-            alert("Please enter an instructor name");
+            toast.error("Please enter an instructor name");
             return false;
         }
         if (!courseData.categoryId || courseData.categoryId === 0) {
-            alert("Please select a category");
+            toast.error("Please select a category");
             return false;
         }
         return true;
@@ -141,11 +142,11 @@ const CreateCourse = () => {
 
     const validateStep2 = () => {
         if (courseData.durationHours <= 0) {
-            alert("Please enter a valid duration");
+            toast.error("Please enter a valid duration");
             return false;
         }
         if (courseData.price <= 0) {
-            alert("Please enter a valid price");
+            toast.error("Please enter a valid price");
             return false;
         }
         return true;
@@ -167,7 +168,7 @@ const CreateCourse = () => {
             if (isEditMode && courseId) {
                 console.log("Updating course:", courseId, "with data:", courseData);
                 await courseApi.update(courseId, courseData);
-                alert("Course updated successfully!");
+                toast.success("Course updated successfully!");
                 navigate(`/courses/${courseId}/videos`);
             } else {
                 console.log("Creating course with data:", courseData);
@@ -175,17 +176,17 @@ const CreateCourse = () => {
                 console.log("Create course response:", res);
                 courseId = res[0]?.courseId || res?.courseId || res?.id;
                 if (courseId) {
-                    alert("Course created successfully!");
+                    toast.success("Course created successfully!");
                     navigate(`/courses/${courseId}/videos`);
                 } else {
                     console.warn("No course ID in response:", res);
-                    alert("Course created successfully!");
+                    toast.success("Course created successfully!");
                     navigate("/courses");
                 }
             }
         } catch (error) {
             console.error("Failed to save course:", error);
-            alert(`Failed to ${isEditMode ? 'update' : 'create'} course. Please try again.`);
+            toast.error(`Failed to ${isEditMode ? 'update' : 'create'} course. Please try again.`);
         } finally {
             setSaving(false);
         }

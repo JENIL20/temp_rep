@@ -20,6 +20,7 @@ const Certificates = lazy(() => import("../domains/certificate/pages/Certificate
 const RolesManagement = lazy(() => import("../domains/role/pages/RolesManagement"));
 const RolePermissionPage = lazy(() => import("../domains/role/pages/RolePermissionPage"));
 const AssignRoles = lazy(() => import("../domains/role/pages/AssignRoles"));
+const AssignRoleModules = lazy(() => import("../domains/role/pages/AssignRoleModules"));
 const UserPermissionPage = lazy(() => import("../domains/role/pages/UserPermissionPage"));
 const Profile = lazy(() => import("../domains/user/pages/Profile"));
 const UserList = lazy(() => import("../domains/user/pages/UserList"));
@@ -146,6 +147,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     path: paths.web.rolePermissions,
     name: "Role Permissions",
     element: RolePermissionPage,
+    permissions: [],
+  },
+  {
+    path: paths.web.roleModulesAssign,
+    name: "Assign Role Modules",
+    element: AssignRoleModules,
     permissions: [],
   },
   {

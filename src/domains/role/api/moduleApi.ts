@@ -21,9 +21,10 @@ export const moduleApi = {
         }
 
         try {
-            const response = await api.get<Module[]>(API.USER_PERMISSIONS.MODULES_ALL);
-            console.log("Fetched modules:", response.data);
-            return response.data;
+            const res: any = await api.get<Module[]>(API.USER_PERMISSIONS.MODULES_ALL);
+            const data = Array.isArray(res) ? res : res?.data || res?.items || [];
+            console.log("Fetched modules:", data);
+            return data;
         } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to fetch all modules');
         }
@@ -44,9 +45,10 @@ export const moduleApi = {
         }
 
         try {
-            const response = await api.post<Module>(API.USER_PERMISSIONS.MODULES, data);
-            console.log("Created module:", response.data);
-            return response.data;
+            const res: any = await api.post<Module>(API.USER_PERMISSIONS.MODULES, data);
+            const result = res?.data || res;
+            console.log("Created module:", result);
+            return result;
         } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to create module');
         }

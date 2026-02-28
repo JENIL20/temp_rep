@@ -36,6 +36,7 @@ export const paths = {
     // Admin Routes
     rolesManagement: "/admin/roles",
     rolePermissions: "/admin/roles/:roleId/permissions",
+    roleModulesAssign: "/admin/roles/:roleId/modules",
     assignRoles: "/admin/assign-roles",
     userPermissions: "/admin/users/:userId/permissions",
     permissionsManagement: "/admin/permissions",

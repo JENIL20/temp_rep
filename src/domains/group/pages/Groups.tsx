@@ -20,6 +20,7 @@ import { Group, GroupCourseUpdateItem } from '../types/group.types';
 import { LoadingSpinner } from '../../../shared/components/common';
 import { courseApi } from '../../course/api/courseApi';
 import { Course } from '../../course/types/course.types';
+import { confirmToast } from '@/shared/utils/confirmToast';
 
 const Groups = () => {
     // Data State
@@ -65,8 +66,9 @@ const Groups = () => {
                 totalCount: data.totalCount,
                 totalPages: data.totalPages
             }));
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load groups');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to load groups';
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -95,13 +97,21 @@ const Groups = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('Are you sure you want to delete this group?')) return;
+        const ok = await confirmToast({
+            title: "Delete group?",
+            message: "This action cannot be undone.",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            toastOptions: { type: "warning" },
+        });
+        if (!ok) return;
         try {
             await groupApi.delete(id);
             toast.success('Group deleted successfully');
             fetchData();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to delete group');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to delete group';
+            toast.error(message);
         } finally {
             setActiveDropdown(null);
         }
@@ -125,8 +135,9 @@ const Groups = () => {
             }
             setShowGroupModal(false);
             fetchData();
-        } catch (error: any) {
-            toast.error(error.message || 'Error saving group');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Error saving group';
+            toast.error(message);
         } finally {
             setSavingGroup(false);
         }
@@ -153,8 +164,9 @@ const Groups = () => {
                 isEnable: c.isEnable
             }));
             setGroupCourses(formatted);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load courses');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to load courses';
+            toast.error(message);
             setShowAssignModal(false);
         } finally {
             setLoadingCourses(false);
@@ -181,8 +193,9 @@ const Groups = () => {
             });
             toast.success('Group courses updated effectively');
             setShowAssignModal(false);
-        } catch (error: any) {
-            toast.error(error.message || 'Error updating courses');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Error updating courses';
+            toast.error(message);
         } finally {
             setSavingCourses(false);
         }
@@ -211,14 +224,14 @@ const Groups = () => {
         <div className="min-h-screen bg-gray-50 pb-20">
             {/* Header Area */}
             <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 text-white">
-                                <Users size={24} />
+                            <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 text-white">
+                                <Users size={22} />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Study Groups</h1>
+                                <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Study Groups</h1>
                                 <p className="text-sm text-gray-500 font-medium mt-1">Organize users and assign course bundles efficiently.</p>
                             </div>
                         </div>
@@ -231,12 +244,12 @@ const Groups = () => {
                                     placeholder="Search groups..."
                                     value={searchTerm}
                                     onChange={handleSearch}
-                                    className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all"
+                                    className="w-full sm:w-64 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all"
                                 />
                             </div>
                             <button
                                 onClick={openCreateModal}
-                                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-purple-600/20"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-purple-600/20"
                             >
                                 <Plus size={18} />
                                 <span>Create Group</span>
@@ -273,17 +286,17 @@ const Groups = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100">
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Group Name</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Created Date</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Group Name</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Created Date</th>
+                                        <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {groups.map((group) => (
                                         <tr key={group.id} className="hover:bg-gray-50/50 transition-colors group-row relative">
-                                            <td className="px-6 py-4">
+                                            <td className="px-5 py-3">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center flex-shrink-0 text-purple-600 font-bold shadow-sm">
+                                                    <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center flex-shrink-0 text-purple-600 font-bold shadow-sm">
                                                         {group.groupName?.charAt(0).toUpperCase()}
                                                     </div>
                                                     <div>
@@ -292,10 +305,10 @@ const Groups = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">
+                                            <td className="px-5 py-3 text-sm text-gray-600">
                                                 {group.createdAt ? new Date(group.createdAt).toLocaleDateString() : 'N/A'}
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-5 py-3 text-right">
                                                 <button
                                                     onClick={() => openAssignModal(group)}
                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-purple-600 hover:text-purple-700 hover:bg-purple-50 hover:border-purple-200 font-semibold text-xs rounded-lg transition-all mr-2 shadow-sm"
@@ -339,7 +352,7 @@ const Groups = () => {
                         </div>
                         {/* Pagination Area */}
                         {pageState.totalPages > 1 && (
-                            <div className="bg-gray-50 border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+                            <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center justify-between">
                                 <p className="text-sm font-medium text-gray-500">
                                     Displaying <span className="text-gray-900 font-bold">{groups.length}</span> of <span className="text-gray-900 font-bold">{pageState.totalCount}</span>
                                 </p>

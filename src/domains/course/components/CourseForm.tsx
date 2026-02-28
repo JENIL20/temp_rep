@@ -7,6 +7,8 @@ import {
     X, GripVertical, Clock, DollarSign, Award, BookOpen,
     Play, Tag, HardDrive
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { confirmToast } from "@/shared/utils/confirmToast";
 
 interface VideoFormData {
     id?: number;
@@ -146,7 +148,7 @@ const CourseForm = () => {
 
     const handleAddVideo = () => {
         if (!videoFormData.title || (!videoFormData.videoUrl && !videoFormData.file)) {
-            alert("Please provide a video title and either a URL or upload a file");
+            toast.error("Please provide a video title and either a URL or upload a file");
             return;
         }
 
@@ -179,9 +181,17 @@ const CourseForm = () => {
     };
 
     const handleDeleteVideo = (index: number) => {
-        if (confirm("Are you sure you want to delete this video?")) {
+        confirmToast({
+            title: "Delete video?",
+            message: "This action cannot be undone.",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            toastOptions: { type: "warning" },
+        }).then((ok) => {
+            if (!ok) return;
             setVideos(videos.filter((_, i) => i !== index));
-        }
+            toast.info("Video removed");
+        });
     };
 
     const handleReorderVideo = (index: number, direction: 'up' | 'down') => {
@@ -197,7 +207,7 @@ const CourseForm = () => {
 
     const handleSaveCourse = async () => {
         if (!courseData.title || !courseData.description || !courseData.categoryId) {
-            alert("Please fill in all required fields (Title, Description, Category)");
+            toast.error("Please fill in all required fields (Title, Description, Category)");
             return;
         }
 
@@ -251,11 +261,11 @@ const CourseForm = () => {
                 }
             }
 
-            alert(`Course ${isEditMode ? 'updated' : 'created'} successfully!`);
+            toast.success(`Course ${isEditMode ? 'updated' : 'created'} successfully!`);
             navigate('/courses');
         } catch (error) {
             console.error("Failed to save course:", error);
-            alert(`Failed to ${isEditMode ? 'update' : 'create'} course. Please check the console for details.`);
+            toast.error(`Failed to ${isEditMode ? 'update' : 'create'} course. Please check the console for details.`);
         } finally {
             setSaving(false);
         }

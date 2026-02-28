@@ -15,10 +15,16 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = store.getState().auth.token; // ✅ correct
-    // console.log("Interceptor - token = ", token);
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const { token, tenantId } = store.getState().auth;
+    // console.log("Interceptor - token = ", token, "tenantId =", tenantId);
+
+    if (config.headers) {
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      if (tenantId !== null && tenantId !== undefined) {
+        config.headers['TenantId'] = tenantId.toString();
+      }
     }
 
     return config;

@@ -75,8 +75,9 @@ const UserPermissionPage: React.FC = () => {
             setPendingRoleIds(ids);
 
             setUser(userDetails);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load user data');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to load user data';
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -101,8 +102,9 @@ const UserPermissionPage: React.FC = () => {
 
             setOriginalRoleIds(pendingRoleIds);
             toast.success('Role assignments saved successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to save role assignments');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to save role assignments';
+            toast.error(message);
         } finally {
             setSaving(false);
         }
@@ -134,7 +136,7 @@ const UserPermissionPage: React.FC = () => {
         <div className="h-full w-full bg-[#F8FAFC] flex flex-col">
 
             {/* ── Top Header Bar ──────────────────────────────── */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}
@@ -148,14 +150,14 @@ const UserPermissionPage: React.FC = () => {
 
                     {/* User info */}
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20 text-white font-extrabold text-sm flex-shrink-0">
+                        <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20 text-white font-extrabold text-sm flex-shrink-0">
                             {user?.firstName?.[0]}{user?.lastName?.[0] ?? user?.userName?.[0]}
                         </div>
                         <div>
                             <h1 className="text-lg font-extrabold text-slate-900 leading-tight">{displayName}</h1>
                             <div className="flex items-center gap-1.5 text-xs text-slate-400">
                                 <Mail className="w-3 h-3" />
-                                <span>{user?.email}</span>
+                                <span className="truncate">{user?.email}</span>
                             </div>
                         </div>
                     </div>
@@ -190,7 +192,7 @@ const UserPermissionPage: React.FC = () => {
                         <button
                             onClick={handleSaveChanges}
                             disabled={saving || !hasPendingChanges}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            className="flex items-center gap-2 px-5 py-2 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                             {saving ? (
                                 <>
@@ -209,7 +211,7 @@ const UserPermissionPage: React.FC = () => {
             </div>
 
             {/* ── Content ─────────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+            <div className="flex-1 overflow-y-auto p-3 lg:p-4">
 
                 {/* Empty state */}
                 {allRoles.length === 0 && (
@@ -225,7 +227,7 @@ const UserPermissionPage: React.FC = () => {
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
                         {/* Table header */}
-                        <div className="bg-slate-50 border-b border-slate-200 px-6 py-3">
+                        <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5">
                             <div className="grid grid-cols-12 gap-4 items-center">
                                 <div className="col-span-1 text-xs font-black text-slate-400 uppercase tracking-wider">Icon</div>
                                 <div className="col-span-4 text-xs font-black text-slate-400 uppercase tracking-wider">Role Name</div>
@@ -245,13 +247,13 @@ const UserPermissionPage: React.FC = () => {
                                     <button
                                         key={role.id}
                                         onClick={() => toggleRole(role.id)}
-                                        className={`w-full grid grid-cols-12 gap-4 items-center px-6 py-4 transition-all group text-left
+                                        className={`w-full grid grid-cols-12 gap-4 items-center px-5 py-3 transition-all group text-left
                                             ${isAssigned ? 'bg-emerald-50/40 hover:bg-emerald-50/70' : 'hover:bg-slate-50/60'}`}
                                     >
                                         {/* Icon */}
                                         <div className="col-span-1">
-                                            <div className={`w-10 h-10 bg-gradient-to-br ${accent.bg} rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 transition-all ${isAssigned ? 'scale-110 rotate-3' : ''}`}>
-                                                <Shield className="w-5 h-5 text-white" />
+                                            <div className={`w-9 h-9 bg-gradient-to-br ${accent.bg} rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 transition-all ${isAssigned ? 'scale-110 rotate-3' : ''}`}>
+                                                <Shield className="w-4 h-4 text-white" />
                                             </div>
                                         </div>
 
@@ -264,7 +266,7 @@ const UserPermissionPage: React.FC = () => {
 
                                         {/* Code */}
                                         <div className="col-span-3">
-                                            <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-500 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                            <span className="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
                                                 {role.code}
                                             </span>
                                         </div>
@@ -286,7 +288,7 @@ const UserPermissionPage: React.FC = () => {
 
                                         {/* Checkbox */}
                                         <div className="col-span-2 flex justify-end">
-                                            <div className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all
+                                            <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all
                                                 ${isAssigned
                                                     ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/30 scale-110'
                                                     : 'bg-white border-slate-300 group-hover:border-slate-400'
@@ -300,8 +302,8 @@ const UserPermissionPage: React.FC = () => {
                         </div>
 
                         {/* Footer */}
-                        <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
-                            <p className="text-sm text-slate-500 font-medium">
+                        <div className="bg-slate-50 border-t border-slate-200 px-5 py-3 flex items-center justify-between">
+                            <p className="text-sm text-slate-500 font-medium hidden sm:block">
                                 <span className="font-extrabold text-slate-800">{pendingRoleIds.length}</span> of{' '}
                                 <span className="font-extrabold text-slate-800">{allRoles.length}</span> roles assigned to{' '}
                                 <span className="font-extrabold text-slate-800">{displayName}</span>
@@ -310,7 +312,7 @@ const UserPermissionPage: React.FC = () => {
                             <button
                                 onClick={handleSaveChanges}
                                 disabled={saving || !hasPendingChanges}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                className="flex items-center gap-2 px-5 py-2 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                             >
                                 {saving ? (
                                     <>

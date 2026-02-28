@@ -12,13 +12,13 @@ function Wrapper() {
   usePageTitle();
 
   useEffect(() => {
-    const onScroll = () => {
-      if (scrollRef.current?.scrollTop! > 0) setShadow(true);
-      else setShadow(false);
-    };
+    const el = scrollRef.current;
+    if (!el) return;
 
-    scrollRef.current?.addEventListener("scroll", onScroll);
-    return () => scrollRef.current?.removeEventListener("scroll", onScroll);
+    const onScroll = () => setShadow(el.scrollTop > 0);
+
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
   // Close sidebar on mobile by default
@@ -64,7 +64,7 @@ function Wrapper() {
         {/* Page Content */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-5 xl:p-8 bg-gray-50"
+          className="flex-1 overflow-y-auto p-3 sm:p-4 xl:p-5 bg-gray-50"
         >
           <Outlet />
         </div>

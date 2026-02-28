@@ -56,8 +56,11 @@ const Register = () => {
       const { confirmPassword, ...data } = formData;
       const response = await authApi.register(data);
       if (response && response.user && response.token) {
-        const { user, token } = response;
-        dispatch(setCredentials({ user, token }));
+        const { user, token, tenantId } = response;
+        dispatch(setCredentials({ user, token, tenantId: tenantId || user.tenantId }));
+        localStorage.setItem("token", token);
+        const finalTenantId = tenantId || user.tenantId;
+        if (finalTenantId) localStorage.setItem("tenantId", finalTenantId.toString());
         navigate("/dashboard");
       }
     } catch (err: any) {

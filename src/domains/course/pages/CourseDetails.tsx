@@ -24,6 +24,7 @@ import { toast } from "react-toastify";
 import ReactPlayer from "react-player";
 import { useAppSelector } from "../../../store";
 import { userCourseApi } from "../../enrollment/api/userCourseApi";
+import { confirmToast } from "@/shared/utils/confirmToast";
 
 const Player = ReactPlayer as any;
 import type { Course, CourseVideo, EnrolledUser } from "../types/course.types";
@@ -161,7 +162,14 @@ const CourseDetails = () => {
 
   const handleUnsubscribe = async () => {
     if (!user || !course) return;
-    if (!confirm("Are you sure you want to unsubscribe?")) return;
+    const ok = await confirmToast({
+      title: "Unsubscribe from course?",
+      message: "You can subscribe again later.",
+      confirmText: "Unsubscribe",
+      cancelText: "Cancel",
+      toastOptions: { type: "warning" },
+    });
+    if (!ok) return;
 
     setSubLoading(true);
     try {

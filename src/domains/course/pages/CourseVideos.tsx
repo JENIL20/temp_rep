@@ -611,6 +611,7 @@ import {
 
 import { courseVideoApi } from '../api/courseApi';
 import { toast } from "react-toastify";
+import { confirmToast } from "@/shared/utils/confirmToast";
 
 /* ================= TYPES ================= */
 interface VideoFormData {
@@ -677,7 +678,14 @@ const CourseVideos = () => {
 
   const handleDelete = async (index: number) => {
     const video = videos[index];
-    if (!confirm("Delete this video?")) return;
+    const ok = await confirmToast({
+      title: "Delete video?",
+      message: "This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      toastOptions: { type: "warning" },
+    });
+    if (!ok) return;
 
     try {
       if (video.id) {

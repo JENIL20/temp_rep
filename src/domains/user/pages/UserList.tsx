@@ -65,8 +65,9 @@ const UserList = () => {
                 totalPages: usersData.totalPages
             }));
             setRoles(rolesData);
-        } catch (err: any) {
-            toast.error(err.message || "Failed to load users");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to load users";
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -97,8 +98,9 @@ const UserList = () => {
             const ids = userRoles.map(r => r.id);
             setOriginalRoles(ids);
             setPendingRoles(ids);
-        } catch (err: any) {
-            toast.error(err.message || 'Failed to load user roles');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to load user roles';
+            toast.error(message);
         } finally {
             setLoadingUserRoles(false);
         }
@@ -124,8 +126,9 @@ const UserList = () => {
             toast.success('Role assignments saved successfully!');
             setShowRoleModal(false);
             fetchData();
-        } catch (err: any) {
-            toast.error(err.message || 'Failed to save roles');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to save roles';
+            toast.error(message);
         } finally {
             setSavingRoles(false);
         }
@@ -146,10 +149,10 @@ const UserList = () => {
         <div className="min-h-screen bg-gray-50/50 pb-20">
             {/* Header */}
             <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="space-y-1">
-                            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+                            <h1 className="text-xl font-bold text-gray-900">User Management</h1>
                             <p className="text-sm text-gray-500">Manage user access, roles, and permissions across the platform.</p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
@@ -160,10 +163,10 @@ const UserList = () => {
                                     placeholder="Search users..."
                                     value={searchTerm}
                                     onChange={handleSearch}
-                                    className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary-navy focus:ring-4 focus:ring-primary-navy/10 outline-none transition-all"
+                                    className="w-full sm:w-64 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary-navy focus:ring-4 focus:ring-primary-navy/10 outline-none transition-all"
                                 />
                             </div>
-                            <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-navy text-white text-sm font-semibold rounded-lg hover:bg-primary-navy-light transition-colors shadow-sm shadow-primary-navy/20">
+                            <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary-navy text-white text-sm font-semibold rounded-lg hover:bg-primary-navy-light transition-colors shadow-sm shadow-primary-navy/20">
                                 <UserPlus size={16} />
                                 <span>Add User</span>
                             </button>
@@ -171,10 +174,10 @@ const UserList = () => {
                     </div>
 
                     {/* Stats */}
-                    <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                                <Users size={24} />
+                    <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+                            <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                                <Users size={22} />
                             </div>
                             <div>
                                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Users</p>
@@ -198,20 +201,20 @@ const UserList = () => {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="bg-gray-50 border-b border-gray-200">
-                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Roles</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Roles</th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
+                                            <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {users.map((user) => (
                                             <tr key={user.id} className="group hover:bg-gray-50/50 transition-colors">
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 border border-gray-200">
+                                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 border border-gray-200">
                                                             <span className="font-semibold text-sm">
                                                                 {user.firstName[0]}{user.lastName[0]}
                                                             </span>
@@ -222,7 +225,7 @@ const UserList = () => {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-3">
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${user.isActive
                                                         ? 'bg-green-50 text-green-700 border-green-200'
                                                         : 'bg-gray-100 text-gray-600 border-gray-200'
@@ -231,11 +234,11 @@ const UserList = () => {
                                                         {user.isActive ? 'Active' : 'Inactive'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="space-y-1">
+                                                <td className="px-5 py-3">
+                                                    <div className="space-y-0.5">
                                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                                             <Mail className="w-3.5 h-3.5 text-gray-400" />
-                                                            {user.email}
+                                                            <span className="truncate">{user.email}</span>
                                                         </div>
                                                         {user.mobile && (
                                                             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -245,7 +248,7 @@ const UserList = () => {
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-3">
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {user.roles && user.roles.length > 0 ? (
                                                             user.roles.map((role, idx) => (
@@ -258,12 +261,12 @@ const UserList = () => {
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-3">
                                                     <div className="text-sm text-gray-600">
                                                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
+                                                <td className="px-5 py-3 text-right">
                                                     <div className="relative inline-block">
                                                         <button
                                                             onClick={() => setActiveDropdown(activeDropdown === user.id ? null : user.id)}
@@ -296,7 +299,7 @@ const UserList = () => {
                             </div>
 
                             {/* Pagination */}
-                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                            <div className="px-5 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
                                 <p className="text-sm text-gray-500">
                                     Showing <span className="font-medium text-gray-900">{users.length}</span> of <span className="font-medium text-gray-900">{pageState.totalCount}</span> users
                                 </p>
@@ -315,7 +318,7 @@ const UserList = () => {
                                                 <button
                                                     key={num}
                                                     onClick={() => handlePageChange(num)}
-                                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${pageState.pageNumber === num
+                                                    className={`w-7 h-7 rounded-lg text-sm font-medium transition-colors ${pageState.pageNumber === num
                                                         ? 'bg-primary-navy text-white'
                                                         : 'text-gray-600 hover:bg-gray-200'
                                                         }`}
@@ -387,7 +390,7 @@ const UserList = () => {
                             ) : (
                                 <>
                                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Available Roles — click to toggle</p>
-                                    <div className="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                    <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
                                         {roles.map(role => {
                                             const isAssigned = pendingRoles.includes(role.id);
                                             return (

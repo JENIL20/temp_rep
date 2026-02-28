@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Download, Upload, Trash2, ArrowLeft, Calendar, FileIcon } from 'lucide-react';
 import { courseApi } from '../api/courseApi';
 import FileUpload from '../components/FileUpload';
+import { toast } from 'react-toastify';
+import { confirmToast } from '@/shared/utils/confirmToast';
 
 interface CourseDocument {
     id: number;
@@ -32,7 +34,7 @@ const CourseDocuments: React.FC = () => {
             const docs = await courseApi.getDocuments(Number(id || '1'));
             setDocuments(docs);
             setError(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error fetching documents:', err);
             setError('Failed to load documents');
         } finally {
@@ -46,22 +48,30 @@ const CourseDocuments: React.FC = () => {
         try {
             // Simulate download
             console.log(`Simulating download for ${doc.fileName}`);
-            alert(`Download started for ${doc.fileName}`);
+            toast.info(`Download started for ${doc.fileName}`);
         } catch (err) {
             console.error('Download error:', err);
-            alert('Failed to download file. Please try again.');
+            toast.error('Failed to download file. Please try again.');
         }
     };
 
     const handleDelete = async (docId: number) => {
-        if (!window.confirm('Are you sure you want to delete this document?')) return;
+        const ok = await confirmToast({
+            title: "Delete document?",
+            message: "This action cannot be undone.",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            toastOptions: { type: "warning" },
+        });
+        if (!ok) return;
 
         try {
             await courseApi.deleteDocument(docId);
             await fetchDocuments();
-        } catch (err: any) {
+            toast.success("Document deleted");
+        } catch (err: unknown) {
             console.error('Delete error:', err);
-            alert('Failed to delete document');
+            toast.error('Failed to delete document');
         }
     };
 

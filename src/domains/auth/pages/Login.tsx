@@ -24,14 +24,19 @@ const Login = () => {
       setLoading(true);
       const data = await authApi.login({ email, password });
 
-      console.log('Login Response:', data[0]);
+      console.log('Login Response:', data);
 
-      const user = data[0]?.user;
-      const token = data[0]?.token;
+      // Handle both array/object response just in case
+      const loginData = Array.isArray(data) ? data[0] : data;
+
+      const user = loginData?.user;
+      const token = loginData?.token;
+      const tenantId = loginData?.tenantId || user?.tenantId;
 
       if (user && token) {
-        dispatch(setCredentials({ user, token }));
+        dispatch(setCredentials({ user, token, tenantId }));
         localStorage.setItem("token", token);
+        if (tenantId) localStorage.setItem("tenantId", tenantId.toString());
         toast.success("Login Successful!");
         navigate("/dashboard");
       } else {

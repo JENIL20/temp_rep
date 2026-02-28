@@ -120,3 +120,16 @@
 .Toastify__toast-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-navy-light);
 }
+
+@layer base {
+  html {
+    font-size: 14px;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    line-height: 1.4;
+  }
+}
