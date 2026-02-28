@@ -20,6 +20,7 @@ import { organizationApi } from '../api/organizationApi';
 import { Organization } from '../types/organization.types';
 import { LoadingSpinner } from '../../../shared/components/common';
 import { confirmToast } from '@/shared/utils/confirmToast';
+import { API_BASE_URL } from '@/shared/config';
 
 const Organizations = () => {
     // Data State
@@ -148,7 +149,7 @@ const Organizations = () => {
             Mobile: org.mobile || '',
             IsActive: org.isActive,
         });
-        setLogoPreview(org.logo || null); // Note: Assuming the API gives the logo URL
+        setLogoPreview(org.logoThumbUrl || null); // Note: Assuming the API gives the logo URL
         setEditingOrg(org);
         setShowModal(true);
         setActiveDropdown(null);
@@ -313,8 +314,8 @@ const Organizations = () => {
                                             <td className="px-5 py-3">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
-                                                        {org.logo ? (
-                                                            <img src={org.logo} alt={org.orgName} className="w-full h-full object-cover" />
+                                                        {org.logoThumbUrl ? (
+                                                            <img src={`${API_BASE_URL}`+org.logoThumbUrl} alt={org.orgName} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <Building2 className="w-6 h-6 text-gray-300" />
                                                         )}

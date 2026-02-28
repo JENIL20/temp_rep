@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { Course } from "../types/course.types";
+import { API_BASE_URL } from "@/shared/config";
 
 interface CourseCardProps {
     course: Course;
@@ -15,7 +16,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             {/* Thumbnail Area */}
             <div className="relative h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
                 <img
-                    src={course.thumbnailUrl || `https://source.unsplash.com/random/800x600?sig=${courseId}`}
+                    src={`${API_BASE_URL}`+course.thumbnailUrl || `https://source.unsplash.com/random/800x600?sig=${courseId}`}
                     alt={course.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

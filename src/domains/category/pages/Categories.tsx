@@ -186,7 +186,7 @@ const Categories = () => {
         {/* Table Header */}
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
           <div className="grid grid-cols-12 gap-4 items-center">
-            <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider">ID</div>
+            <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider">No.</div>
             <div className="col-span-8 text-xs font-black text-slate-400 uppercase tracking-wider">Category Name</div>
             <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Actions</div>
           </div>
@@ -210,7 +210,7 @@ const Categories = () => {
                   {/* ID */}
                   <div className="col-span-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                      #{cat.id}
+                      {index}
                     </span>
                   </div>
 
