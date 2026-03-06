@@ -42,7 +42,7 @@ const Login = () => {
         // Fetch & persist the user's module-permission map
         try {
           const perms = await userPermissionsApi.getMyPermissions(user.id);
-          console.log("Fetched user permissions:", perms);
+          // console.log("Fetched user permissions:", perms);
           dispatch(setPermissions(perms));
         } catch {
           // Non-fatal: user is logged in, permissions just won't be available
