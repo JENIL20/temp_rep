@@ -21,6 +21,7 @@ import { roleApi } from '../../role/api/roleApi';
 import { User } from '../types/user.types';
 import { Role } from '../../role/types/role.types';
 import { LoadingSpinner } from '../../../shared/components/common';
+import PermissionGate from '../../../shared/components/auth/PermissionGate';
 
 const UserList = () => {
     // Data State
@@ -166,10 +167,12 @@ const UserList = () => {
                                     className="w-full sm:w-64 pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-primary-navy focus:ring-4 focus:ring-primary-navy/10 outline-none transition-all"
                                 />
                             </div>
-                            <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary-navy text-white text-sm font-semibold rounded-lg hover:bg-primary-navy-light transition-colors shadow-sm shadow-primary-navy/20">
-                                <UserPlus size={16} />
-                                <span>Add User</span>
-                            </button>
+                            <PermissionGate module="USER_MANAGEMENT" permission="create">
+                                <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary-navy text-white text-sm font-semibold rounded-lg hover:bg-primary-navy-light transition-colors shadow-sm shadow-primary-navy/20">
+                                    <UserPlus size={16} />
+                                    <span>Add User</span>
+                                </button>
+                            </PermissionGate>
                         </div>
                     </div>
 
@@ -279,13 +282,15 @@ const UserList = () => {
                                                             <>
                                                                 <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
                                                                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 origin-top-right animate-in fade-in zoom-in-95 duration-100">
-                                                                    <button
-                                                                        onClick={() => openRoleManager(user)}
-                                                                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                                                    >
-                                                                        <Shield size={16} className="text-gray-400" />
-                                                                        Manage Roles
-                                                                    </button>
+                                                                    <PermissionGate module="USER_MANAGEMENT" permission="update">
+                                                                        <button
+                                                                            onClick={() => openRoleManager(user)}
+                                                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                                                        >
+                                                                            <Shield size={16} className="text-gray-400" />
+                                                                            Manage Roles
+                                                                        </button>
+                                                                    </PermissionGate>
                                                                     {/* Add more actions here if needed */}
                                                                 </div>
                                                             </>

@@ -1,3 +1,6 @@
+// Map of moduleCode (e.g. 'COURSES') → array of permissionCodes (e.g. ['view','create','update'])
+export type UserPermissions = Record<string, string[]>;
+
 export interface LoginRequest {
     email?: string;
     password?: string;
@@ -38,6 +41,7 @@ export interface AuthResponse {
     user: User;
     expiration?: string;
     tenantId?: number; // Added tenantId at top level just in case
+    permissions?: UserPermissions; // Populated after fetching user permissions post-login
 }
 
 export interface SubscribeRequest {

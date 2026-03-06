@@ -142,11 +142,16 @@ const CourseDetails = () => {
       toast.error("Please login to subscribe");
       return;
     }
+    const resolvedCourseId = Number((course as any).courseId ?? course.id ?? id);
+    if (!resolvedCourseId) {
+      toast.error("Invalid course ID");
+      return;
+    }
     setSubLoading(true);
     try {
       await userCourseApi.subscribe({
         userId: Number(user.id),
-        courseId: course.courseId
+        courseId: resolvedCourseId
       });
       setIsSubscribed(true);
       toast.success("Successfully subscribed!");
@@ -162,6 +167,11 @@ const CourseDetails = () => {
 
   const handleUnsubscribe = async () => {
     if (!user || !course) return;
+    const resolvedCourseId = Number((course as any).courseId ?? course.id ?? id);
+    if (!resolvedCourseId) {
+      toast.error("Invalid course ID");
+      return;
+    }
     const ok = await confirmToast({
       title: "Unsubscribe from course?",
       message: "You can subscribe again later.",
@@ -175,7 +185,7 @@ const CourseDetails = () => {
     try {
       await userCourseApi.unsubscribe({
         userId: Number(user.id),
-        courseId: course.courseId
+        courseId: resolvedCourseId
       });
       setIsSubscribed(false);
       toast.info("Unsubscribed from course");

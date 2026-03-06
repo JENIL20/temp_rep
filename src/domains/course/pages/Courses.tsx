@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Course } from "../types/course.types";
 import CourseList from "../components/CourseList";
+import PermissionGate from "../../../shared/components/auth/PermissionGate";
 
 const Courses = () => {
   const navigate = useNavigate();
@@ -155,13 +156,15 @@ const Courses = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => navigate('/courses/create')}
-          className="flex items-center gap-2 bg-primary-navy text-white px-4 py-2.5 rounded-lg font-medium shadow-lg hover:bg-primary-navy-light hover:shadow-xl transition-all active:scale-95"
-        >
-          <PlusCircle size={20} />
-          Create New Course
-        </button>
+        <PermissionGate module="COURSE_MANAGEMENT" permission="create">
+          <button
+            onClick={() => navigate('/courses/create')}
+            className="flex items-center gap-2 bg-primary-navy text-white px-4 py-2.5 rounded-lg font-medium shadow-lg hover:bg-primary-navy-light hover:shadow-xl transition-all active:scale-95"
+          >
+            <PlusCircle size={20} />
+            Create New Course
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Course Listing Component */}

@@ -12,8 +12,10 @@ import {
     Square,
     ChevronRight as ChevronRightIcon,
     Check,
+    Settings,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import PermissionGate from '../../../shared/components/auth/PermissionGate';
 
 const MODULE_ACCENTS = [
     { gradient: 'from-blue-500 to-blue-600', light: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', bar: 'bg-blue-500' },
@@ -149,42 +151,45 @@ const RolePermissionPage: React.FC = () => {
         <div className="h-full w-full bg-[#F8FAFC] flex flex-col">
 
             {/* ── Top Header Bar ──────────────────────────────────── */}
-            <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
+            <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0 shadow-sm">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/admin/roles')}
                         className="flex items-center gap-2 text-slate-500 hover:text-primary-navy transition-colors group text-sm font-semibold"
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Back to Roles
+                        Back
                     </button>
 
-                    <div className="h-6 w-px bg-slate-200" />
+                    <div className="h-8 w-px bg-slate-200" />
 
                     <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 bg-gradient-to-br from-primary-navy to-primary-navy/70 rounded-xl flex items-center justify-center shadow-md shadow-primary-navy/20`}>
+                        <div className={`w-10 h-10 bg-gradient-to-br from-primary-navy to-primary-navy/70 rounded-xl flex items-center justify-center shadow-lg shadow-primary-navy/20`}>
                             <Shield className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-extrabold text-slate-900 leading-tight">{role?.name}</h1>
-                            <p className="text-xs text-slate-400 font-semibold tracking-widest uppercase">{role?.code}</p>
+                            <h1 className="text-lg font-extrabold text-slate-900 leading-tight flex items-center gap-2">
+                                {role?.name}
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs font-bold rounded-lg uppercase tracking-wider">{role?.code}</span>
+                            </h1>
+                            <p className="text-xs text-slate-400 font-medium">Permission Management</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Stats + Actions */}
                 <div className="flex items-center gap-4">
-                    <div className="hidden sm:flex items-center gap-4">
-                        <div className="text-right">
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Selected</p>
+                    <div className="hidden md:flex items-center gap-4">
+                        <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Selected</p>
                             <p className="text-xl font-extrabold text-primary-navy leading-none">
                                 {totalSelected}
                                 <span className="text-slate-300 font-normal text-sm"> / {totalPermissions}</span>
                             </p>
                         </div>
                         <div className="h-10 w-px bg-slate-200" />
-                        <div className="text-right">
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Modules</p>
+                        <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Modules</p>
                             <p className="text-xl font-extrabold text-slate-700 leading-none">{modulePermissions.length}</p>
                         </div>
                     </div>
@@ -192,53 +197,63 @@ const RolePermissionPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => navigate('/admin/roles')}
-                            className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-all text-sm"
+                            className="px-4 py-2.5 text-slate-600 font-semibold hover:bg-slate-100 rounded-xl transition-all text-sm border border-slate-200"
                         >
                             Cancel
                         </button>
-                        <button
-                            onClick={handleSaveChanges}
-                            disabled={saving}
-                            className="flex items-center gap-2 px-5 py-2 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                        >
-                            {saving ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="w-4 h-4" />
-                                    Save Changes
-                                </>
-                            )}
-                        </button>
+                        <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                            <button
+                                onClick={handleSaveChanges}
+                                disabled={saving}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-navy to-primary-navy-dark hover:shadow-xl hover:shadow-primary-navy/20 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            >
+                                {saving ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-4 h-4" />
+                                        Save Changes
+                                    </>
+                                )}
+                            </button>
+                        </PermissionGate>
                     </div>
                 </div>
             </div>
 
             {/* ── Content ─────────────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto p-3 lg:p-4">
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
 
                 {/* Empty state */}
                 {modulePermissions.length === 0 && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 py-24 flex flex-col items-center">
-                        <Shield className="w-14 h-14 text-slate-200 mb-4" />
-                        <h3 className="text-xl font-bold text-slate-900">No Modules Assigned</h3>
-                        <p className="text-slate-400 mt-1 text-sm">This role has no modules assigned yet.</p>
+                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                            <Shield className="w-12 h-12 text-slate-200" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">No Modules Assigned</h3>
+                        <p className="text-slate-400 mt-1 text-sm">This role has no modules assigned yet. Please assign modules first.</p>
                     </div>
                 )}
 
-                {/* Module Table */}
+                {/* Module Table - Enhanced styling */}
                 {modulePermissions.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
                         {/* Table header */}
-                        <div className="bg-slate-50 border-b border-slate-200 px-5 py-2.5">
+                        <div className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-5 py-3">
                             <div className="grid grid-cols-12 gap-4 items-center">
-                                <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Module</div>
-                                <div className="col-span-7 text-xs font-black text-slate-400 uppercase tracking-wider">Permissions</div>
-                                <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Quick Actions</div>
+                                <div className="col-span-3 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Lock className="w-3 h-3" /> Module
+                                </div>
+                                <div className="col-span-7 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Shield className="w-3 h-3" /> Permissions
+                                </div>
+                                <div className="col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider text-right flex items-center justify-end gap-2">
+                                    <Settings className="w-3 h-3" /> Actions
+                                </div>
                             </div>
                         </div>
 
@@ -349,29 +364,31 @@ const RolePermissionPage: React.FC = () => {
                         </div>
 
                         {/* Footer summary */}
-                        <div className="bg-slate-50 border-t border-slate-200 px-5 py-3 flex items-center justify-between">
-                            <p className="text-sm text-slate-500 font-medium hidden sm:block">
-                                <span className="font-extrabold text-slate-800">{totalSelected}</span> of{' '}
-                                <span className="font-extrabold text-slate-800">{totalPermissions}</span> permissions selected across{' '}
-                                <span className="font-extrabold text-slate-800">{modulePermissions.length}</span> modules
+                        <div className="bg-gradient-to-r from-slate-50 to-white border-t border-slate-200 px-5 py-3 flex items-center justify-between">
+                            <p className="text-sm text-slate-500 font-medium hidden md:block">
+                                <span className="font-bold text-slate-800">{totalSelected}</span> of{' '}
+                                <span className="font-bold text-slate-800">{totalPermissions}</span> permissions selected across{' '}
+                                <span className="font-bold text-slate-800">{modulePermissions.length}</span> modules
                             </p>
-                            <button
-                                onClick={handleSaveChanges}
-                                disabled={saving}
-                                className="flex items-center gap-2 px-5 py-2 bg-primary-navy hover:bg-primary-navy-dark text-white font-bold rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="w-4 h-4" />
-                                        Save Changes
-                                    </>
-                                )}
-                            </button>
+                            <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                                <button
+                                    onClick={handleSaveChanges}
+                                    disabled={saving}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-navy to-primary-navy-dark hover:shadow-xl hover:shadow-primary-navy/20 text-white font-semibold rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                >
+                                    {saving ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-4 h-4" />
+                                            Save Changes
+                                        </>
+                                    )}
+                                </button>
+                            </PermissionGate>
                         </div>
                     </div>
                 )}

@@ -6,8 +6,8 @@ const Login = lazy(() => import("../domains/auth/pages/Login"));
 const Register = lazy(() => import("../domains/auth/pages/Register"));
 const ForgotPassword = lazy(() => import("../domains/auth/pages/ForgetPassword"));
 const ResetPassword = lazy(() => import("../domains/auth/pages/ResetPassword"));
-const Dashboard = lazy(() => import("../domains/dashboard/pages/Dashboard"));
 
+const Dashboard = lazy(() => import("../domains/dashboard/pages/Dashboard"));
 const Courses = lazy(() => import("../domains/course/pages/Courses"));
 const CreateCourse = lazy(() => import("../domains/course/pages/CreateCourse"));
 const CourseDetails = lazy(() => import("../domains/course/pages/CourseDetails"));
@@ -17,196 +17,210 @@ const CourseDocuments = lazy(() => import("../domains/course/pages/CourseDocumen
 const Categories = lazy(() => import("../domains/category/pages/Categories"));
 const MyCourses = lazy(() => import("../domains/course/pages/MyCourses"));
 const Certificates = lazy(() => import("../domains/certificate/pages/Certificates"));
+
 const RolesManagement = lazy(() => import("../domains/role/pages/RolesManagement"));
 const RolePermissionPage = lazy(() => import("../domains/role/pages/RolePermissionPage"));
 const AssignRoles = lazy(() => import("../domains/role/pages/AssignRoles"));
 const AssignRoleModules = lazy(() => import("../domains/role/pages/AssignRoleModules"));
 const UserPermissionPage = lazy(() => import("../domains/role/pages/UserPermissionPage"));
+
 const Profile = lazy(() => import("../domains/user/pages/Profile"));
 const UserList = lazy(() => import("../domains/user/pages/UserList"));
 const Organizations = lazy(() => import("../domains/organization/pages/Organizations"));
 const Groups = lazy(() => import("../domains/group/pages/Groups"));
+const Unauthorized = lazy(() => import("../shared/components/common/Unauthorized"));
+
+// ---------- Route Config Type ----------
 export interface RouteConfig {
   path: string;
   name: string;
   element: LazyExoticComponent<ComponentType<any>>;
+  /**
+   * Module code the user must have access to.
+   * Maps to the keys in UserPermissions (UPPER_SNAKE, case-insensitive).
+   * Omit for public-within-auth routes (dashboard, profile, etc.)
+   */
+  requiredModule?: string;
+  /**
+   * The specific action required (view | create | update | delete).
+   * Defaults to 'view' check (canView) when omitted.
+   */
+  requiredPermission?: string;
+  /** @deprecated use requiredModule + requiredPermission instead */
   permissions?: string[];
 }
 
-// ---------- Auth Routes ----------
+// ---------- Auth Routes (no login required) ----------
 export const AuthRoutes: RouteConfig[] = [
-  {
-    path: paths.auth.login,
-    name: "Login",
-    element: Login,
-  },
-  {
-    path: paths.auth.register,
-    name: "Register",
-    element: Register,
-  },
-  {
-    path: paths.auth.forgot_password,
-    name: "Forgot Password",
-    element: ForgotPassword,
-  },
-  {
-    path: paths.auth.reset_password,
-    name: "Reset Password",
-    element: ResetPassword,
-  },
+  { path: paths.auth.login, name: "Login", element: Login },
+  { path: paths.auth.register, name: "Register", element: Register },
+  { path: paths.auth.forgot_password, name: "Forgot Password", element: ForgotPassword },
+  { path: paths.auth.reset_password, name: "Reset Password", element: ResetPassword },
 ];
 
-// ---------- Protected Routes ----------
+// ---------- Protected Routes (login required) ----------
 export const ProtectedRoutes: RouteConfig[] = [
+  // ── Always accessible (any logged-in user) ──────────────────────────────
   {
     path: paths.web.dashboard,
     name: "Dashboard",
     element: Dashboard,
-    permissions: [],
   },
   {
     path: paths.web.profile,
     name: "Profile",
     element: Profile,
-    permissions: [],
   },
+  {
+    path: paths.web.unauthorized,
+    name: "Unauthorized",
+    element: Unauthorized,
+  },
+
+  // ── Courses (MODULE: COURSES) ────────────────────────────────────────────
   {
     path: paths.web.courses,
     name: "Courses",
     element: Courses,
-    permissions: [],
-  },
-  {
-    path: paths.web.courseCreate,
-    name: "Create Course",
-    element: CreateCourse,
-    permissions: [],
-  },
-  {
-    path: paths.web.courseEdit,
-    name: "Edit Course",
-    element: CreateCourse,
-    permissions: [],
-  },
-  {
-    path: paths.web.categories,
-    name: "Categories",
-    element: Categories,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "view",
   },
   {
     path: paths.web.courseDetails,
     name: "Course Details",
     element: CourseDetails,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "view",
+  },
+  {
+    path: paths.web.courseCreate,
+    name: "Create Course",
+    element: CreateCourse,
+    requiredModule: "COURSES",
+    requiredPermission: "create",
+  },
+  {
+    path: paths.web.courseEdit,
+    name: "Edit Course",
+    element: CreateCourse,
+    requiredModule: "COURSES",
+    requiredPermission: "update",
   },
   {
     path: paths.web.courseVideos,
     name: "Course Videos",
     element: CourseVideos,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "view",
   },
   {
     path: paths.web.courseAddVideo,
     name: "Add Course Video",
     element: AddCourseVideo,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "create",
   },
   {
     path: paths.web.courseEditVideo,
     name: "Edit Course Video",
     element: AddCourseVideo,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "update",
   },
   {
     path: paths.web.courseDocuments,
     name: "Course Documents",
     element: CourseDocuments,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "view",
   },
   {
     path: paths.web.myCourses,
     name: "My Courses",
     element: MyCourses,
-    permissions: [],
+    requiredModule: "COURSES",
+    requiredPermission: "view",
   },
+
+  // ── Categories (MODULE: CATEGORIES) ─────────────────────────────────────
+  {
+    path: paths.web.categories,
+    name: "Categories",
+    element: Categories,
+    requiredModule: "CATEGORIES",
+    requiredPermission: "view",
+  },
+
+  // ── Certificates (MODULE: CERTIFICATES) ─────────────────────────────────
   {
     path: paths.web.certificates,
     name: "Certificates",
     element: Certificates,
-    permissions: [],
+    requiredModule: "CERTIFICATES",
+    requiredPermission: "view",
   },
+
+  // ── Roles & Permissions (MODULE: ROLES) ──────────────────────────────────
   {
     path: paths.web.rolesManagement,
     name: "Roles Management",
     element: RolesManagement,
-    permissions: [],
+    requiredModule: "ROLES",
+    requiredPermission: "view",
   },
   {
     path: paths.web.rolePermissions,
     name: "Role Permissions",
     element: RolePermissionPage,
-    permissions: [],
+    requiredModule: "ROLES",
+    requiredPermission: "update",
   },
   {
     path: paths.web.roleModulesAssign,
     name: "Assign Role Modules",
     element: AssignRoleModules,
-    permissions: [],
+    requiredModule: "ROLES",
+    requiredPermission: "update",
   },
   {
     path: paths.web.assignRoles,
     name: "Assign Roles",
     element: AssignRoles,
-    permissions: [],
+    requiredModule: "ROLES",
+    requiredPermission: "update",
   },
+
+  // ── Users (MODULE: USERS) ────────────────────────────────────────────────
   {
     path: paths.web.usersManagement,
     name: "Users Management",
     element: UserList,
-    permissions: [],
+    requiredModule: "USERS",
+    requiredPermission: "view",
   },
   {
     path: paths.web.userPermissions,
     name: "User Permissions",
     element: UserPermissionPage,
-    permissions: [],
+    requiredModule: "USERS",
+    requiredPermission: "update",
   },
-  {
-    path: paths.web.usersManagement,
-    name: "Users Management",
-    element: UserList,
-    permissions: ["admin"],
-  },
+
+  // ── Organizations (MODULE: ORGANIZATIONS) ────────────────────────────────
   {
     path: paths.web.organizations,
     name: "Organizations",
     element: Organizations,
-    permissions: [],
+    requiredModule: "ORGANIZATIONS",
+    requiredPermission: "view",
   },
+
+  // ── Groups (MODULE: GROUPS) ──────────────────────────────────────────────
   {
     path: paths.web.groups,
     name: "Groups",
     element: Groups,
-    permissions: [],
+    requiredModule: "GROUPS",
+    requiredPermission: "view",
   },
-  // {
-  //   path: paths.web.admin,
-  //   name: "Admin Panel",
-  //   element: AdminPanel,
-  //   permissions: ["admin"],
-  // },
-  // {
-  //   path: paths.web.moderation,
-  //   name: "Moderation Panel",
-  //   element: ModerationPanel,
-  //   permissions: ["admin", "moderator"],
-  // },
-  // {
-  //   path: paths.web.unauthorized,
-  //   name: "Unauthorized",
-  //   element: Unauthorized,
-  //   permissions: [],
-  // },
 ];

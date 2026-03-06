@@ -19,10 +19,14 @@ import {
     UserCircle,
     Mail,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    UserCog,
+    Settings,
+    Activity
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { confirmToast } from '@/shared/utils/confirmToast';
+import PermissionGate from '../../../shared/components/auth/PermissionGate';
 
 type MemberUser = {
     id: number;
@@ -183,29 +187,38 @@ const RolesManagement: React.FC = () => {
         }
 
         return (
-            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-t border-slate-200">
-                <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-600 font-medium">Rows per page:</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 bg-gradient-to-r from-slate-50 to-white border-t border-slate-200">
+                <div className="flex items-center gap-3 order-2 sm:order-1">
+                    <span className="text-xs text-slate-500 font-medium">Show:</span>
                     <select
                         value={pageSize}
                         onChange={(e) => {
                             onPageSizeChange(Number(e.target.value));
                             onPageChange(1);
                         }}
-                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none"
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none cursor-pointer hover:border-primary-navy/50 transition-colors"
                     >
                         <option value={5}>5</option>
                         <option value={10}>10</option>
                         <option value={25}>25</option>
                         <option value={50}>50</option>
                     </select>
+                    <span className="text-xs text-slate-400">rows per page</span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 order-1 sm:order-2">
+                    <button
+                        onClick={() => onPageChange(1)}
+                        disabled={currentPage === 1}
+                        className="p-2 text-slate-500 hover:bg-slate-100 hover:text-primary-navy rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        title="First page"
+                    >
+                        <ChevronLeft className="w-4 h-4 rotate-180" />
+                    </button>
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="p-1.5 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-2 text-slate-600 hover:bg-slate-100 hover:text-primary-navy rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
                         <ChevronLeft className="w-4 h-4" />
                     </button>
@@ -214,11 +227,11 @@ const RolesManagement: React.FC = () => {
                         <>
                             <button
                                 onClick={() => onPageChange(1)}
-                                className="px-2.5 py-1 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
+                                className="min-w-[32px] h-8 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
                             >
                                 1
                             </button>
-                            {startPage > 2 && <span className="text-slate-400">...</span>}
+                            {startPage > 2 && <span className="text-slate-400 px-1">...</span>}
                         </>
                     )}
 
@@ -226,9 +239,9 @@ const RolesManagement: React.FC = () => {
                         <button
                             key={page}
                             onClick={() => onPageChange(page)}
-                            className={`px-2.5 py-1 text-sm font-semibold rounded-lg transition-all ${currentPage === page
-                                ? 'bg-primary-navy text-white shadow-lg shadow-primary-navy/20'
-                                : 'text-slate-600 hover:bg-white'
+                            className={`min-w-[32px] h-8 text-sm font-semibold rounded-lg transition-all duration-200 ${currentPage === page
+                                ? 'bg-gradient-to-r from-primary-navy to-primary-navy-dark text-white shadow-lg shadow-primary-navy/20'
+                                : 'text-slate-600 hover:bg-slate-100 hover:text-primary-navy'
                                 }`}
                         >
                             {page}
@@ -237,10 +250,10 @@ const RolesManagement: React.FC = () => {
 
                     {endPage < totalPages && (
                         <>
-                            {endPage < totalPages - 1 && <span className="text-slate-400">...</span>}
+                            {endPage < totalPages - 1 && <span className="text-slate-400 px-1">...</span>}
                             <button
                                 onClick={() => onPageChange(totalPages)}
-                                className="px-2.5 py-1 text-sm font-semibold text-slate-600 hover:bg-white rounded-lg transition-all"
+                                className="min-w-[32px] h-8 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
                             >
                                 {totalPages}
                             </button>
@@ -250,14 +263,22 @@ const RolesManagement: React.FC = () => {
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="p-1.5 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-2 text-slate-600 hover:bg-slate-100 hover:text-primary-navy rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
                         <ChevronRight className="w-4 h-4" />
                     </button>
+                    <button
+                        onClick={() => onPageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="p-2 text-slate-500 hover:bg-slate-100 hover:text-primary-navy rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        title="Last page"
+                    >
+                        <ChevronRight className="w-4 h-4 rotate-180" />
+                    </button>
                 </div>
 
-                <div className="text-sm text-slate-600 font-medium hidden sm:block">
-                    Page {currentPage} of {totalPages}
+                <div className="text-sm text-slate-500 font-medium order-3 hidden sm:block">
+                    Page <span className="text-primary-navy font-bold">{currentPage}</span> of <span className="font-bold">{totalPages}</span>
                 </div>
             </div>
         );
@@ -268,10 +289,13 @@ const RolesManagement: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
                 <div className="relative">
-                    <div className="w-16 h-16 border-4 border-primary-navy/20 border-t-primary-navy rounded-full animate-spin"></div>
-                    <Shield className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-primary-navy" />
+                    <div className="w-20 h-20 border-4 border-primary-navy/20 border-t-primary-navy rounded-full animate-spin"></div>
+                    <Shield className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-primary-navy" />
                 </div>
-                <p className="mt-4 text-slate-500 font-medium animate-pulse">Initializing Security Framework...</p>
+                <div className="mt-6 text-center">
+                    <p className="text-lg font-bold text-slate-700">Loading Access Control</p>
+                    <p className="text-sm text-slate-400 mt-1">Fetching security profiles...</p>
+                </div>
             </div>
         );
     }
@@ -280,48 +304,65 @@ const RolesManagement: React.FC = () => {
         <div className="min-h-screen bg-[#F8FAFC] p-3 lg:p-5">
             {/* Header Section */}
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
-                    <div>
-                        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                            Access Control <span className="text-primary-navy">Matrix</span>
-                        </h1>
-                        <p className="text-slate-500 mt-0.5 text-sm">Manage infrastructure roles, modules, and granular permissions.</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-primary-navy to-primary-navy-dark rounded-2xl flex items-center justify-center shadow-xl shadow-primary-navy/20">
+                            <Shield className="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                                Access Control <span className="text-primary-navy">Matrix</span>
+                            </h1>
+                            <p className="text-slate-500 mt-0.5 text-sm flex items-center gap-2">
+                                <Activity className="w-3.5 h-3.5" />
+                                Manage infrastructure roles, modules, and granular permissions.
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <button
                             onClick={fetchInitialData}
-                            className="p-2 text-slate-600 hover:bg-slate-200 rounded-xl transition-all active:scale-95"
+                            className="p-2.5 text-slate-500 hover:bg-white hover:text-primary-navy rounded-xl transition-all border border-transparent hover:border-slate-200 shadow-sm"
                             title="Refresh Data"
                         >
-                            <RefreshCw className="w-4 h-4" />
+                            <RefreshCw className="w-5 h-5" />
                         </button>
-                        <button
-                            onClick={() => {
-                                setEditingRole(null);
-                                setRoleForm({ code: '', name: '' });
-                                setShowRoleModal(true);
-                            }}
-                            className="flex items-center gap-2 bg-primary-navy hover:bg-primary-navy-dark text-white px-4 py-2 rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 font-semibold text-sm"
-                        >
-                            <Plus className="w-4 h-4" />
-                            New Role
-                        </button>
+                        <PermissionGate module="ROLE_MANAGEMENT" permission="create">
+                            <button
+                                onClick={() => {
+                                    setEditingRole(null);
+                                    setRoleForm({ code: '', name: '' });
+                                    setShowRoleModal(true);
+                                }}
+                                className="flex items-center gap-2 bg-gradient-to-r from-primary-navy to-primary-navy-dark hover:from-primary-navy-dark hover:to-primary-navy text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary-navy/20 transition-all active:scale-95 font-semibold text-sm"
+                            >
+                                <Plus className="w-4 h-4" />
+                                New Role
+                            </button>
+                        </PermissionGate>
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex gap-2 p-1 bg-slate-100 w-fit rounded-2xl mb-5 border border-slate-200">
+                {/* Tabs - Modern pill-style design */}
+                <div className="flex items-center gap-1 p-1 bg-white/80 backdrop-blur-sm rounded-2xl mb-6 border border-slate-200/60 shadow-sm">
                     <button
                         onClick={() => {
                             setActiveTab('roles');
                             setSearchTerm('');
                             setRolesPage(1);
                         }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'roles' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === 'roles'
+                            ? 'bg-gradient-to-r from-primary-navy to-primary-navy-dark text-white shadow-lg shadow-primary-navy/25'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
                     >
-                        <Shield className="w-4 h-4" />
+                        <Shield className={`w-4 h-4 ${activeTab === 'roles' ? 'text-white' : 'text-slate-400'}`} />
                         Security Profiles
+                        {activeTab === 'roles' && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-md text-xs">
+                                {filteredRoles.length}
+                            </span>
+                        )}
                     </button>
                     <button
                         onClick={() => {
@@ -329,9 +370,11 @@ const RolesManagement: React.FC = () => {
                             setSearchTerm('');
                             setRolesPage(1);
                         }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'roleModules' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === 'roleModules'
+                            ? 'bg-gradient-to-r from-primary-navy to-primary-navy-dark text-white shadow-lg shadow-primary-navy/25'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
                     >
-                        <Layers className="w-4 h-4" />
+                        <Layers className={`w-4 h-4 ${activeTab === 'roleModules' ? 'text-white' : 'text-slate-400'}`} />
                         Role Modules
                     </button>
                     <button
@@ -340,55 +383,92 @@ const RolesManagement: React.FC = () => {
                             setSearchTerm('');
                             setUsersPage(1);
                         }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'members' ? 'bg-white text-primary-navy shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === 'members'
+                            ? 'bg-gradient-to-r from-primary-navy to-primary-navy-dark text-white shadow-lg shadow-primary-navy/25'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
                     >
-                        <UsersIcon className="w-4 h-4" />
+                        <UsersIcon className={`w-4 h-4 ${activeTab === 'members' ? 'text-white' : 'text-slate-400'}`} />
                         Member Assignments
+                        {activeTab === 'members' && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-md text-xs">
+                                {filteredUsers.length}
+                            </span>
+                        )}
                     </button>
                 </div>
 
-                {/* Search Bar */}
+                {/* Search Bar - Modern glass morphism style */}
                 <div className="relative group mb-6">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary-navy transition-colors" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Search className="w-5 h-5 text-slate-400 group-focus-within:text-primary-navy transition-colors duration-200" />
+                    </div>
                     <input
                         type="text"
-                        placeholder={`Search ${activeTab === 'roles' || activeTab === 'roleModules' ? 'roles' : 'users'}...`}
+                        placeholder={`Search ${activeTab === 'roles' || activeTab === 'roleModules' ? 'roles by name or code' : 'users by name or email'}...`}
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
                             if (activeTab !== 'members') setRolesPage(1);
                             else setUsersPage(1);
                         }}
-                        className="w-full bg-white pl-12 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all text-sm"
+                        className="w-full bg-white/80 backdrop-blur-sm pl-12 pr-12 py-3 rounded-xl border border-slate-200/60 focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none transition-all text-sm shadow-sm hover:shadow-md focus:shadow-lg"
                     />
+                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                        {searchTerm ? (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-4 h-4 text-slate-400" />
+                            </button>
+                        ) : (
+                            <span className="text-xs text-slate-300 font-medium hidden sm:inline-block">⌘K</span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Content Area */}
                 {
                     activeTab === 'roles' || activeTab === 'roleModules' ? (
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            {/* Table Header */}
-                            <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+                            {/* Table Header - Modern style */}
+                            <div className="bg-gradient-to-r from-slate-50 to-white px-5 py-3.5 border-b border-slate-200">
                                 <div className="grid grid-cols-12 gap-4 items-center">
-                                    <div className="col-span-1 text-xs font-black text-slate-400 uppercase tracking-wider">Status</div>
-                                    <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider">Code</div>
-                                    <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Role Name</div>
-                                    <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Description</div>
-                                    <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Actions</div>
+                                    <div className="col-span-1 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Activity className="w-3 h-3" /> Status
+                                    </div>
+                                    <div className="col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Settings className="w-3 h-3" /> Code
+                                    </div>
+                                    <div className="col-span-3 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Shield className="w-3 h-3" /> Role Name
+                                    </div>
+                                    <div className="col-span-3 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Layers className="w-3 h-3" /> Description
+                                    </div>
+                                    <div className="col-span-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-right flex items-center justify-end gap-2">
+                                        <Settings className="w-3 h-3" /> Actions
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Table Body */}
-                            <div className="divide-y divide-slate-100">
+                            {/* Table Body - Enhanced rows */}
+                            <div className="divide-y divide-slate-50">
                                 {paginatedRoles.length > 0 ? (
-                                    paginatedRoles.map((role) => (
-                                        <div key={role.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors group">
+                                    paginatedRoles.map((role, idx) => (
+                                        <div
+                                            key={role.id}
+                                            className={`px-5 py-3.5 hover:bg-gradient-to-r hover:from-slate-50/80 hover:to-white transition-all duration-200 group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-30/30'}`}
+                                        >
                                             <div className="grid grid-cols-12 gap-4 items-center">
-                                                {/* Status */}
+                                                {/* Status - Animated indicator */}
                                                 <div className="col-span-1">
                                                     {role.isActive ? (
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                                            <div className="relative">
+                                                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                                                                <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75"></div>
+                                                            </div>
                                                         </div>
                                                     ) : (
                                                         <div className="flex items-center gap-2">
@@ -397,20 +477,20 @@ const RolesManagement: React.FC = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Code */}
+                                                {/* Code - Badge style */}
                                                 <div className="col-span-2">
-                                                    <span className="inline-block px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                                    <span className="inline-flex items-center px-2.5 py-1 bg-slate-100/80 text-slate-600 border border-slate-200/60 rounded-lg text-xs font-semibold uppercase tracking-wide group-hover:border-primary-navy/30 group-hover:text-primary-navy transition-colors">
                                                         {role.code}
                                                     </span>
                                                 </div>
 
-                                                {/* Role Name */}
+                                                {/* Role Name - With icon */}
                                                 <div className="col-span-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${role.code === 'admin' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${role.code === 'admin' ? 'bg-gradient-to-br from-red-50 to-red-100 text-red-600 group-hover:from-red-100 group-hover:to-red-200' : 'bg-gradient-to-br from-slate-50 to-slate-100 text-slate-600 group-hover:from-primary-navy/10 group-hover:to-primary-navy/5 group-hover:text-primary-navy'}`}>
                                                             <Shield className="w-4 h-4" />
                                                         </div>
-                                                        <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors text-sm">
+                                                        <span className="font-bold text-slate-800 group-hover:text-primary-navy transition-colors text-sm">
                                                             {role.name}
                                                         </span>
                                                     </div>
@@ -418,55 +498,63 @@ const RolesManagement: React.FC = () => {
 
                                                 {/* Description */}
                                                 <div className="col-span-3">
-                                                    <span className="text-sm text-slate-500">
+                                                    <span className="text-sm text-slate-500 group-hover:text-slate-600 transition-colors">
                                                         System security profile
                                                     </span>
                                                 </div>
 
-                                                {/* Actions */}
+                                                {/* Actions - Enhanced buttons */}
                                                 <div className="col-span-3 flex items-center justify-end gap-2">
-                                                    {activeTab === 'roleModules' ? (
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                                                        {activeTab === 'roleModules' ? (
+                                                            <button
+                                                                onClick={() => openModuleManager(role)}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl transition-all font-semibold text-xs border border-slate-200 hover:border-indigo-200"
+                                                            >
+                                                                <Layers className="w-3.5 h-3.5" />
+                                                                Modules
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => openPermissionManager(role)}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-violet-50 text-slate-600 hover:text-violet-600 rounded-xl transition-all font-semibold text-xs border border-slate-200 hover:border-violet-200"
+                                                            >
+                                                                <Lock className="w-3.5 h-3.5" />
+                                                                Permissions
+                                                            </button>
+                                                        )}
+                                                    </PermissionGate>
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="update">
                                                         <button
-                                                            onClick={() => openModuleManager(role)}
-                                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-primary-navy text-slate-600 hover:text-white rounded-xl transition-all font-semibold text-xs"
+                                                            onClick={() => {
+                                                                setEditingRole(role);
+                                                                setRoleForm({ code: role.code, name: role.name });
+                                                                setShowRoleModal(true);
+                                                            }}
+                                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                                                         >
-                                                            <Layers className="w-4 h-4" />
-                                                            Assign Modules
+                                                            <Edit2 className="w-4 h-4" />
                                                         </button>
-                                                    ) : (
+                                                    </PermissionGate>
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="delete">
                                                         <button
-                                                            onClick={() => openPermissionManager(role)}
-                                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-primary-navy text-slate-600 hover:text-white rounded-xl transition-all font-semibold text-xs"
+                                                            onClick={() => handleDeleteRole(role.id)}
+                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                                         >
-                                                            <Lock className="w-4 h-4" />
-                                                            Permissions
+                                                            <Trash2 className="w-4 h-4" />
                                                         </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => {
-                                                            setEditingRole(role);
-                                                            setRoleForm({ code: role.code, name: role.name });
-                                                            setShowRoleModal(true);
-                                                        }}
-                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteRole(role.id)}
-                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    </PermissionGate>
                                                 </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="py-20 flex flex-col items-center">
-                                        <ShieldAlert className="w-12 h-12 text-slate-200 mb-4" />
-                                        <h3 className="text-lg font-bold text-slate-900">No Roles Found</h3>
-                                        <p className="text-slate-400">Try adjusting your search parameters.</p>
+                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                            <ShieldAlert className="w-10 h-10 text-slate-200" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-1">No Roles Found</h3>
+                                        <p className="text-slate-400 text-sm">Try adjusting your search parameters or create a new role.</p>
                                     </div>
                                 )}
                             </div>
@@ -484,69 +572,87 @@ const RolesManagement: React.FC = () => {
                         </div>
                     ) : (
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            {/* Table Header */}
-                            <div className="bg-slate-50 px-5 py-3 border-b border-slate-200">
+                            {/* Table Header - Modern style */}
+                            <div className="bg-gradient-to-r from-slate-50 to-white px-5 py-3.5 border-b border-slate-200">
                                 <div className="grid grid-cols-12 gap-4 items-center">
-                                    <div className="col-span-1 text-xs font-black text-slate-400 uppercase tracking-wider">Avatar</div>
-                                    <div className="col-span-3 text-xs font-black text-slate-400 uppercase tracking-wider">Username</div>
-                                    <div className="col-span-4 text-xs font-black text-slate-400 uppercase tracking-wider">Email</div>
-                                    <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider">User ID</div>
-                                    <div className="col-span-2 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Actions</div>
+                                    <div className="col-span-1 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <UserCircle className="w-3 h-3" /> Avatar
+                                    </div>
+                                    <div className="col-span-3 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <UserCog className="w-3 h-3" /> Username
+                                    </div>
+                                    <div className="col-span-4 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Mail className="w-3 h-3" /> Email
+                                    </div>
+                                    <div className="col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Activity className="w-3 h-3" /> User ID
+                                    </div>
+                                    <div className="col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider text-right flex items-center justify-end gap-2">
+                                        <Settings className="w-3 h-3" /> Actions
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Table Body */}
-                            <div className="divide-y divide-slate-100">
+                            {/* Table Body - Enhanced rows */}
+                            <div className="divide-y divide-slate-50">
                                 {paginatedUsers.length > 0 ? (
-                                    paginatedUsers.map(user => (
-                                        <div key={user.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors group">
+                                    paginatedUsers.map((user, idx) => (
+                                        <div
+                                            key={user.id}
+                                            className={`px-5 py-3.5 hover:bg-gradient-to-r hover:from-slate-50/80 hover:to-white transition-all duration-200 group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-30/30'}`}
+                                        >
                                             <div className="grid grid-cols-12 gap-4 items-center">
-                                                {/* Avatar */}
+                                                {/* Avatar - Enhanced with gradient */}
                                                 <div className="col-span-1">
-                                                    <div className="w-9 h-9 bg-gradient-to-tr from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-slate-400">
+                                                    <div className="w-10 h-10 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-slate-500 group-hover:from-primary-navy/10 group-hover:to-primary-navy/5 group-hover:text-primary-navy transition-all duration-200">
                                                         <UserCircle className="w-5 h-5" />
                                                     </div>
                                                 </div>
 
                                                 {/* Username */}
                                                 <div className="col-span-3">
-                                                    <span className="font-bold text-slate-900 group-hover:text-primary-navy transition-colors text-sm">
+                                                    <span className="font-bold text-slate-800 group-hover:text-primary-navy transition-colors text-sm">
                                                         {user.firstName + ' ' + user.lastName}
                                                     </span>
                                                 </div>
 
                                                 {/* Email */}
                                                 <div className="col-span-4">
-                                                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                        <Mail className="w-3.5 h-3.5" />
+                                                    <div className="flex items-center gap-2 text-sm text-slate-500 group-hover:text-slate-600 transition-colors">
+                                                        <Mail className="w-3.5 h-3.5 text-slate-400" />
                                                         <span className="truncate">{user.email}</span>
                                                     </div>
                                                 </div>
 
                                                 {/* User ID */}
                                                 <div className="col-span-2">
-                                                    <span className="text-xs font-black text-primary-navy/40 uppercase tracking-widest">
-                                                        UID: {user.id}
+                                                    <span className="text-xs font-bold text-primary-navy/50 bg-primary-navy/5 px-2 py-1 rounded-md">
+                                                        #{user.id}
                                                     </span>
                                                 </div>
 
-                                                {/* Actions */}
+                                                {/* Actions - Enhanced button */}
                                                 <div className="col-span-2 flex items-center justify-end">
-                                                    <button
-                                                        onClick={() => openMemberManager(user)}
-                                                        className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-primary-navy text-slate-600 hover:text-white border border-slate-200 hover:border-primary-navy font-bold rounded-xl shadow-sm transition-all duration-300 text-xs"
-                                                    >
-                                                        Assign Roles <ArrowRight className="w-4 h-4" />
-                                                    </button>
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                                                        <button
+                                                            onClick={() => openMemberManager(user)}
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gradient-to-r hover:from-primary-navy hover:to-primary-navy-dark text-slate-600 hover:text-white border border-slate-200 hover:border-primary-navy font-semibold rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 text-xs"
+                                                        >
+                                                            <UserCog className="w-3.5 h-3.5" />
+                                                            Assign
+                                                        </button>
+                                                    </PermissionGate>
                                                 </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="py-20 flex flex-col items-center">
-                                        <ShieldAlert className="w-12 h-12 text-slate-200 mb-4" />
-                                        <h3 className="text-lg font-bold text-slate-900">No Users Found</h3>
-                                        <p className="text-slate-400">Try adjusting your search parameters.</p>
+                                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                            <UsersIcon className="w-10 h-10 text-slate-200" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-1">No Users Found</h3>
+                                        <p className="text-slate-400 text-sm">Try adjusting your search parameters.</p>
                                     </div>
                                 )}
                             </div>
@@ -567,34 +673,81 @@ const RolesManagement: React.FC = () => {
 
             </div >
 
-            {/* Role Modal */}
+            {/* Role Modal - Modern glass morphism style */}
             {
                 showRoleModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowRoleModal(false)}></div>
-                        <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-4 duration-300">
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-xl font-black text-slate-900">{editingRole ? 'Edit Profile' : 'New Security Profile'}</h2>
-                                    <button onClick={() => setShowRoleModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X className="w-6 h-6" /></button>
-                                </div>
-                                <form onSubmit={handleCreateOrUpdateRole} className="space-y-6">
-                                    {!editingRole && (
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-700 ml-1">System Identifier (Code)</label>
-                                            <input type="text" required value={roleForm.code} onChange={e => setRoleForm({ ...roleForm, code: e.target.value.toLowerCase() })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all text-sm" placeholder="e.g. cloud_admin" />
+                        <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowRoleModal(false)}></div>
+                        <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                            {/* Modal Header */}
+                            <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-primary-navy to-primary-navy-dark rounded-xl flex items-center justify-center shadow-lg shadow-primary-navy/20">
+                                            <Shield className="w-5 h-5 text-white" />
                                         </div>
-                                    )}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700 ml-1">Display Title</label>
-                                        <input type="text" required value={roleForm.name} onChange={e => setRoleForm({ ...roleForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-4 focus:ring-primary-navy/5 focus:border-primary-navy outline-none transition-all text-sm" placeholder="e.g. Cloud Administrator" />
+                                        <div>
+                                            <h2 className="text-lg font-bold text-slate-900">{editingRole ? 'Edit Profile' : 'New Security Profile'}</h2>
+                                            <p className="text-xs text-slate-400">{editingRole ? 'Update role details' : 'Create a new role'}</p>
+                                        </div>
                                     </div>
-                                    <div className="pt-4 flex gap-3">
-                                        <button type="button" onClick={() => setShowRoleModal(false)} className="flex-1 py-2.5 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-all text-sm border border-slate-200">Dismiss</button>
-                                        <button type="submit" className="flex-1 py-2.5 bg-slate-900 text-white font-bold rounded-xl shadow-xl shadow-slate-900/20 active:scale-95 transition-all text-sm">Save Changes</button>
-                                    </div>
-                                </form>
+                                    <button
+                                        onClick={() => setShowRoleModal(false)}
+                                        className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
+
+                            {/* Modal Body */}
+                            <form onSubmit={handleCreateOrUpdateRole} className="p-6 space-y-5">
+                                {!editingRole && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
+                                            <Settings className="w-4 h-4 text-slate-400" />
+                                            System Identifier (Code)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={roleForm.code}
+                                            onChange={e => setRoleForm({ ...roleForm, code: e.target.value.toLowerCase() })}
+                                            className="w-full bg-slate-50/80 border border-slate-200/60 p-3 rounded-xl focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none transition-all text-sm font-medium placeholder:text-slate-300"
+                                            placeholder="e.g. cloud_admin"
+                                        />
+                                    </div>
+                                )}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700 ml-1 flex items-center gap-2">
+                                        <Shield className="w-4 h-4 text-slate-400" />
+                                        Display Title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={roleForm.name}
+                                        onChange={e => setRoleForm({ ...roleForm, name: e.target.value })}
+                                        className="w-full bg-slate-50/80 border border-slate-200/60 p-3 rounded-xl focus:ring-2 focus:ring-primary-navy/20 focus:border-primary-navy outline-none transition-all text-sm font-medium placeholder:text-slate-300"
+                                        placeholder="e.g. Cloud Administrator"
+                                    />
+                                </div>
+                                <div className="pt-4 flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRoleModal(false)}
+                                        className="flex-1 py-3 text-slate-600 font-semibold hover:bg-slate-50 rounded-xl transition-all text-sm border border-slate-200 hover:border-slate-300"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 py-3 bg-gradient-to-r from-primary-navy to-primary-navy-dark text-white font-semibold rounded-xl shadow-xl shadow-primary-navy/20 active:scale-95 transition-all text-sm hover:shadow-2xl hover:shadow-primary-navy/30"
+                                    >
+                                        {editingRole ? 'Update Profile' : 'Create Profile'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )

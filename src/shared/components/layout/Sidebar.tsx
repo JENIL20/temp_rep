@@ -8,13 +8,13 @@ import {
   Layers,
   Award,
   ShieldCheck,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../../store";
 import { logout } from "../../../domains/auth/store/authSlice";
-
 import { APP_CONFIG } from "../../../config/app.config";
+import PermissionGate from "../auth/PermissionGate";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -37,19 +37,9 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       : "text-white/70 hover:bg-white/10 hover:text-white hover:translate-x-1"
     }`;
 
-  const navItems = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/courses", label: "Courses", icon: BookOpen },
-    { to: "/my-courses", label: "My Courses", icon: GraduationCap },
-    { to: "/categories", label: "Categories", icon: Layers },
-    { to: "/certificates", label: "Certificates", icon: Award },
-    { to: "/admin/roles", label: "Roles & Permissions", icon: ShieldCheck },
-    { to: "/admin/users", label: "Users Management", icon: User },
-    { to: "/admin/organizations", label: "Organizations", icon: Building2 },
-    { to: "/admin/groups", label: "Study Groups", icon: Users },
-    // { to: "/projects", label: "Projects", icon: Briefcase },
-    // { to: "/settings", label: "Settings", icon: Settings },
-  ];
+  const closeMobile = () => {
+    if (window.innerWidth < 1024) setIsOpen(false);
+  };
 
   return (
     <>
@@ -75,28 +65,95 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
                 <GraduationCap className="w-6 h-6 text-primary-navy" strokeWidth={2.5} />
               </div>
               <div className="overflow-hidden">
-                <span className="text-white font-black text-2xl tracking-tighter block leading-none">{APP_CONFIG.name}</span>
-                <span className="text-secondary-gold text-[10px] font-bold uppercase tracking-[0.2em]">{APP_CONFIG.subtitle}</span>
+                <span className="text-white font-black text-2xl tracking-tighter block leading-none">
+                  {APP_CONFIG.name}
+                </span>
+                <span className="text-secondary-gold text-[10px] font-bold uppercase tracking-[0.2em]">
+                  {APP_CONFIG.subtitle}
+                </span>
               </div>
             </NavLink>
           </div>
 
           {/* Navigation Section */}
           <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-2">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={linkClasses}
-                onClick={() => {
-                  // Only close on mobile
-                  if (window.innerWidth < 1024) setIsOpen(false);
-                }}
-              >
-                <item.icon size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
-                <span className="text-sm tracking-wide">{item.label}</span>
+
+            {/* Dashboard – always visible */}
+            <NavLink to="/dashboard" className={linkClasses} onClick={closeMobile}>
+              <LayoutDashboard size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+              <span className="text-sm tracking-wide">Dashboard</span>
+            </NavLink>
+
+            {/* Profile – always visible */}
+            <NavLink to="/profile" className={linkClasses} onClick={closeMobile}>
+              <User size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+              <span className="text-sm tracking-wide">Profile</span>
+            </NavLink>
+
+            {/* Courses */}
+            <PermissionGate module="COURSE_MANAGEMENT">
+              <NavLink to="/courses" className={linkClasses} onClick={closeMobile}>
+                <BookOpen size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Courses</span>
               </NavLink>
-            ))}
+            </PermissionGate>
+
+            {/* My Courses */}
+            <PermissionGate module="COURSE_MANAGEMENT">
+              <NavLink to="/my-courses" className={linkClasses} onClick={closeMobile}>
+                <GraduationCap size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">My Courses</span>
+              </NavLink>
+            </PermissionGate>
+
+            {/* Categories */}
+            <PermissionGate module="CATEGORY_MANAGEMENT">
+              <NavLink to="/categories" className={linkClasses} onClick={closeMobile}>
+                <Layers size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Categories</span>
+              </NavLink>
+            </PermissionGate>
+
+            {/* Certificates */}
+            <PermissionGate module="CERTIFICATE_MANAGEMENT">
+              <NavLink to="/certificates" className={linkClasses} onClick={closeMobile}>
+                <Award size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Certificates</span>
+              </NavLink>
+            </PermissionGate>
+
+            {/* Roles & Permissions */}
+            <PermissionGate module="ROLE_MANAGEMENT">
+              <NavLink to="/admin/roles" className={linkClasses} onClick={closeMobile}>
+                <ShieldCheck size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Roles & Permissions</span>
+              </NavLink>
+            </PermissionGate>
+
+            {/* Users Management */}
+            <PermissionGate module="USER_MANAGEMENT">
+              <NavLink to="/admin/users" className={linkClasses} onClick={closeMobile}>
+                <User size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Users Management</span>
+              </NavLink>
+            </PermissionGate>
+
+            {/* Organizations */}
+            <PermissionGate module="ORGANIZATION_MANAGEMENT">
+              <NavLink to="/admin/organizations" className={linkClasses} onClick={closeMobile}>
+                <Building2 size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Organizations</span>
+              </NavLink>
+            </PermissionGate>
+
+            {/* Groups */}
+            <PermissionGate module="GROUP_MANAGEMENT">
+              <NavLink to="/admin/groups" className={linkClasses} onClick={closeMobile}>
+                <Users size={20} className="transition-transform duration-300 group-hover:scale-110 flex-shrink-0" />
+                <span className="text-sm tracking-wide">Study Groups</span>
+              </NavLink>
+            </PermissionGate>
+
           </nav>
 
           {/* Bottom Section */}

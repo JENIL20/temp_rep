@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '../types/auth.types';
+import { User, UserPermissions } from '../types/auth.types';
 
 interface AuthState {
   user: User | null;
@@ -7,6 +7,8 @@ interface AuthState {
   tenantId: number | null;
   isAuthenticated: boolean;
   loading: boolean;
+  /** moduleCode → permissionCodes[], e.g. { COURSES: ['view','create'] } */
+  permissions: UserPermissions;
 }
 
 const initialState: AuthState = {
@@ -15,6 +17,7 @@ const initialState: AuthState = {
   tenantId: null,
   isAuthenticated: false,
   loading: false,
+  permissions: {},
 };
 
 const authSlice = createSlice({
@@ -31,10 +34,22 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       // Redux Persist will automatically save to localStorage
     },
+
+    /** Save the full module-permission map for the logged-in user */
+    setPermissions: (state, action: PayloadAction<UserPermissions>) => {
+      state.permissions = action.payload;
+    },
+
+    /** Clear only permissions (e.g. on role change without full logout) */
+    clearPermissions: (state) => {
+      state.permissions = {};
+    },
+
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.permissions = {};
       // Redux Persist will automatically clear from localStorage
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -43,5 +58,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setLoading } = authSlice.actions;
+export const { setCredentials, setPermissions, clearPermissions, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;

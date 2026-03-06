@@ -49,6 +49,40 @@ const validateCourseId = (courseId: number): void => {
     }
 };
 
+const unwrapPayload = <T = any>(response: any): T => {
+    if (response && typeof response === 'object' && 'data' in response) {
+        return response.data as T;
+    }
+    return response as T;
+};
+
+const normalizeSubscriptionStatus = (payload: any): SubscriptionStatus => {
+    const data = unwrapPayload<any>(payload);
+
+    if (typeof data === 'boolean') {
+        return { isSubscribed: data };
+    }
+
+    if (!data || typeof data !== 'object') {
+        return { isSubscribed: false };
+    }
+
+    if (typeof data.isSubscribed === 'boolean') {
+        return data as SubscriptionStatus;
+    }
+
+    if (typeof data.subscribed === 'boolean') {
+        return { ...data, isSubscribed: data.subscribed } as SubscriptionStatus;
+    }
+
+    // Common API envelope: { success, message, data: { isSubscribed: true } }
+    if (data.data) {
+        return normalizeSubscriptionStatus(data.data);
+    }
+
+    return { isSubscribed: false };
+};
+
 
 const DUMMY_ENROLLED_COURSES: EnrolledCourse[] = [
     {
@@ -188,7 +222,7 @@ export const userCourseApi = {
         try {
             validateSubscribeRequest(data);
             const response = await api.post(API.USER_COURSE.SUBSCRIBE, data);
-            return response.data;
+            return unwrapPayload(response);
         } catch (error) {
             throw handleApiError(error, 'Subscribe to course');
         }
@@ -207,7 +241,7 @@ export const userCourseApi = {
         try {
             validateSubscribeRequest(data);
             const response = await api.post(API.USER_COURSE.UNSUBSCRIBE, data);
-            return response.data;
+            return unwrapPayload(response);
         } catch (error) {
             throw handleApiError(error, 'Unsubscribe from course');
         }
@@ -249,7 +283,7 @@ export const userCourseApi = {
 
         try {
             const response = await api.get(API.USER_COURSE.MY_COURSES, { params });
-            const result = response.data;
+            const result = unwrapPayload(response);
 
             // Handle legacy array response if backend not updated
             if (Array.isArray(result)) {
@@ -280,7 +314,7 @@ export const userCourseApi = {
 
         try {
             const response = await api.get(API.USER_COURSE.SUBSCRIBED_LIST);
-            const result = response.data;
+            const result = unwrapPayload(response);
 
             if (!result) {
                 console.warn('[UserCourseAPI] No subscribed courses data returned, returning empty array');
@@ -307,7 +341,7 @@ export const userCourseApi = {
         try {
             validateCourseId(courseId);
             const response = await api.get(API.USER_COURSE.CHECK_SUBSCRIPTION(courseId));
-            return response.data;
+            return normalizeSubscriptionStatus(response);
         } catch (error) {
             throw handleApiError(error, 'Check subscription status');
         }

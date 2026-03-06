@@ -10,7 +10,7 @@ export const paths = {
     profile: "/profile",
     admin: "/admin",
     moderation: "/moderation",
-    unauthorized: "/unauthorized",
+    unauthorized: "/unauthorized",  // 403 - Permission denied
 
     // Category Routes
     categories: "/categories",
