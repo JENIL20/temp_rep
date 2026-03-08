@@ -201,7 +201,7 @@ const RolePermissionPage: React.FC = () => {
                         >
                             Cancel
                         </button>
-                        <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                        <PermissionGate module="ROLE_MANAGEMENT" permission="role_edit">
                             <button
                                 onClick={handleSaveChanges}
                                 disabled={saving}
@@ -370,7 +370,7 @@ const RolePermissionPage: React.FC = () => {
                                 <span className="font-bold text-slate-800">{totalPermissions}</span> permissions selected across{' '}
                                 <span className="font-bold text-slate-800">{modulePermissions.length}</span> modules
                             </p>
-                            <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                            <PermissionGate module="ROLE_MANAGEMENT" permission="role_edit">
                                 <button
                                     onClick={handleSaveChanges}
                                     disabled={saving}

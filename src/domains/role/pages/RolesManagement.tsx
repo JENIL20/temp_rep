@@ -328,7 +328,7 @@ const RolesManagement: React.FC = () => {
                         >
                             <RefreshCw className="w-5 h-5" />
                         </button>
-                        <PermissionGate module="ROLE_MANAGEMENT" permission="create">
+                        <PermissionGate module="ROLE_MANAGEMENT" permission="role_add">
                             <button
                                 onClick={() => {
                                     setEditingRole(null);
@@ -505,7 +505,7 @@ const RolesManagement: React.FC = () => {
 
                                                 {/* Actions - Enhanced buttons */}
                                                 <div className="col-span-3 flex items-center justify-end gap-2">
-                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="role_edit">
                                                         {activeTab === 'roleModules' ? (
                                                             <button
                                                                 onClick={() => openModuleManager(role)}
@@ -524,7 +524,7 @@ const RolesManagement: React.FC = () => {
                                                             </button>
                                                         )}
                                                     </PermissionGate>
-                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="role_edit">
                                                         <button
                                                             onClick={() => {
                                                                 setEditingRole(role);
@@ -536,7 +536,7 @@ const RolesManagement: React.FC = () => {
                                                             <Edit2 className="w-4 h-4" />
                                                         </button>
                                                     </PermissionGate>
-                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="delete">
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="role_delete">
                                                         <button
                                                             onClick={() => handleDeleteRole(role.id)}
                                                             className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
@@ -633,7 +633,7 @@ const RolesManagement: React.FC = () => {
 
                                                 {/* Actions - Enhanced button */}
                                                 <div className="col-span-2 flex items-center justify-end">
-                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="update">
+                                                    <PermissionGate module="ROLE_MANAGEMENT" permission="role_edit">
                                                         <button
                                                             onClick={() => openMemberManager(user)}
                                                             className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gradient-to-r hover:from-primary-navy hover:to-primary-navy-dark text-slate-600 hover:text-white border border-slate-200 hover:border-primary-navy font-semibold rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 text-xs"

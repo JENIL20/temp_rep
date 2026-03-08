@@ -156,7 +156,7 @@ const Courses = () => {
           </p>
         </div>
 
-        <PermissionGate module="COURSE_MANAGEMENT" permission="create">
+        <PermissionGate module="COURSE_MANAGEMENT" permission="course_add">
           <button
             onClick={() => navigate('/courses/create')}
             className="flex items-center gap-2 bg-primary-navy text-white px-4 py-2.5 rounded-lg font-medium shadow-lg hover:bg-primary-navy-light hover:shadow-xl transition-all active:scale-95"

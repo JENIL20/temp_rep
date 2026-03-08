@@ -49,7 +49,7 @@ export const userPermissionsApi = {
       // 1. Roles assigned to this user
       const rolesRes = await api.get(API.USER_PERMISSIONS.USER_ROLES(userId));
       const roles = toArray(rolesRes);
-      console.log("roles", roles);
+      //   console.log("roles", roles);
       if (roles.length === 0) return {};
 
       // 2. For every role, fetch its modules AND the assigned permissions per module
@@ -66,7 +66,7 @@ export const userPermissionsApi = {
               API.USER_PERMISSIONS.ROLE_MODULES_BY_ROLE(roleId),
             );
             const roleModules = toArray(modulesRes);
-            console.log("roleModules", roleModules);
+            // console.log("roleModules", roleModules);
             await Promise.all(
               roleModules.map(async (rm: any) => {
                 const moduleId: number = rm.moduleId ?? rm.id;
@@ -86,7 +86,7 @@ export const userPermissionsApi = {
                     ),
                   );
                   const perms = toArray(permsRes);
-
+                  console.log("perms", perms);
                   const codes = perms
                     .map((p: any) =>
                       (p.permissionCode ?? p.code ?? "").toLowerCase(),
