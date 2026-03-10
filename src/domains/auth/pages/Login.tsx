@@ -7,6 +7,8 @@ import { userPermissionsApi } from '../../user/api/userPermissionsApi';
 // import { API } from '../../../shared/api/endpoints';
 
 import { toast } from 'react-toastify';
+import api from '@/shared/api/axios';
+import API from '@/shared/api/endpoints';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +19,52 @@ const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+const decryptPermissions = async (encryptedBase64: string) => {
+        try {
+            const keyBase64 = "LajL2QfHkbXKnypAR5PpXIqJpljJU12RYv4O0pFl4Hk=";
+            const keyBuffer = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
+            const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+
+            const iv = combined.slice(0, 12);
+            const tag = combined.slice(12, 28);
+            const ciphertext = combined.slice(28);
+
+            const dataToDecrypt = new Uint8Array(ciphertext.length + tag.length);
+            dataToDecrypt.set(ciphertext);
+            dataToDecrypt.set(tag, ciphertext.length);
+
+            const cryptoKey = await window.crypto.subtle.importKey(
+                "raw", keyBuffer, { name: "AES-GCM" }, false, ["decrypt"]
+            );
+
+            const decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: iv, tagLength: 128 },
+                cryptoKey, dataToDecrypt
+            );
+
+            const json = new TextDecoder().decode(decryptedBuffer);
+            const raw = JSON.parse(json);
+
+            // Backend returns list of objects, we need to group by ModuleCode for effective lookup
+            if (Array.isArray(raw)) {
+                const map: Record<string, string[]> = {};
+                raw.forEach((p: any) => {
+                    let m = p.moduleCode || p.ModuleCode;
+                    const c = p.permissionCode || p.PermissionCode;
+                    if (m && c) {
+                        m = m.toUpperCase();
+                        if (!map[m]) map[m] = [];
+                        if (!map[m].includes(c)) map[m].push(c);
+                    }
+                });
+                return map;
+            }
+            return raw;
+        } catch (e) {
+            console.error("Permission Decryption Error:", e);
+            return {};
+        }
+    };
   const handleSubmit = async (e: React.FormEvent) => {
     console.log("Login submit clicked");
     e.preventDefault();
@@ -29,10 +77,11 @@ const Login = () => {
 
       // Handle both array/object response just in case
       const loginData = Array.isArray(data) ? data[0] : data;
-
       const user = loginData?.user;
       const token = loginData?.token;
       const tenantId = loginData?.tenantId || user?.tenantId;
+const dry =await decryptPermissions(loginData.encryptedPermissions);
+      console.log(dry)
 
       if (user && token) {
         dispatch(setCredentials({ user, token, tenantId }));
@@ -41,9 +90,26 @@ const Login = () => {
 
         // Fetch & persist the user's module-permission map
         try {
-          const perms = await userPermissionsApi.getMyPermissions(user.id);
-          // console.log("Fetched user permissions:", perms);
-          dispatch(setPermissions(perms));
+          const perms = await api.get(API.USER_PERMISSIONS.USER_PERMISSIONS(user.id)); //await userPermissionsApi.getMyPermissions(user.id,user.id);
+          const result:any = {};
+  perms.data.forEach((item:any) => {
+    let module = item.moduleCode;
+
+    // match your expected module naming
+    if (!module.endsWith("_MANAGEMENT") && module !== "REPORT") {
+      module = module + "_MANAGEMENT";
+    }
+
+    // create module if not exist
+    if (!result[module]) {
+      result[module] = [];
+    }
+
+    // convert permission code to lowercase
+    result[module].push(item.permissionCode.toLowerCase());
+  });
+
+          dispatch(setPermissions(result));
         } catch {
           // Non-fatal: user is logged in, permissions just won't be available
           console.warn('Could not load user permissions');

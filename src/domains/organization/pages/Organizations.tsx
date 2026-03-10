@@ -315,7 +315,7 @@ const Organizations = () => {
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
                                                         {org.logoThumbUrl ? (
-                                                            <img src={`${API_BASE_URL}`+org.logoThumbUrl} alt={org.orgName} className="w-full h-full object-cover" />
+                                                            <img src={`${API_BASE_URL}` + org.logoThumbUrl} alt={org.orgName} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <Building2 className="w-6 h-6 text-gray-300" />
                                                         )}

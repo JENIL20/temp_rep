@@ -10,19 +10,20 @@ import {
     BookOpenCheck,
     ChevronLeft,
     ChevronRight,
-    Loader2,
-    CheckCircle2,
-    Save
+    Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import { groupApi } from '../api/groupApi';
-import { Group, GroupCourseUpdateItem } from '../types/group.types';
+import { Group } from '../types/group.types';
 import { LoadingSpinner } from '../../../shared/components/common';
-import { courseApi } from '../../course/api/courseApi';
-import { Course } from '../../course/types/course.types';
 import { confirmToast } from '@/shared/utils/confirmToast';
+import { paths } from '@/routes/path';
+import PermissionGate from '../../../shared/components/auth/PermissionGate';
 
 const Groups = () => {
+    const navigate = useNavigate();
+
     // Data State
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,15 +43,6 @@ const Groups = () => {
     const [groupName, setGroupName] = useState('');
     const [savingGroup, setSavingGroup] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-
-    // Assign Courses Modal State
-    const [showAssignModal, setShowAssignModal] = useState(false);
-    const [assigningGroup, setAssigningGroup] = useState<Group | null>(null);
-    const [allCourses, setAllCourses] = useState<Course[]>([]);
-    const [groupCourses, setGroupCourses] = useState<GroupCourseUpdateItem[]>([]);
-    const [loadingCourses, setLoadingCourses] = useState(false);
-    const [savingCourses, setSavingCourses] = useState(false);
-    const [courseSearch, setCourseSearch] = useState('');
 
     const fetchData = useCallback(async () => {
         try {
@@ -143,62 +135,8 @@ const Groups = () => {
         }
     };
 
-    // Course Assignment Handlers
-    const openAssignModal = async (group: Group) => {
-        setAssigningGroup(group);
-        setShowAssignModal(true);
-        setActiveDropdown(null);
-        setGroupCourses([]);
-        setCourseSearch('');
-
-        try {
-            setLoadingCourses(true);
-            // Fetch all courses (using a large page size)
-            const coursesData = await courseApi.list({ pageSize: 100 });
-            setAllCourses(coursesData.items || []);
-
-            // Fetch current group courses
-            const gcData = await groupApi.getGroupCourses(group.id);
-            const formatted = (gcData.items || []).map((c: any) => ({
-                courseId: c.courseId,
-                isEnable: c.isEnable
-            }));
-            setGroupCourses(formatted);
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Failed to load courses';
-            toast.error(message);
-            setShowAssignModal(false);
-        } finally {
-            setLoadingCourses(false);
-        }
-    };
-
-    const toggleCourse = (courseId: number) => {
-        setGroupCourses(prev => {
-            const exists = prev.find(p => p.courseId === courseId);
-            if (exists) {
-                return prev.map(p => p.courseId === courseId ? { ...p, isEnable: !p.isEnable } : p);
-            }
-            return [...prev, { courseId, isEnable: true }];
-        });
-    };
-
-    const handleSaveCourses = async () => {
-        if (!assigningGroup) return;
-        try {
-            setSavingCourses(true);
-            await groupApi.bulkUpdateCourses({
-                groupId: assigningGroup.id,
-                courses: groupCourses
-            });
-            toast.success('Group courses updated effectively');
-            setShowAssignModal(false);
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Error updating courses';
-            toast.error(message);
-        } finally {
-            setSavingCourses(false);
-        }
+    const handleManageCourses = (groupId: number) => {
+        navigate(paths.web.manageGroupCourses.replace(':groupId', groupId.toString()));
     };
 
     // Outside click detection
@@ -215,10 +153,6 @@ const Groups = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [activeDropdown]);
-
-    const filteredCourses = allCourses.filter(c =>
-        c.title.toLowerCase().includes(courseSearch.toLowerCase())
-    );
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -309,41 +243,45 @@ const Groups = () => {
                                                 {group.createdAt ? new Date(group.createdAt).toLocaleDateString() : 'N/A'}
                                             </td>
                                             <td className="px-5 py-3 text-right">
-                                                <button
-                                                    onClick={() => openAssignModal(group)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-purple-600 hover:text-purple-700 hover:bg-purple-50 hover:border-purple-200 font-semibold text-xs rounded-lg transition-all mr-2 shadow-sm"
-                                                >
-                                                    <BookOpenCheck size={14} />
-                                                    Assign Courses
-                                                </button>
-
-                                                <div className="inline-block relative dropdown-container">
+                                                <PermissionGate module="GROUP_MANAGEMENT" permission="group_edit">
                                                     <button
-                                                        onClick={() => setActiveDropdown(activeDropdown === group.id ? null : group.id)}
-                                                        className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
+                                                        onClick={() => handleManageCourses(group.id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-purple-600 hover:text-purple-700 hover:bg-purple-50 hover:border-purple-200 font-semibold text-xs rounded-lg transition-all mr-2 shadow-sm"
                                                     >
-                                                        <MoreHorizontal size={20} />
+                                                        <BookOpenCheck size={14} />
+                                                        Assign Courses
                                                     </button>
-                                                    {activeDropdown === group.id && (
-                                                        <div className="absolute right-0 top-10 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-2 animate-in fade-in zoom-in-95 duration-100 origin-top-right text-left">
-                                                            <button
-                                                                onClick={() => openEditModal(group)}
-                                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                                            >
-                                                                <Edit3 size={16} className="text-gray-400" />
-                                                                <span className="font-medium">Edit Name</span>
-                                                            </button>
-                                                            <div className="h-px bg-gray-100 my-1 mx-4" />
-                                                            <button
-                                                                onClick={() => handleDelete(group.id)}
-                                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                                            >
-                                                                <Trash2 size={16} className="text-red-400" />
-                                                                <span className="font-medium">Delete Group</span>
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                </PermissionGate>
+
+                                                <PermissionGate module="GROUP_MANAGEMENT" permission="group_edit">
+                                                    <div className="inline-block relative dropdown-container">
+                                                        <button
+                                                            onClick={() => setActiveDropdown(activeDropdown === group.id ? null : group.id)}
+                                                            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
+                                                        >
+                                                            <MoreHorizontal size={20} />
+                                                        </button>
+                                                        {activeDropdown === group.id && (
+                                                            <div className="absolute right-0 top-10 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-2 animate-in fade-in zoom-in-95 duration-100 origin-top-right text-left">
+                                                                <button
+                                                                    onClick={() => openEditModal(group)}
+                                                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <Edit3 size={16} className="text-gray-400" />
+                                                                    <span className="font-medium">Edit Name</span>
+                                                                </button>
+                                                                <div className="h-px bg-gray-100 my-1 mx-4" />
+                                                                <button
+                                                                    onClick={() => handleDelete(group.id)}
+                                                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                                                >
+                                                                    <Trash2 size={16} className="text-red-400" />
+                                                                    <span className="font-medium">Delete Group</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </PermissionGate>
                                             </td>
                                         </tr>
                                     ))}
@@ -413,116 +351,6 @@ const Groups = () => {
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Assign Courses Modal */}
-            {showAssignModal && assigningGroup && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onClick={() => !savingCourses && setShowAssignModal(false)} />
-                    <div className="relative bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="bg-white border-b border-gray-100 px-6 py-5 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">Assign Courses to Group</h3>
-                                <p className="text-sm font-medium text-gray-500 mt-1">{assigningGroup.groupName}</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => !savingCourses && setShowAssignModal(false)} className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-colors">
-                                    <X size={20} />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Body */}
-                        <div className="flex-1 overflow-y-auto bg-gray-50/50 p-6">
-                            {loadingCourses ? (
-                                <div className="py-20 flex justify-center">
-                                    <LoadingSpinner variant="dots" message="Loading courses..." />
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search courses to assign..."
-                                            value={courseSearch}
-                                            onChange={(e) => setCourseSearch(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none shadow-sm"
-                                        />
-                                    </div>
-
-                                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                                        <div className="max-h-[50vh] overflow-y-auto divide-y divide-gray-100">
-                                            {filteredCourses.length === 0 ? (
-                                                <div className="p-8 text-center text-gray-500 text-sm">No courses found matching your search.</div>
-                                            ) : (
-                                                filteredCourses.map(course => {
-                                                    const assignedItem = groupCourses.find(g => g.courseId === course.id);
-                                                    const isAssigned = assignedItem?.isEnable === true;
-
-                                                    return (
-                                                        <label
-                                                            key={course.id}
-                                                            className={`flex items-center gap-4 p-4 cursor-pointer transition-colors hover:bg-purple-50/50 ${isAssigned ? 'bg-purple-50/30' : ''}`}
-                                                        >
-                                                            <div className="flex-shrink-0">
-                                                                <div className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${isAssigned ? 'bg-purple-600 border-purple-600 text-white shadow-sm' : 'bg-white border-gray-300'
-                                                                    }`}>
-                                                                    {isAssigned && <CheckCircle2 size={16} />}
-                                                                </div>
-                                                                {/* Hidden checkbox for accessibility */}
-                                                                <input
-                                                                    type="checkbox"
-                                                                    className="sr-only"
-                                                                    checked={isAssigned}
-                                                                    onChange={() => toggleCourse(course.id)}
-                                                                />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-bold text-gray-900 truncate">{course.title}</div>
-                                                                <div className="text-xs font-medium text-gray-500 flex items-center gap-2 mt-0.5">
-                                                                    <span className="truncate">{course.instructor}</span>
-                                                                    <span>•</span>
-                                                                    <span className="capitalize">{course.difficulty}</span>
-                                                                    {course.price > 0 && <span>• ${course.price.toFixed(2)}</span>}
-                                                                </div>
-                                                            </div>
-                                                            {course.thumbnailUrl && (
-                                                                <div className="w-16 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 hidden sm:block">
-                                                                    <img src={course.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                                                                </div>
-                                                            )}
-                                                        </label>
-                                                    )
-                                                })
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer */}
-                        <div className="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between rounded-b-2xl flex-shrink-0">
-                            <div className="text-sm font-medium text-gray-500">
-                                <strong className="text-purple-700">{groupCourses.filter(g => g.isEnable).length}</strong> courses selected
-                            </div>
-                            <div className="flex gap-3">
-                                <button type="button" onClick={() => !savingCourses && setShowAssignModal(false)} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-all border border-gray-200">
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSaveCourses}
-                                    disabled={savingCourses || loadingCourses}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-purple-600/20 transition-all active:scale-95 disabled:opacity-60"
-                                >
-                                    {savingCourses ? <><Loader2 size={16} className="animate-spin" /> Saving</> : <><Save size={16} /> Save Assignments</>}
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             )}

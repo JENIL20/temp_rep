@@ -48,6 +48,7 @@ export const userPermissionsApi = {
     try {
       // 1. Roles assigned to this user
       const rolesRes = await api.get(API.USER_PERMISSIONS.USER_ROLES(userId));
+      console.log("rolesRes", rolesRes);
       const roles = toArray(rolesRes);
       //   console.log("roles", roles);
       if (roles.length === 0) return {};
@@ -59,14 +60,15 @@ export const userPermissionsApi = {
         roles.map(async (roleRaw: any) => {
           const roleId: number = roleRaw.id ?? roleRaw.roleId;
           if (!roleId) return;
+          console.log("roleId", roleId);
 
           try {
             // Modules assigned to this role
             const modulesRes = await api.get(
               API.USER_PERMISSIONS.ROLE_MODULES_BY_ROLE(roleId),
             );
+            console.log("modulesRes", modulesRes);
             const roleModules = toArray(modulesRes);
-            // console.log("roleModules", roleModules);
             await Promise.all(
               roleModules.map(async (rm: any) => {
                 const moduleId: number = rm.moduleId ?? rm.id;
@@ -113,7 +115,7 @@ export const userPermissionsApi = {
           }
         }),
       );
-
+      console.log("permaps", permMap);
       return permMap;
     } catch (error: any) {
       console.error("[userPermissionsApi] getMyPermissions failed:", error);

@@ -18,7 +18,8 @@ import {
   Award,
   CheckCircle2,
   XCircle,
-  X
+  X,
+  FileText
 } from "lucide-react";
 import { toast } from "react-toastify";
 import ReactPlayer from "react-player";
@@ -29,7 +30,7 @@ import { confirmToast } from "@/shared/utils/confirmToast";
 const Player = ReactPlayer as any;
 import type { Course, CourseVideo, EnrolledUser } from "../types/course.types";
 
-type TabType = 'details' | 'videos' | 'students';
+type TabType = 'details' | 'videos' | 'students' | 'documents';
 
 
 
@@ -363,6 +364,16 @@ const CourseDetails = () => {
                   {enrolledUsers.length}
                 </span>
               )}
+            </button>
+            <button
+              onClick={() => navigate(`/courses/${id}/documents`)}
+              className={`flex items-center gap-2 px-6 py-4 font-medium text-sm transition-all relative ${activeTab === 'documents'
+                ? 'text-primary-navy border-b-2 border-primary-navy'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <FileText size={18} />
+              Documents
             </button>
           </div>
         </div>

@@ -46,5 +46,6 @@ export const paths = {
 
     // Group Routes
     groups: "/admin/groups",
+    manageGroupCourses: "/admin/groups/:groupId/courses",
   },
 };

@@ -28,6 +28,7 @@ const Profile = lazy(() => import("../domains/user/pages/Profile"));
 const UserList = lazy(() => import("../domains/user/pages/UserList"));
 const Organizations = lazy(() => import("../domains/organization/pages/Organizations"));
 const Groups = lazy(() => import("../domains/group/pages/Groups"));
+const ManageGroupCourses = lazy(() => import("../domains/group/pages/ManageGroupCourses"));
 const Unauthorized = lazy(() => import("../shared/components/common/Unauthorized"));
 
 // ---------- Route Config Type ----------
@@ -222,5 +223,12 @@ export const ProtectedRoutes: RouteConfig[] = [
     element: Groups,
     requiredModule: "GROUP_MANAGEMENT",
     requiredPermission: "group_view",
+  },
+  {
+    path: paths.web.manageGroupCourses,
+    name: "Manage Group Courses",
+    element: ManageGroupCourses,
+    requiredModule: "GROUP_MANAGEMENT",
+    requiredPermission: "group_edit",
   },
 ];
